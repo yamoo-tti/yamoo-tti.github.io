@@ -1,70 +1,217 @@
-html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나의 첫 깃허브 홈페이지</title>
-    <style>
-        body {
-            font-family: 'Malgun Gothic', sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            text-align: center;
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            max-width: 400px;
-            width: 100%;
-        }
-        h1 {
-            color: #24292e;
-            margin-bottom: 10px;
-        }
-        p {
-            color: #666;
-            font-size: 1.1rem;
-        }
-        .links {
-            margin-top: 20px;
-        }
-        .btn {
-            display: inline-block;
-            background: #2ea44f;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        .btn:hover {
-            background: #2c974b;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Shop</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      color: #222;
+    }
+    a { text-decoration: none; color: inherit; }
+    .container {
+      width: 1200px;
+      max-width: 90%;
+      margin: 0 auto;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 0;
+    }
+    .logo { font-size: 1.8rem; font-weight: 700; }
+    .menu {
+      display: flex;
+      gap: 24px;
+      font-size: 0.95rem;
+    }
+    .cart-btn {
+      background: #111;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .hero {
+      background: linear-gradient(135deg, #111, #444);
+      color: white;
+      padding: 100px 0;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+    .hero p {
+      font-size: 1.1rem;
+      margin-bottom: 30px;
+    }
+    .shop-btn {
+      background: white;
+      color: black;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 999px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .section {
+      padding: 70px 0;
+    }
+    .section-title {
+      font-size: 2rem;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .product-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+    .product-image {
+      height: 220px;
+      background: linear-gradient(135deg, #ddd, #bbb);
+    }
+    .product-info {
+      padding: 18px;
+    }
+    .product-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .product-price {
+      color: #e53935;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .add-cart {
+      width: 100%;
+      background: #111;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    footer {
+      background: #111;
+      color: white;
+      text-align: center;
+      padding: 30px 0;
+    }
+    @media (max-width: 900px) {
+      .products {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 560px) {
+      .products {
+        grid-template-columns: 1fr;
+      }
+      .menu {
+        display: none;
+      }
+    }
+  </style>
 </head>
 <body>
-
-    <div class="container">
-        <h1>👋 안녕하세요!</h1>
-        <p>GitHub Pages로 만든 저의 첫 번째 홈페이지입니다.</p>
-        <p>앞으로 이곳에 멋진 콘텐츠를 채워나갈 예정입니다.</p>
-        
-        <div class="links">
-            <!-- 이동하고 싶은 링크가 있다면 href="" 안에 주소를 적으세요 -->
-            <a href="https://github.com" target="_blank" class="btn">내 깃허브 방문하기</a>
-        </div>
+  <header>
+    <div class="container nav">
+      <div class="logo">MY SHOP</div>
+      <nav class="menu">
+        <a href="#">NEW</a>
+        <a href="#">BEST</a>
+        <a href="#">CLOTHING</a>
+        <a href="#">ACCESSORY</a>
+        <a href="#">SALE</a>
+      </nav>
+      <button class="cart-btn">장바구니 (0)</button>
     </div>
+  </header>
 
+  <section class="hero">
+    <div class="container">
+      <h1>새 시즌, 새 스타일</h1>
+      <p>트렌디한 상품을 지금 만나보세요.</p>
+      <button class="shop-btn">쇼핑하기</button>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">추천 상품</h2>
+      <div class="products">
+        <div class="product-card">
+          <div class="product-image"></div>
+          <div class="product-info">
+            <div class="product-name">Classic Tee</div>
+            <div class="product-price">25,000원</div>
+            <button class="add-cart">장바구니 담기</button>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-image"></div>
+          <div class="product-info">
+            <div class="product-name">Urban Jacket</div>
+            <div class="product-price">89,000원</div>
+            <button class="add-cart">장바구니 담기</button>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-image"></div>
+          <div class="product-info">
+            <div class="product-name">Leather Bag</div>
+            <div class="product-price">120,000원</div>
+            <button class="add-cart">장바구니 담기</button>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-image"></div>
+          <div class="product-info">
+            <div class="product-name">Sneakers</div>
+            <div class="product-price">74,000원</div>
+            <button class="add-cart">장바구니 담기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2026 MY SHOP
+  </footer>
+
+  <script>
+    let cartCount = 0;
+    document.querySelectorAll('.add-cart').forEach(button => {
+      button.addEventListener('click', () => {
+        cartCount++;
+        document.querySelector('.cart-btn').textContent = `장바구니 (${cartCount})`;
+      });
+    });
+  </script>
 </body>
 </html>
