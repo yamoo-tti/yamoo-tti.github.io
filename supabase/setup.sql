@@ -113,14 +113,15 @@ create trigger on_auth_user_created after insert on auth.users
 -- 5) 시세 마진 설정 (관리자 페이지에서 조정) --------------------
 create table if not exists public.price_settings (
   id            int primary key default 1 check (id = 1),
-  gold_buy_pct  numeric not null default 14,    -- 24K 살 때: 국제시세 환산가 대비 +% (부가세 별도 적용)
-  gold_sell_pct numeric not null default 6,     -- 24K 팔 때: 국제시세 환산가 대비 +%
+  -- 기본값은 2026.10.29 국내 실거래 시세에 맞춘 값
+  gold_buy_pct  numeric not null default 7.2,   -- 24K 살 때: 국제시세 원화 환산가 대비 +% (부가세 별도 적용)
+  gold_sell_pct numeric not null default 0,     -- 24K 팔 때: 국제시세 원화 환산가 대비 +%
   k18_factor    numeric not null default 0.735, -- 18K 팔 때 = 24K 팔 때 × 계수
   k14_factor    numeric not null default 0.57,  -- 14K 팔 때 = 24K 팔 때 × 계수
-  pt_buy_pct    numeric not null default 22,
-  pt_sell_pct   numeric not null default 0,
-  ag_buy_pct    numeric not null default 35,
-  ag_sell_pct   numeric not null default -2,
+  pt_buy_pct    numeric not null default 6.8,
+  pt_sell_pct   numeric not null default -4.6,
+  ag_buy_pct    numeric not null default 2.9,
+  ag_sell_pct   numeric not null default -3.8,
   updated_at    timestamptz not null default now(),
   updated_by    uuid references public.profiles(id) on delete set null
 );
