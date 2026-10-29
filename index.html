@@ -3,305 +3,285 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>YAMOO Fine Jewelry</title>
-  <meta name="description" content="YAMOO — 일상에 머무는 빛, 파인 주얼리 쇼핑몰">
+  <title>YAMOO GOLD</title>
+  <meta name="description" content="YAMOO GOLD — 오늘의 금시세, 순도 99.99% 골드바, 골드 악세사리, 금 매입">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='38' r='18' fill='none' stroke='%23b08d57' stroke-width='5'/%3E%3Cpath d='M24 14h16l5 6-13 10-13-10z' fill='%23b08d57'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M14 46 22 22h20l8 24z' fill='%23c9a14a'/%3E%3Cpath d='M22 22h20l-3 6H25z' fill='%23f2dc9b'/%3E%3C/svg%3E">
 </head>
 <body>
 
-  <!-- 주얼리 일러스트 (SVG 심볼) -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <defs>
-      <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#f6e2b3"/><stop offset=".45" stop-color="#c9a063"/><stop offset=".7" stop-color="#a27a3e"/><stop offset="1" stop-color="#ecd29a"/>
-      </linearGradient>
-      <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#c4c7cc"/><stop offset=".7" stop-color="#8e9298"/><stop offset="1" stop-color="#eceef0"/>
-      </linearGradient>
-      <linearGradient id="rose" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#f8d9cc"/><stop offset=".45" stop-color="#d49a87"/><stop offset=".7" stop-color="#b0705e"/><stop offset="1" stop-color="#f0c7b6"/>
-      </linearGradient>
-      <radialGradient id="gem" cx=".35" cy=".3" r=".8">
-        <stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#e8f1f7"/><stop offset="1" stop-color="#a9bccb"/>
-      </radialGradient>
-      <radialGradient id="pearl" cx=".35" cy=".3" r=".75">
-        <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#f3ece2"/><stop offset="1" stop-color="#cfc2b0"/>
-      </radialGradient>
-
-      <symbol id="i-ring" viewBox="0 0 200 200">
-        <ellipse cx="100" cy="122" rx="54" ry="54" fill="none" style="stroke:var(--metal)" stroke-width="9"/>
-        <path d="M80 70 L120 70 L132 54 L100 26 L68 54 Z" fill="url(#gem)" stroke="#9fb2c2" stroke-width="1.2"/>
-        <path d="M68 54 H132 M100 26 L88 54 L100 70 L112 54 Z" fill="none" stroke="#fff" stroke-width="1" opacity=".8"/>
-        <path d="M84 70 L92 78 H108 L116 70" fill="none" style="stroke:var(--metal)" stroke-width="5" stroke-linejoin="round"/>
-      </symbol>
-
-      <symbol id="i-band" viewBox="0 0 200 200">
-        <ellipse cx="100" cy="104" rx="60" ry="60" fill="none" style="stroke:var(--metal)" stroke-width="16"/>
-        <ellipse cx="100" cy="104" rx="60" ry="60" fill="none" stroke="#fff" stroke-width="2" opacity=".5" stroke-dasharray="2 12"/>
-      </symbol>
-
-      <symbol id="i-necklace" viewBox="0 0 200 200">
-        <path d="M30 20 C 30 110, 170 110, 170 20" fill="none" style="stroke:var(--metal)" stroke-width="3" stroke-dasharray="5 3"/>
-        <path d="M100 96 v12" style="stroke:var(--metal)" stroke-width="3"/>
-        <circle cx="100" cy="112" r="5" fill="none" style="stroke:var(--metal)" stroke-width="3"/>
-        <path d="M100 118 L124 140 L100 178 L76 140 Z" fill="url(#gem)" stroke="#9fb2c2" stroke-width="1.2"/>
-        <path d="M76 140 H124 M100 118 L90 140 L100 178 L110 140 Z" fill="none" stroke="#fff" stroke-width="1" opacity=".8"/>
-      </symbol>
-
-      <symbol id="i-pearl" viewBox="0 0 200 200">
-        <path d="M30 20 C 30 120, 170 120, 170 20" fill="none" style="stroke:var(--metal)" stroke-width="2"/>
-        <g fill="url(#pearl)">
-          <circle cx="36" cy="52" r="8"/><circle cx="46" cy="72" r="8.5"/><circle cx="60" cy="88" r="9"/><circle cx="78" cy="99" r="9.5"/>
-          <circle cx="100" cy="104" r="11"/><circle cx="122" cy="99" r="9.5"/><circle cx="140" cy="88" r="9"/><circle cx="154" cy="72" r="8.5"/><circle cx="164" cy="52" r="8"/>
-        </g>
-        <path d="M100 115 v10" style="stroke:var(--metal)" stroke-width="2"/>
-        <circle cx="100" cy="146" r="20" fill="url(#pearl)"/>
-      </symbol>
-
-      <symbol id="i-earring" viewBox="0 0 200 200">
-        <g>
-          <path d="M62 30 a12 12 0 1 1 0.1 0" fill="none" style="stroke:var(--metal)" stroke-width="4"/>
-          <path d="M62 54 v18" style="stroke:var(--metal)" stroke-width="3"/>
-          <circle cx="62" cy="100" r="26" fill="none" style="stroke:var(--metal)" stroke-width="6"/>
-          <circle cx="62" cy="146" r="11" fill="url(#gem)" stroke="#9fb2c2"/>
-          <path d="M62 126 v9" style="stroke:var(--metal)" stroke-width="3"/>
-        </g>
-        <g transform="translate(76 0)">
-          <path d="M62 30 a12 12 0 1 1 0.1 0" fill="none" style="stroke:var(--metal)" stroke-width="4"/>
-          <path d="M62 54 v18" style="stroke:var(--metal)" stroke-width="3"/>
-          <circle cx="62" cy="100" r="26" fill="none" style="stroke:var(--metal)" stroke-width="6"/>
-          <circle cx="62" cy="146" r="11" fill="url(#gem)" stroke="#9fb2c2"/>
-          <path d="M62 126 v9" style="stroke:var(--metal)" stroke-width="3"/>
-        </g>
-      </symbol>
-
-      <symbol id="i-bracelet" viewBox="0 0 200 200">
-        <ellipse cx="100" cy="100" rx="76" ry="44" fill="none" style="stroke:var(--metal)" stroke-width="10"/>
-        <ellipse cx="100" cy="100" rx="76" ry="44" fill="none" stroke="#fff" stroke-width="1.5" opacity=".6" stroke-dasharray="10 6"/>
-        <g fill="url(#gem)" stroke="#9fb2c2" stroke-width="1">
-          <circle cx="100" cy="144" r="8"/><circle cx="76" cy="141" r="6"/><circle cx="124" cy="141" r="6"/><circle cx="54" cy="134" r="5"/><circle cx="146" cy="134" r="5"/>
-        </g>
-      </symbol>
-    </defs>
-  </svg>
-
-  <div class="topbar">
-    <p>신규 회원 첫 구매 <strong>10% 할인</strong> · 5만원 이상 무료배송 · 각인 서비스 무료</p>
+  <!-- 유틸 바 -->
+  <div class="util">
+    <div class="wrap util__inner">
+      <p class="util__call">대표번호 <strong>1588-0000</strong> <span>평일 09:00–18:00</span></p>
+      <nav class="util__links" aria-label="회원 메뉴">
+        <a href="#">로그인</a><a href="#">회원가입</a><a href="#">주문조회</a><a href="#">고객센터</a>
+      </nav>
+    </div>
   </div>
 
+  <!-- 헤더 -->
   <header class="header" id="header">
-    <div class="header__inner">
-      <button class="icon-btn menu-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobileNav">
-        <span></span><span></span>
-      </button>
-      <a href="#" class="logo" aria-label="YAMOO 홈">YAMOO</a>
+    <div class="wrap header__inner">
+      <button class="icon-btn menu-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobileNav"><span></span><span></span></button>
+      <a href="#" class="logo" aria-label="YAMOO GOLD 홈">
+        <svg class="logo__mark" viewBox="0 0 40 32" aria-hidden="true"><path d="M4 28 10 8h20l6 20z" fill="url(#lg)"/><path d="M10 8h20l-2.4 5H12.4z" fill="#f6e3a6"/><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9c977"/><stop offset="1" stop-color="#a47a2c"/></linearGradient></defs></svg>
+        <span>YAMOO<em>GOLD</em></span>
+      </a>
       <nav class="nav" aria-label="주요 메뉴">
-        <a href="#new">New In</a>
-        <a href="#shop">Shop</a>
-        <a href="#collection">Collection</a>
-        <a href="#bridal">Bridal</a>
-        <a href="#story">Story</a>
+        <a href="#price">금시세</a>
+        <a href="#goldbar">골드바</a>
+        <a href="#accessory">악세사리</a>
+        <a href="#gift">순금선물</a>
+        <a href="#sell">금 매입</a>
+        <a href="#store">매장안내</a>
       </nav>
       <div class="header__actions">
-        <button class="icon-btn" aria-label="검색">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-        </button>
-        <button class="icon-btn" aria-label="위시리스트">
-          <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
-          <span class="badge" id="wishCount">0</span>
-        </button>
-        <button class="icon-btn" aria-label="장바구니">
-          <svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
-          <span class="badge" id="cartCount">0</span>
-        </button>
+        <button class="icon-btn" aria-label="검색"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+        <button class="icon-btn" aria-label="장바구니"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="badge" id="cartCount">0</span></button>
       </div>
     </div>
     <nav class="mobile-nav" id="mobileNav" aria-label="모바일 메뉴">
-      <a href="#new">New In</a>
-      <a href="#shop">Shop</a>
-      <a href="#collection">Collection</a>
-      <a href="#bridal">Bridal</a>
-      <a href="#story">Story</a>
+      <a href="#price">금시세</a><a href="#goldbar">골드바</a><a href="#accessory">악세사리</a><a href="#gift">순금선물</a><a href="#sell">금 매입</a><a href="#store">매장안내</a>
     </nav>
   </header>
 
+  <!-- 시세 티커 -->
+  <div class="ticker" aria-label="국제 시세">
+    <div class="ticker__track" id="ticker"></div>
+  </div>
+
   <main>
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero__text">
-        <p class="eyebrow">2026 Winter Collection</p>
-        <h1>일상에 머무는<br><em>조용한 빛</em></h1>
-        <p class="hero__lead">매일 손끝에서 빛나는 14K·18K 파인 주얼리.<br>장인의 손으로 한 점씩 완성합니다.</p>
-        <div class="hero__cta">
-          <a href="#shop" class="btn btn--dark">컬렉션 보기</a>
-          <a href="#bridal" class="btn btn--line">브라이덜 상담</a>
-        </div>
+    <!-- HERO 슬라이더 -->
+    <section class="hero" aria-roledescription="carousel" aria-label="주요 소식">
+      <div class="hero__slides">
+        <article class="slide is-active" style="--img:url('images/bar-dark.jpg')">
+          <div class="wrap slide__inner">
+            <p class="slide__eyebrow">Fine Gold 999.9</p>
+            <h1>가치를 지키는<br>가장 단단한 방법</h1>
+            <p class="slide__lead">KRX 인증 정련사가 제작한 순도 99.99% 골드바.<br>1g부터 100g까지, 오늘 시세 그대로 만나보세요.</p>
+            <div class="slide__cta"><a href="#goldbar" class="btn btn--gold">골드바 보기</a><a href="#price" class="btn btn--ghost">오늘의 금시세</a></div>
+          </div>
+        </article>
+        <article class="slide" style="--img:url('images/necklace-model.jpg')">
+          <div class="wrap slide__inner">
+            <p class="slide__eyebrow">Daily Gold Accessory</p>
+            <h1>매일 걸치는<br>나만의 골드</h1>
+            <p class="slide__lead">14K·18K 목걸이, 반지, 팔찌, 귀걸이.<br>정직한 중량과 투명한 공임으로 판매합니다.</p>
+            <div class="slide__cta"><a href="#accessory" class="btn btn--gold">악세사리 보기</a></div>
+          </div>
+        </article>
+        <article class="slide" style="--img:url('images/tray.jpg')">
+          <div class="wrap slide__inner">
+            <p class="slide__eyebrow">Gold Buyback</p>
+            <h1>잠든 금을<br>오늘 시세로</h1>
+            <p class="slide__lead">정밀 성분 분석 후 당일 입금.<br>헌 금, 반지, 목걸이 무엇이든 매입합니다.</p>
+            <div class="slide__cta"><a href="#sell" class="btn btn--gold">매입 안내</a><a href="#calc" class="btn btn--ghost">예상 매입가 계산</a></div>
+          </div>
+        </article>
       </div>
-      <div class="hero__visual" aria-hidden="true">
-        <div class="hero__halo"></div>
-        <svg class="hero__jewel hero__jewel--main" style="--metal:url(#gold)"><use href="#i-ring"/></svg>
-        <svg class="hero__jewel hero__jewel--sub" style="--metal:url(#rose)"><use href="#i-band"/></svg>
-        <span class="sparkle s1"></span><span class="sparkle s2"></span><span class="sparkle s3"></span>
-      </div>
-      <a href="#new" class="hero__scroll">Scroll</a>
-    </section>
-
-    <!-- 서비스 -->
-    <section class="perks" aria-label="서비스 안내">
-      <div><strong>무료 각인</strong><span>이니셜 · 날짜 · 짧은 문구</span></div>
-      <div><strong>평생 A/S</strong><span>세척 · 광택 · 사이즈 조절</span></div>
-      <div><strong>품질 보증서</strong><span>순도 · 원산지 인증 동봉</span></div>
-      <div><strong>선물 포장</strong><span>시그니처 박스 · 메시지 카드</span></div>
-    </section>
-
-    <!-- 카테고리 -->
-    <section class="section" id="new">
-      <div class="section__head">
-        <p class="eyebrow">Category</p>
-        <h2>찾으시는 주얼리</h2>
-      </div>
-      <div class="categories">
-        <a href="#shop" class="cat" data-jump="ring"><div class="cat__img" style="--metal:url(#gold)"><svg><use href="#i-ring"/></svg></div><span>Rings</span><small>반지</small></a>
-        <a href="#shop" class="cat" data-jump="necklace"><div class="cat__img" style="--metal:url(#silver)"><svg><use href="#i-necklace"/></svg></div><span>Necklaces</span><small>목걸이</small></a>
-        <a href="#shop" class="cat" data-jump="earring"><div class="cat__img" style="--metal:url(#rose)"><svg><use href="#i-earring"/></svg></div><span>Earrings</span><small>귀걸이</small></a>
-        <a href="#shop" class="cat" data-jump="bracelet"><div class="cat__img" style="--metal:url(#gold)"><svg><use href="#i-bracelet"/></svg></div><span>Bracelets</span><small>팔찌</small></a>
-      </div>
-    </section>
-
-    <!-- 상품 -->
-    <section class="section section--tint" id="shop">
-      <div class="section__head section__head--row">
-        <div>
-          <p class="eyebrow">Best Sellers</p>
-          <h2>가장 사랑받는 아이템</h2>
-        </div>
-        <div class="filters" role="tablist" aria-label="카테고리 필터">
-          <button class="chip is-active" data-filter="all" role="tab" aria-selected="true">전체</button>
-          <button class="chip" data-filter="ring" role="tab" aria-selected="false">반지</button>
-          <button class="chip" data-filter="necklace" role="tab" aria-selected="false">목걸이</button>
-          <button class="chip" data-filter="earring" role="tab" aria-selected="false">귀걸이</button>
-          <button class="chip" data-filter="bracelet" role="tab" aria-selected="false">팔찌</button>
-        </div>
-      </div>
-      <div class="products" id="products"></div>
-    </section>
-
-    <!-- 컬렉션 배너 -->
-    <section class="collection" id="collection">
-      <div class="collection__visual" aria-hidden="true">
-        <svg style="--metal:url(#gold)"><use href="#i-pearl"/></svg>
-      </div>
-      <div class="collection__text">
-        <p class="eyebrow eyebrow--light">The Lumière Collection</p>
-        <h2>달빛을 닮은<br>진주의 결</h2>
-        <p>남해의 아코야 진주와 18K 골드가 만나 완성된 루미에르 컬렉션.
-          은은한 광택은 어떤 옷차림에도 자연스럽게 스며듭니다.</p>
-        <a href="#shop" class="btn btn--light">컬렉션 둘러보기</a>
-      </div>
-    </section>
-
-    <!-- 브라이덜 -->
-    <section class="section bridal" id="bridal">
-      <div class="bridal__card">
-        <div class="bridal__img" style="--metal:url(#silver)"><svg><use href="#i-ring"/></svg></div>
-        <div>
-          <p class="eyebrow">Bridal</p>
-          <h3>평생을 약속하는 반지</h3>
-          <p>GIA 감정 다이아몬드부터 커플 밴드까지, 1:1 프라이빗 상담으로 두 분만의 반지를 디자인해 드립니다.</p>
-          <a href="#" class="link-arrow">상담 예약하기</a>
-        </div>
-      </div>
-      <div class="bridal__card">
-        <div class="bridal__img" style="--metal:url(#gold)"><svg><use href="#i-band"/></svg></div>
-        <div>
-          <p class="eyebrow">Custom</p>
-          <h3>나만의 주얼리 제작</h3>
-          <p>소재, 스톤, 각인까지 원하는 대로. 3D 디자인 시안 확인 후 제작에 들어갑니다.</p>
-          <a href="#" class="link-arrow">커스텀 문의</a>
+      <div class="wrap hero__ctrl">
+        <div class="hero__dots" role="tablist" aria-label="슬라이드 선택"></div>
+        <div class="hero__arrows">
+          <button class="arrow" data-dir="-1" aria-label="이전 슬라이드">‹</button>
+          <button class="arrow" data-dir="1" aria-label="다음 슬라이드">›</button>
         </div>
       </div>
     </section>
 
-    <!-- 스토리 -->
-    <section class="story" id="story">
-      <p class="eyebrow">Our Story</p>
-      <blockquote>“화려함보다 오래 머무는 것을 만듭니다.<br>매일 착용해도 질리지 않는, 당신의 일부가 되는 주얼리.”</blockquote>
-      <div class="stats">
-        <div><strong data-count="12">0</strong><span>년의 공방 경력</span></div>
-        <div><strong data-count="38000">0</strong><span>명의 고객</span></div>
-        <div><strong data-count="100">0</strong><span>% 핸드메이드</span></div>
+    <!-- 오늘의 금시세 -->
+    <section class="section price" id="price">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">Today's Price</p>
+            <h2>오늘의 금시세</h2>
+          </div>
+          <p class="price__time">기준 <strong id="priceTime">—</strong> <span class="demo-tag">예시 시세</span></p>
+        </div>
+
+        <div class="price__grid">
+          <div class="card price__table-card">
+            <table class="price-table">
+              <caption class="sr-only">귀금속 시세 (3.75g 기준)</caption>
+              <thead>
+                <tr><th scope="col">품목 <small>3.75g(1돈)</small></th><th scope="col">내가 살 때 <small>VAT 포함</small></th><th scope="col">내가 팔 때</th></tr>
+              </thead>
+              <tbody id="priceBody"></tbody>
+            </table>
+            <p class="note">* 18K·14K 구매가는 제품별 시세가 적용됩니다. 팔 때 시세는 제품 상태·성분 분석 결과에 따라 달라질 수 있습니다.</p>
+          </div>
+
+          <div class="card chart-card">
+            <div class="chart-card__head">
+              <div>
+                <p class="chart-card__label">순금 24K · 내가 살 때</p>
+                <p class="chart-card__value" id="chartValue">—</p>
+              </div>
+              <div class="seg" role="tablist" aria-label="기간">
+                <button class="is-on" data-range="30" role="tab" aria-selected="true">1개월</button>
+                <button data-range="90" role="tab" aria-selected="false">3개월</button>
+                <button data-range="365" role="tab" aria-selected="false">1년</button>
+              </div>
+            </div>
+            <svg class="chart" id="chart" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="순금 시세 추이"></svg>
+            <div class="chart__axis" id="chartAxis"></div>
+          </div>
+        </div>
+
+        <!-- 계산기 -->
+        <div class="card calc" id="calc">
+          <h3>금 시세 계산기</h3>
+          <div class="calc__row">
+            <label>품목
+              <select id="calcItem"></select>
+            </label>
+            <label>중량
+              <span class="calc__input"><input type="number" id="calcWeight" value="1" min="0" step="0.01" inputmode="decimal"><select id="calcUnit"><option value="don">돈</option><option value="g">g</option></select></span>
+            </label>
+            <div class="calc__out">
+              <div><span>살 때</span><strong id="calcBuy">—</strong></div>
+              <div><span>팔 때</span><strong id="calcSell">—</strong></div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- 리뷰 -->
-    <section class="section section--tint">
-      <div class="section__head">
-        <p class="eyebrow">Reviews</p>
-        <h2>고객님들의 이야기</h2>
-      </div>
-      <div class="reviews">
-        <figure class="review">
-          <div class="stars" aria-label="별점 5점">★★★★★</div>
-          <blockquote>사진보다 실물이 훨씬 예뻐요. 매일 끼고 다니는데 변색도 전혀 없고, 각인 서비스도 정말 만족스러웠어요.</blockquote>
-          <figcaption>김*연 · 오브 솔리테어 링</figcaption>
-        </figure>
-        <figure class="review">
-          <div class="stars" aria-label="별점 5점">★★★★★</div>
-          <blockquote>엄마 생신 선물로 진주 목걸이 샀는데 포장부터 너무 고급스러워서 감동하셨어요. 재구매 의사 100%!</blockquote>
-          <figcaption>박*준 · 루미에르 펄 네크리스</figcaption>
-        </figure>
-        <figure class="review">
-          <div class="stars" aria-label="별점 5점">★★★★★</div>
-          <blockquote>결혼반지 상담받고 제작했는데 디자인 시안부터 완성까지 꼼꼼하게 챙겨주셔서 믿음이 갔습니다.</blockquote>
-          <figcaption>이*희 · 브라이덜 커스텀</figcaption>
-        </figure>
+    <!-- 골드바 -->
+    <section class="section section--dark" id="goldbar">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow eyebrow--light">Gold Bar</p>
+            <h2>골드바</h2>
+          </div>
+          <ul class="assure">
+            <li>순도 99.99%</li><li>KRX 인증 정련사</li><li>품질보증서 동봉</li><li>실시간 시세 연동</li>
+          </ul>
+        </div>
+        <div class="bars" id="bars"></div>
       </div>
     </section>
 
-    <!-- 뉴스레터 -->
-    <section class="newsletter">
-      <h2>YAMOO 소식 받기</h2>
-      <p>신상품 출시와 회원 전용 혜택을 가장 먼저 알려드립니다.</p>
-      <form class="newsletter__form" id="newsletterForm" novalidate>
-        <label for="email" class="sr-only">이메일 주소</label>
-        <input type="email" id="email" placeholder="이메일 주소를 입력하세요" required>
-        <button type="submit" class="btn btn--dark">구독하기</button>
-      </form>
-      <p class="newsletter__msg" id="newsletterMsg" role="status"></p>
+    <!-- 악세사리 -->
+    <section class="section" id="accessory">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">Accessory</p>
+            <h2>골드 악세사리</h2>
+          </div>
+          <div class="chips" role="tablist" aria-label="악세사리 분류">
+            <button class="chip is-active" data-filter="all" role="tab" aria-selected="true">전체</button>
+            <button class="chip" data-filter="necklace" role="tab" aria-selected="false">목걸이</button>
+            <button class="chip" data-filter="ring" role="tab" aria-selected="false">반지</button>
+            <button class="chip" data-filter="bracelet" role="tab" aria-selected="false">팔찌</button>
+            <button class="chip" data-filter="earring" role="tab" aria-selected="false">귀걸이</button>
+          </div>
+        </div>
+        <div class="products" id="products"></div>
+      </div>
+    </section>
+
+    <!-- 에디토리얼 / 순금선물 -->
+    <section class="editorial" id="gift">
+      <figure class="editorial__img"><img src="images/coins.jpg" alt="골드바와 금화" loading="lazy"></figure>
+      <div class="editorial__text">
+        <p class="eyebrow">Pure Gold Gift</p>
+        <h2>마음을 오래 남기는<br>순금 선물</h2>
+        <p>돌반지, 감사패, 행운의 열쇠, 기념 골드바까지.
+          원하는 문구를 각인하고 고급 케이스에 담아 보내드립니다.</p>
+        <ul class="gift-list">
+          <li><strong>돌반지</strong><span>1돈 · 반돈</span></li>
+          <li><strong>기념 골드바</strong><span>문구 각인</span></li>
+          <li><strong>행운의 열쇠</strong><span>3.75g ~ 37.5g</span></li>
+          <li><strong>감사패</strong><span>순금 장식</span></li>
+        </ul>
+        <a href="#" class="link-arrow">순금선물 전체보기</a>
+      </div>
+    </section>
+
+    <!-- 금 매입 -->
+    <section class="sell" id="sell">
+      <div class="wrap">
+        <div class="section__head section__head--center">
+          <p class="eyebrow eyebrow--light">Gold Buyback</p>
+          <h2>금 매입 안내</h2>
+          <p class="sell__lead">집에 있는 금, 오늘 시세로 정직하게 매입합니다.</p>
+        </div>
+        <ol class="steps">
+          <li><span class="steps__no">01</span><strong>시세 확인</strong><p>홈페이지·앱에서 오늘의 팔 때 시세를 확인하세요.</p></li>
+          <li><span class="steps__no">02</span><strong>매장 방문 · 택배</strong><p>가까운 매장 방문 또는 보험 적용 안심 택배로 접수.</p></li>
+          <li><span class="steps__no">03</span><strong>정밀 성분 분석</strong><p>고객이 보는 앞에서 XRF 분석기로 순도와 중량을 측정합니다.</p></li>
+          <li><span class="steps__no">04</span><strong>당일 입금</strong><p>분석 결과 확인 후 현금 또는 계좌로 즉시 지급합니다.</p></li>
+        </ol>
+        <div class="sell__cta"><a href="#calc" class="btn btn--gold">예상 매입가 계산하기</a><a href="#store" class="btn btn--ghost">매장 찾기</a></div>
+      </div>
+    </section>
+
+    <!-- 공지/시황 -->
+    <section class="section">
+      <div class="wrap board">
+        <div class="board__col">
+          <div class="board__head"><h3>데일리 시황</h3><a href="#">더보기 +</a></div>
+          <ul class="board__list">
+            <li><a href="#">국제 금값, 달러 약세에 온스당 4,100달러 회복</a><time>10.29</time></li>
+            <li><a href="#">중앙은행 금 매입 지속… 3분기 순매입 증가</a><time>10.28</time></li>
+            <li><a href="#">국내 금 1돈 소매가 82만원대 보합</a><time>10.27</time></li>
+            <li><a href="#">은 시세 온스당 53달러대, 산업 수요 견조</a><time>10.27</time></li>
+          </ul>
+        </div>
+        <div class="board__col">
+          <div class="board__head"><h3>공지사항</h3><a href="#">더보기 +</a></div>
+          <ul class="board__list">
+            <li><a href="#">[신제품] 기념 각인 골드바 10g 출시 안내</a><time>10.25</time></li>
+            <li><a href="#">11월 매장 운영시간 변경 안내</a><time>10.20</time></li>
+            <li><a href="#">안심 택배 매입 서비스 보험 한도 상향</a><time>10.12</time></li>
+            <li><a href="#">개인정보처리방침 개정 안내</a><time>10.01</time></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 매장 안내 -->
+    <section class="section section--tint" id="store">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">Store</p>
+            <h2>매장 안내</h2>
+          </div>
+          <a href="#" class="link-arrow">전국 매장 찾기</a>
+        </div>
+        <div class="stores">
+          <article class="store"><span class="store__tag">본점</span><h3>종로 본점</h3><p>서울특별시 종로구 귀금속거리 00</p><p class="store__meta">02-000-0000 · 평일 09:30–18:30 · 토 10:00–16:00</p></article>
+          <article class="store"><h3>강남점</h3><p>서울특별시 강남구 테헤란로 00</p><p class="store__meta">02-000-0000 · 평일 10:00–19:00 · 토 10:00–17:00</p></article>
+          <article class="store"><h3>부산 서면점</h3><p>부산광역시 부산진구 서면로 00</p><p class="store__meta">051-000-0000 · 평일 10:00–19:00 · 토 10:00–17:00</p></article>
+        </div>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
-    <div class="footer__grid">
-      <div>
-        <a href="#" class="logo logo--footer">YAMOO</a>
-        <p class="footer__desc">일상에 머무는 조용한 빛.<br>Fine Jewelry Atelier, Seoul.</p>
+    <div class="wrap">
+      <div class="footer__top">
+        <a href="#" class="logo logo--footer"><span>YAMOO<em>GOLD</em></span></a>
+        <nav><a href="#">회사소개</a><a href="#">이용약관</a><a href="#"><strong>개인정보처리방침</strong></a><a href="#">가맹점 모집</a><a href="#">제휴문의</a></nav>
       </div>
-      <div>
-        <h4>Shop</h4>
-        <a href="#shop">반지</a><a href="#shop">목걸이</a><a href="#shop">귀걸이</a><a href="#shop">팔찌</a>
-      </div>
-      <div>
-        <h4>Service</h4>
-        <a href="#">주문/배송 조회</a><a href="#">교환/반품</a><a href="#">A/S 신청</a><a href="#">사이즈 가이드</a>
-      </div>
-      <div>
-        <h4>Contact</h4>
-        <p>고객센터 1588-0000<br>평일 10:00 – 18:00<br>점심 12:30 – 13:30</p>
-      </div>
-    </div>
-    <div class="footer__bottom">
-      <p>© 2026 YAMOO. All rights reserved.</p>
-      <p><a href="#">이용약관</a> · <a href="#">개인정보처리방침</a></p>
+      <p class="footer__info">
+        상호 (주)야무골드 · 대표 홍길동 · 사업자등록번호 000-00-00000 · 통신판매업신고 제0000-서울종로-0000호<br>
+        주소 서울특별시 종로구 귀금속거리 00 · 고객센터 1588-0000 · 이메일 help@example.com
+      </p>
+      <p class="footer__note">본 페이지의 시세 정보는 예시이며 실제 거래 시세와 다를 수 있습니다. · Photos: Unsplash</p>
+      <p class="footer__copy">© 2026 YAMOO GOLD. All rights reserved.</p>
     </div>
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
   <script src="script.js"></script>
 </body>
 </html>
