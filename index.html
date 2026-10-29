@@ -17,8 +17,8 @@
   <div class="util">
     <div class="wrap util__inner">
       <p class="util__call">대표번호 <strong>1588-0000</strong> <span>평일 09:00–18:00</span></p>
-      <nav class="util__links" aria-label="회원 메뉴">
-        <a href="#">로그인</a><a href="#">회원가입</a><a href="#">주문조회</a><a href="#">고객센터</a>
+      <nav class="util__links" aria-label="회원 메뉴" id="authNav">
+        <button type="button" data-open="login">로그인</button><button type="button" data-open="signup">회원가입</button><a href="#">주문조회</a><a href="#">고객센터</a>
       </nav>
     </div>
   </div>
@@ -50,8 +50,25 @@
   </header>
 
   <!-- 시세 티커 -->
-  <div class="ticker" aria-label="국제 시세">
-    <div class="ticker__track" id="ticker"></div>
+  <div class="ticker tradingview-widget-container" aria-label="국제 시세">
+    <div class="tradingview-widget-container__widget"></div>
+    <script src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+    {
+      "symbols": [
+        { "proName": "OANDA:XAUUSD", "title": "금 XAU/USD" },
+        { "proName": "OANDA:XAGUSD", "title": "은 XAG/USD" },
+        { "proName": "OANDA:XPTUSD", "title": "백금 XPT/USD" },
+        { "proName": "OANDA:XPDUSD", "title": "팔라듐 XPD/USD" },
+        { "proName": "FX_IDC:USDKRW", "title": "원/달러" },
+        { "proName": "TVC:DXY", "title": "달러인덱스" }
+      ],
+      "showSymbolLogo": true,
+      "isTransparent": true,
+      "displayMode": "adaptive",
+      "colorTheme": "dark",
+      "locale": "kr"
+    }
+    </script>
   </div>
 
   <main>
@@ -100,8 +117,10 @@
             <p class="eyebrow">Today's Price</p>
             <h2>오늘의 금시세</h2>
           </div>
-          <p class="price__time">기준 <strong id="priceTime">—</strong> <span class="demo-tag">예시 시세</span></p>
+          <p class="price__time"><span class="live-dot" id="liveDot"></span>실시간 <strong id="priceTime">불러오는 중…</strong> <button class="refresh" id="refreshBtn" aria-label="시세 새로고침">↻</button></p>
         </div>
+
+        <div class="intl" id="intl" aria-label="국제 시세"></div>
 
         <div class="price__grid">
           <div class="card price__table-card">
@@ -112,23 +131,23 @@
               </thead>
               <tbody id="priceBody"></tbody>
             </table>
-            <p class="note">* 18K·14K 구매가는 제품별 시세가 적용됩니다. 팔 때 시세는 제품 상태·성분 분석 결과에 따라 달라질 수 있습니다.</p>
+            <p class="note">* 국제 시세(USD/oz)와 원/달러 환율로 1분마다 자동 계산됩니다. 18K·14K 구매가는 제품별 시세가 적용되며, 팔 때 시세는 제품 상태·성분 분석 결과에 따라 달라질 수 있습니다.</p>
           </div>
 
           <div class="card chart-card">
             <div class="chart-card__head">
               <div>
-                <p class="chart-card__label">순금 24K · 내가 살 때</p>
-                <p class="chart-card__value" id="chartValue">—</p>
+                <p class="chart-card__label">국제 차트 · TradingView</p>
+                <p class="chart-card__value" id="chartTitle">금 XAU/USD</p>
               </div>
-              <div class="seg" role="tablist" aria-label="기간">
-                <button class="is-on" data-range="30" role="tab" aria-selected="true">1개월</button>
-                <button data-range="90" role="tab" aria-selected="false">3개월</button>
-                <button data-range="365" role="tab" aria-selected="false">1년</button>
+              <div class="seg" role="tablist" aria-label="종목">
+                <button class="is-on" data-symbol="OANDA:XAUUSD" data-title="금 XAU/USD" role="tab" aria-selected="true">금</button>
+                <button data-symbol="OANDA:XAGUSD" data-title="은 XAG/USD" role="tab" aria-selected="false">은</button>
+                <button data-symbol="OANDA:XPTUSD" data-title="백금 XPT/USD" role="tab" aria-selected="false">백금</button>
+                <button data-symbol="FX_IDC:USDKRW" data-title="원/달러 USD/KRW" role="tab" aria-selected="false">환율</button>
               </div>
             </div>
-            <svg class="chart" id="chart" viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="순금 시세 추이"></svg>
-            <div class="chart__axis" id="chartAxis"></div>
+            <div class="tv-chart" id="tvChart"></div>
           </div>
         </div>
 
@@ -229,7 +248,7 @@
         <div class="board__col">
           <div class="board__head"><h3>데일리 시황</h3><a href="#">더보기 +</a></div>
           <ul class="board__list">
-            <li><a href="#">국제 금값, 달러 약세에 온스당 4,100달러 회복</a><time>10.29</time></li>
+            <li><a href="#">국제 금값, 온스당 4,000달러대 강보합 유지</a><time>10.29</time></li>
             <li><a href="#">중앙은행 금 매입 지속… 3분기 순매입 증가</a><time>10.28</time></li>
             <li><a href="#">국내 금 1돈 소매가 82만원대 보합</a><time>10.27</time></li>
             <li><a href="#">은 시세 온스당 53달러대, 산업 수요 견조</a><time>10.27</time></li>
@@ -276,12 +295,47 @@
         상호 (주)야무골드 · 대표 홍길동 · 사업자등록번호 000-00-00000 · 통신판매업신고 제0000-서울종로-0000호<br>
         주소 서울특별시 종로구 귀금속거리 00 · 고객센터 1588-0000 · 이메일 help@example.com
       </p>
-      <p class="footer__note">본 페이지의 시세 정보는 예시이며 실제 거래 시세와 다를 수 있습니다. · Photos: Unsplash</p>
+      <p class="footer__note">국제 시세: gold-api.com · 환율: ExchangeRate-API · 차트: TradingView. 국내 시세는 국제 시세를 환산한 참고 가격이며 실제 거래가와 다를 수 있습니다. · Photos: Unsplash</p>
       <p class="footer__copy">© 2026 YAMOO GOLD. All rights reserved.</p>
     </div>
   </footer>
 
+  <!-- 로그인 / 회원가입 -->
+  <div class="modal" id="authModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <div class="auth-tabs">
+        <button data-tab="login" class="is-on">로그인</button>
+        <button data-tab="signup">회원가입</button>
+      </div>
+
+      <form class="auth-form" id="loginForm" data-pane="login">
+        <h2 id="authTitle" class="sr-only">로그인</h2>
+        <label>이메일<input type="email" name="email" autocomplete="email" required></label>
+        <label>비밀번호<input type="password" name="password" autocomplete="current-password" required></label>
+        <button class="btn btn--dark" type="submit">로그인</button>
+        <button class="auth-link" type="button" id="resetBtn">비밀번호를 잊으셨나요?</button>
+      </form>
+
+      <form class="auth-form" id="signupForm" data-pane="signup" hidden>
+        <label>이름<input name="name" maxlength="40" autocomplete="name" required></label>
+        <label>이메일<input type="email" name="email" autocomplete="email" required></label>
+        <label>비밀번호 <small>8자 이상</small><input type="password" name="password" minlength="8" autocomplete="new-password" required></label>
+        <label>휴대폰<input type="tel" name="phone" maxlength="20" placeholder="010-0000-0000" autocomplete="tel"></label>
+        <label class="check"><input type="checkbox" name="terms" required> <span>[필수] 이용약관 및 개인정보 수집·이용에 동의합니다</span></label>
+        <label class="check"><input type="checkbox" name="marketing"> <span>[선택] 시세 알림·이벤트 소식을 받겠습니다</span></label>
+        <button class="btn btn--dark" type="submit">가입하기</button>
+      </form>
+      <p class="auth-msg" id="authMsg" role="status"></p>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="common.js"></script>
   <script src="script.js"></script>
+  <script src="auth.js"></script>
 </body>
 </html>
