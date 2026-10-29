@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>YAMOO GOLD 관리자</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M14 46 22 22h20l8 24z' fill='%23c9a14a'/%3E%3Cpath d='M22 22h20l-3 6H25z' fill='%23f2dc9b'/%3E%3C/svg%3E">
+</head>
+<body>
+
+  <!-- 설정 안내 -->
+  <section class="gate" id="setupGate" hidden>
+    <div class="gate__box">
+      <p class="brand">YAMOO<em>GOLD</em> <span>ADMIN</span></p>
+      <h1>회원 데이터베이스 연결이 필요합니다</h1>
+      <p><code>config.js</code>에 Supabase 프로젝트 URL과 anon 키를 입력하면 관리자 기능이 활성화됩니다.</p>
+      <a class="btn" href="index.html">홈페이지로</a>
+    </div>
+  </section>
+
+  <!-- 관리자 로그인 -->
+  <section class="gate" id="loginGate" hidden>
+    <form class="gate__box" id="adminLogin">
+      <p class="brand">YAMOO<em>GOLD</em> <span>ADMIN</span></p>
+      <h1>관리자 로그인</h1>
+      <label>이메일<input type="email" name="email" autocomplete="username" required></label>
+      <label>비밀번호<input type="password" name="password" autocomplete="current-password" required></label>
+      <button class="btn btn--gold" type="submit">로그인</button>
+      <p class="gate__msg" id="loginMsg" role="status"></p>
+      <a class="gate__back" href="index.html">← 홈페이지로</a>
+    </form>
+  </section>
+
+  <!-- 관리자 앱 -->
+  <div class="app" id="app" hidden>
+    <aside class="side">
+      <p class="brand">YAMOO<em>GOLD</em> <span>ADMIN</span></p>
+      <nav class="side__nav" aria-label="관리자 메뉴">
+        <button data-view="dash" class="is-on"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 4v4h6V4z"/></svg>대시보드</button>
+        <button data-view="members"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg>회원 관리</button>
+        <button data-view="price"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8M14 8h6v6"/></svg>시세 설정</button>
+        <button data-view="logs"><svg viewBox="0 0 24 24"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>변경 이력</button>
+      </nav>
+      <div class="side__me">
+        <p id="meName">-</p>
+        <a href="index.html">홈페이지 보기</a>
+        <button id="logoutBtn">로그아웃</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- 대시보드 -->
+      <section class="view" data-view="dash">
+        <header class="view__head"><h1>대시보드</h1><button class="btn btn--line" data-refresh>새로고침</button></header>
+        <div class="kpis" id="kpis"></div>
+        <div class="grid2">
+          <div class="panel">
+            <h2>회원 등급 분포</h2>
+            <div id="gradeBars" class="hbars"></div>
+          </div>
+          <div class="panel">
+            <h2>오늘의 시세 <small id="dashPriceTime"></small></h2>
+            <table class="mini-table" id="dashPrice"></table>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel__head"><h2>최근 가입 회원</h2><button class="link" data-go="members">전체 보기 →</button></div>
+          <div class="table-wrap"><table class="table" id="recentTable"></table></div>
+        </div>
+      </section>
+
+      <!-- 회원 관리 -->
+      <section class="view" data-view="members" hidden>
+        <header class="view__head">
+          <h1>회원 관리 <small id="memberTotal"></small></h1>
+          <button class="btn btn--line" id="csvBtn">CSV 내보내기</button>
+        </header>
+        <form class="filters" id="filterForm">
+          <input type="search" name="q" placeholder="이름 · 이메일 · 연락처 검색">
+          <select name="status"><option value="">전체 상태</option><option value="active">정상</option><option value="suspended">정지</option><option value="withdrawn">탈퇴</option></select>
+          <select name="grade"><option value="">전체 등급</option><option value="basic">일반</option><option value="silver">실버</option><option value="gold">골드</option><option value="vip">VIP</option></select>
+          <select name="role"><option value="">전체 권한</option><option value="member">회원</option><option value="admin">관리자</option></select>
+          <button class="btn btn--dark" type="submit">검색</button>
+        </form>
+        <div class="panel panel--flush">
+          <div class="table-wrap"><table class="table" id="memberTable"></table></div>
+          <div class="pager" id="pager"></div>
+        </div>
+      </section>
+
+      <!-- 시세 설정 -->
+      <section class="view" data-view="price" hidden>
+        <header class="view__head"><h1>시세 설정</h1></header>
+        <p class="desc">국내 시세 = 국제 시세(USD/oz) × 원/달러 ÷ 31.1035 × 3.75g 에 아래 마진을 적용합니다. 살 때 가격에는 부가세 10%가 추가됩니다. 저장하면 홈페이지에 즉시 반영됩니다.</p>
+        <div class="grid2">
+          <form class="panel settings" id="settingsForm">
+            <fieldset><legend>순금 24K</legend>
+              <label>살 때 마진 (%)<input type="number" step="0.1" name="gold_buy_pct"></label>
+              <label>팔 때 마진 (%)<input type="number" step="0.1" name="gold_sell_pct"></label>
+            </fieldset>
+            <fieldset><legend>18K · 14K (팔 때 = 24K 팔 때 × 계수)</legend>
+              <label>18K 계수<input type="number" step="0.001" name="k18_factor"></label>
+              <label>14K 계수<input type="number" step="0.001" name="k14_factor"></label>
+            </fieldset>
+            <fieldset><legend>백금</legend>
+              <label>살 때 마진 (%)<input type="number" step="0.1" name="pt_buy_pct"></label>
+              <label>팔 때 마진 (%)<input type="number" step="0.1" name="pt_sell_pct"></label>
+            </fieldset>
+            <fieldset><legend>은</legend>
+              <label>살 때 마진 (%)<input type="number" step="0.1" name="ag_buy_pct"></label>
+              <label>팔 때 마진 (%)<input type="number" step="0.1" name="ag_sell_pct"></label>
+            </fieldset>
+            <div class="settings__foot">
+              <p id="settingsMeta" class="muted"></p>
+              <button class="btn btn--gold" type="submit">저장</button>
+            </div>
+          </form>
+          <div class="panel">
+            <h2>미리보기 <small id="previewTime"></small></h2>
+            <p class="muted" id="previewBase"></p>
+            <table class="mini-table" id="previewTable"></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 변경 이력 -->
+      <section class="view" data-view="logs" hidden>
+        <header class="view__head"><h1>변경 이력 <small>최근 100건</small></h1><button class="btn btn--line" data-refresh>새로고침</button></header>
+        <div class="panel panel--flush"><div class="table-wrap"><table class="table" id="logTable"></table></div></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 회원 상세 -->
+  <div class="drawer" id="drawer" hidden>
+    <div class="drawer__backdrop" data-close></div>
+    <form class="drawer__panel" id="memberForm">
+      <header class="drawer__head"><h2>회원 정보</h2><button type="button" class="x" data-close aria-label="닫기">×</button></header>
+      <div class="drawer__body">
+        <dl class="meta" id="memberMeta"></dl>
+        <label>이름<input name="name" maxlength="40"></label>
+        <label>연락처<input name="phone" maxlength="20"></label>
+        <div class="row2">
+          <label>등급<select name="grade"><option value="basic">일반</option><option value="silver">실버</option><option value="gold">골드</option><option value="vip">VIP</option></select></label>
+          <label>권한<select name="role"><option value="member">회원</option><option value="admin">관리자</option></select></label>
+        </div>
+        <label>상태
+          <div class="radio-row">
+            <label><input type="radio" name="status" value="active"> 정상</label>
+            <label><input type="radio" name="status" value="suspended"> 이용 정지</label>
+            <label><input type="radio" name="status" value="withdrawn"> 탈퇴 처리</label>
+          </div>
+        </label>
+        <label class="inline"><input type="checkbox" name="marketing"> 마케팅 수신 동의</label>
+        <label>관리자 메모 <small>회원에게 보이지 않습니다</small><textarea name="memo" rows="4" maxlength="1000"></textarea></label>
+        <p class="warn" id="selfWarn" hidden>본인 계정의 권한·상태는 변경할 수 없습니다.</p>
+      </div>
+      <footer class="drawer__foot"><button type="button" class="btn btn--line" data-close>취소</button><button type="submit" class="btn btn--gold">저장</button></footer>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="common.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
