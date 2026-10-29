@@ -50,25 +50,8 @@
   </header>
 
   <!-- 시세 티커 -->
-  <div class="ticker tradingview-widget-container" aria-label="국제 시세">
-    <div class="tradingview-widget-container__widget"></div>
-    <script src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-    {
-      "symbols": [
-        { "proName": "OANDA:XAUUSD", "title": "금 XAU/USD" },
-        { "proName": "OANDA:XAGUSD", "title": "은 XAG/USD" },
-        { "proName": "OANDA:XPTUSD", "title": "백금 XPT/USD" },
-        { "proName": "OANDA:XPDUSD", "title": "팔라듐 XPD/USD" },
-        { "proName": "FX_IDC:USDKRW", "title": "원/달러" },
-        { "proName": "TVC:DXY", "title": "달러인덱스" }
-      ],
-      "showSymbolLogo": true,
-      "isTransparent": true,
-      "displayMode": "adaptive",
-      "colorTheme": "dark",
-      "locale": "kr"
-    }
-    </script>
+  <div class="ticker" aria-label="실시간 시세 (원/3.75g)">
+    <div class="ticker__track" id="ticker"><div class="ticker__item"><span>시세 불러오는 중…</span></div></div>
   </div>
 
   <main>
@@ -131,14 +114,14 @@
               </thead>
               <tbody id="priceBody"></tbody>
             </table>
-            <p class="note">* 국제 시세(USD/oz)와 원/달러 환율로 1분마다 자동 계산됩니다. 18K·14K 구매가는 제품별 시세가 적용되며, 팔 때 시세는 제품 상태·성분 분석 결과에 따라 달라질 수 있습니다.</p>
+            <p class="note">* 국제 시세를 실시간 원/달러 환율로 1돈(3.75g) 환산해 1분마다 자동 갱신합니다. 살 때 가격은 부가세 포함입니다. 18K·14K 구매가는 제품별 시세가 적용되며, 팔 때 시세는 제품 상태·성분 분석 결과에 따라 달라질 수 있습니다.</p>
           </div>
 
           <div class="card chart-card">
             <div class="chart-card__head">
               <div>
-                <p class="chart-card__label">국제 차트 · TradingView</p>
-                <p class="chart-card__value" id="chartTitle">금 XAU/USD</p>
+                <p class="chart-card__label">국제 차트 (USD/oz) · TradingView</p>
+                <p class="chart-card__value"><span id="chartTitle">금 XAU/USD</span> <small class="chart-card__krw" id="chartKrw"></small></p>
               </div>
               <div class="seg" role="tablist" aria-label="종목">
                 <button class="is-on" data-symbol="OANDA:XAUUSD" data-title="금 XAU/USD" role="tab" aria-selected="true">금</button>
@@ -295,7 +278,7 @@
         상호 (주)야무골드 · 대표 홍길동 · 사업자등록번호 000-00-00000 · 통신판매업신고 제0000-서울종로-0000호<br>
         주소 서울특별시 종로구 귀금속거리 00 · 고객센터 1588-0000 · 이메일 help@example.com
       </p>
-      <p class="footer__note">국제 시세: gold-api.com · 환율: ExchangeRate-API · 차트: TradingView. 국내 시세는 국제 시세를 환산한 참고 가격이며 실제 거래가와 다를 수 있습니다. · Photos: Unsplash</p>
+      <p class="footer__note">국제 시세·환율: gold-api.com · 차트: TradingView. 국내 시세는 국제 시세를 환산한 참고 가격이며 실제 거래가와 다를 수 있습니다. · Photos: Unsplash</p>
       <p class="footer__copy">© 2026 YAMOO GOLD. All rights reserved.</p>
     </div>
   </footer>
