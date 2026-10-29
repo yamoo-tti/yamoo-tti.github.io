@@ -293,7 +293,7 @@
     if (!liveCache) { $("#previewTable").innerHTML = "<tr><td>국제 시세를 불러오지 못했습니다</td></tr>"; return; }
     const d = computeDomestic(liveCache, readSettings());
     $("#previewTime").textContent = fmtDate(liveCache.updatedAt) + " 기준";
-    $("#previewBase").textContent = `국제 금 $${liveCache.usd.XAU.toFixed(2)}/oz · 환율 ${liveCache.krw.toFixed(2)}원 · 환산 원가 ${won(d.base.gold)}/3.75g`;
+    $("#previewBase").textContent = `국제 금 1돈 환산 ${won(d.base.gold)} (${"$" + liveCache.usd.XAU.toFixed(2)}/oz × 환율 ${liveCache.krw.toFixed(2)}원)`;
     $("#previewTable").innerHTML = priceRows(d.items);
   }
   $("#settingsForm").addEventListener("input", preview);
