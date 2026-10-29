@@ -9,9 +9,10 @@
   const DON = 3.75;
   const VAT = 1.1;
 
+  // 2026.10.29 국내 실거래 시세(순금 살 때 763,000 / 팔 때 647,000 등)에 맞춘 기본값
   const DEFAULT_SETTINGS = {
-    gold_buy_pct: 14, gold_sell_pct: 6, k18_factor: 0.735, k14_factor: 0.57,
-    pt_buy_pct: 22, pt_sell_pct: 0, ag_buy_pct: 35, ag_sell_pct: -2,
+    gold_buy_pct: 7.2, gold_sell_pct: 0, k18_factor: 0.735, k14_factor: 0.57,
+    pt_buy_pct: 6.8, pt_sell_pct: -4.6, ag_buy_pct: 2.9, ag_sell_pct: -3.8,
   };
 
   async function getJSON(url) {
@@ -20,19 +21,23 @@
     return r.json();
   }
 
-  // 국제 시세(USD/oz) + 원/달러 환율
+  // 국제 시세 — 원화(KRW/oz)로 바로 받음. 실시간 원/달러 환율 포함
   async function fetchLive() {
     const syms = ["XAU", "XAG", "XPT", "XPD"];
-    const [metals, fx] = await Promise.all([
-      Promise.all(syms.map(s => getJSON("https://api.gold-api.com/price/" + s))),
-      getJSON("https://open.er-api.com/v6/latest/USD"),
-    ]);
+    const metals = await Promise.all(syms.map(s => getJSON(`https://api.gold-api.com/price/${s}/KRW`)));
+    let krw = Number(metals[0].exchangeRate);
+    if (!krw) {
+      const fx = await getJSON("https://open.er-api.com/v6/latest/USD");
+      krw = Number(fx.rates && fx.rates.KRW);
+    }
     const usd = {};
-    metals.forEach(m => { usd[m.symbol] = Number(m.price); });
-    const krw = Number(fx.rates && fx.rates.KRW);
+    metals.forEach(m => { usd[m.symbol] = Number(m.price) / (Number(m.exchangeRate) || krw); });
     if (!usd.XAU || !krw) throw new Error("시세 응답 형식 오류");
     return { usd, krw, updatedAt: new Date(metals[0].updatedAt) };
   }
+
+  // 국제 시세를 원화 1돈(3.75g) 가격으로 환산
+  const perDon = (live, sym) => live.usd[sym] * live.krw / OZ * DON;
 
   async function fetchSettings() {
     if (!sb) return { ...DEFAULT_SETTINGS };
@@ -48,8 +53,7 @@
 
   // 국내 시세 (3.75g 기준, 원)
   function computeDomestic(live, s) {
-    const perDon = sym => (live.usd[sym] * live.krw / OZ) * DON;
-    const gold = perDon("XAU"), pt = perDon("XPT"), ag = perDon("XAG");
+    const gold = perDon(live, "XAU"), pt = perDon(live, "XPT"), ag = perDon(live, "XAG");
     const goldSell = gold * (1 + s.gold_sell_pct / 100);
     return {
       base: { gold, pt, ag },
@@ -72,5 +76,5 @@
     return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}` + (withTime ? ` ${p(d.getHours())}:${p(d.getMinutes())}` : "");
   };
 
-  window.YAMOO = { sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, fetchSettings, computeDomestic, esc, won, fmtDate };
+  window.YAMOO = { sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, esc, won, fmtDate };
 })();
