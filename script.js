@@ -1,6 +1,6 @@
 /* =========================================================
    홈페이지 — 실시간 시세 기반
-   국제 시세(gold-api.com) × 환율(open.er-api.com) → 국내 3.75g 시세
+   국제 시세·실시간 환율(gold-api.com) → 국내 3.75g 시세
    마진은 관리자 페이지 > 시세 설정 값을 사용 (미설정 시 기본값)
    ========================================================= */
 const { fetchLive, fetchSettings, computeDomestic, won, fmtDate, DON } = window.YAMOO;
@@ -64,30 +64,59 @@ function apply(live) {
   state.live = live;
   state.domestic = computeDomestic(live, settings || window.YAMOO.DEFAULT_SETTINGS);
   $("#priceTime").textContent = fmtDate(live.updatedAt);
-  renderIntl();
   renderPriceTable();
+  renderIntl();
   updateCalc();
   renderBars();
   renderProducts(currentFilter);
 }
 
-/* ---------- 국제 시세 카드 ---------- */
+/* ---------- 국제 시세 (원화 1돈 환산) ---------- */
+const usdFmt = v => "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const donWon = sym => window.YAMOO.perDon(state.live, sym);
 function renderIntl() {
   const { usd, krw } = state.live;
-  const perG = v => won(v * krw / window.YAMOO.OZ);
-  const cards = [
-    { n: "금", s: "XAU/USD", v: usd.XAU, sub: `g당 ${perG(usd.XAU)}` },
-    { n: "은", s: "XAG/USD", v: usd.XAG, sub: `g당 ${perG(usd.XAG)}` },
-    { n: "백금", s: "XPT/USD", v: usd.XPT, sub: `g당 ${perG(usd.XPT)}` },
-    { n: "팔라듐", s: "XPD/USD", v: usd.XPD, sub: `g당 ${perG(usd.XPD)}` },
-    { n: "원/달러", s: "USD/KRW", v: krw, sub: "1달러당 원", krw: true },
-  ];
-  $("#intl").innerHTML = cards.map(c => `
+  const metals = [["금", "XAU"], ["은", "XAG"], ["백금", "XPT"], ["팔라듐", "XPD"]];
+  $("#intl").innerHTML = metals.map(([n, s]) => `
     <div class="intl__card">
-      <p class="intl__name">${c.n} <span>${c.s}</span></p>
-      <p class="intl__val num">${c.krw ? "" : "$"}${c.v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-      <p class="intl__sub num">${c.sub}</p>
-    </div>`).join("");
+      <p class="intl__name">국제 ${n} <span>1돈 환산</span></p>
+      <p class="intl__val num">${won(donWon(s))}</p>
+      <p class="intl__sub num">${usdFmt(usd[s])}/oz</p>
+    </div>`).join("") + `
+    <div class="intl__card">
+      <p class="intl__name">원/달러 <span>실시간</span></p>
+      <p class="intl__val num">${krw.toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}원</p>
+      <p class="intl__sub">1달러 기준</p>
+    </div>`;
+  renderTicker();
+  updateChartKrw();
+}
+
+function renderTicker() {
+  const g = item("24k");
+  const items = [
+    ["순금 살 때", won(g.buy), "3.75g", true],
+    ["순금 팔 때", won(g.sell), "3.75g", true],
+    ["18K 팔 때", won(item("18k").sell), "3.75g"],
+    ["14K 팔 때", won(item("14k").sell), "3.75g"],
+    ["국제 금", won(donWon("XAU")), "1돈 환산"],
+    ["국제 은", won(donWon("XAG")), "1돈 환산"],
+    ["국제 백금", won(donWon("XPT")), "1돈 환산"],
+    ["국제 팔라듐", won(donWon("XPD")), "1돈 환산"],
+    ["원/달러", state.live.krw.toFixed(2) + "원", "실시간"],
+  ];
+  const html = items.map(([n, v, u, gold]) => `<div class="ticker__item${gold ? " is-gold" : ""}"><span>${n}</span><b class="num">${v}</b><em>${u}</em></div>`).join("");
+  const track = $("#ticker");
+  track.innerHTML = html + html; // 끊김 없는 스크롤용 복제
+  track.classList.add("is-running");
+}
+
+const CHART_SYM = { "OANDA:XAUUSD": "XAU", "OANDA:XAGUSD": "XAG", "OANDA:XPTUSD": "XPT" };
+let chartSymbol = "OANDA:XAUUSD";
+function updateChartKrw() {
+  if (!state.live) return;
+  const m = CHART_SYM[chartSymbol];
+  $("#chartKrw").textContent = m ? `현재 1돈 ${won(donWon(m))}` : `현재 ${state.live.krw.toFixed(2)}원`;
 }
 
 /* ---------- 국내 시세표 ---------- */
@@ -118,6 +147,8 @@ function mountChart(symbol) {
 document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
   document.querySelectorAll(".seg button").forEach(x => { x.classList.toggle("is-on", x === b); x.setAttribute("aria-selected", x === b); });
   $("#chartTitle").textContent = b.dataset.title;
+  chartSymbol = b.dataset.symbol;
+  updateChartKrw();
   mountChart(b.dataset.symbol);
 }));
 
