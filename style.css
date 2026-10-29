@@ -70,7 +70,17 @@ ul, ol { padding: 0; list-style: none; }
 .mobile-nav.is-open { max-height: 400px; }
 
 /* ---------- Ticker ---------- */
-.ticker { background: var(--dark-2); border-bottom: 1px solid #2a2721; min-height: 46px; overflow: hidden; }
+.ticker { background: var(--dark-2); color: #d9d2c4; border-bottom: 1px solid #2a2721; overflow: hidden; font-size: 13px; }
+.ticker__track { display: flex; width: max-content; }
+.ticker__track.is-running { animation: marquee 45s linear infinite; }
+.ticker:hover .ticker__track { animation-play-state: paused; }
+.ticker__item { display: flex; align-items: center; gap: 8px; padding: 11px 28px; white-space: nowrap; border-right: 1px solid #2f2b24; }
+.ticker__item b { color: #fff; font-weight: 500; }
+.ticker__item span { color: #8f877a; }
+.ticker__item em { font-style: normal; color: #8f877a; font-size: 12px; }
+.ticker__item.is-gold b { color: var(--gold-hi); }
+@keyframes marquee { to { transform: translateX(-50%); } }
+.chart-card__krw { font-size: 14px !important; font-weight: 500; color: var(--gold-2); margin-left: 6px; }
 .up { color: var(--up) !important; }
 .down { color: var(--down) !important; }
 
