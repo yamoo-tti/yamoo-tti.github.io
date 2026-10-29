@@ -1,24 +1,9 @@
 /* =========================================================
-   시세 데이터 (예시) — 실제 운영 시 시세 API 응답으로 교체하세요.
-   모든 국내 가격은 3.75g(1돈) 기준, 원 단위
+   홈페이지 — 실시간 시세 기반
+   국제 시세(gold-api.com) × 환율(open.er-api.com) → 국내 3.75g 시세
+   마진은 관리자 페이지 > 시세 설정 값을 사용 (미설정 시 기본값)
    ========================================================= */
-const PRICE = {
-  updated: "2026.10.29 10:30",
-  items: [
-    { key: "24k", name: "순금 24K", sub: "99.99%", buy: 820000, sell: 695000, diff: 4000 },
-    { key: "18k", name: "18K", sub: "75.0%", buy: null, sell: 510800, diff: 2900 },
-    { key: "14k", name: "14K", sub: "58.5%", buy: null, sell: 396100, diff: 2300 },
-    { key: "pt", name: "백금", sub: "Pt 99.95%", buy: 302000, sell: 248000, diff: -1000 },
-    { key: "ag", name: "은", sub: "Ag 99.99%", buy: 11800, sell: 8700, diff: -60 },
-  ],
-  intl: [
-    { name: "국제 금", unit: "USD/oz", value: 4108.2, diff: 12.4, dec: 2 },
-    { name: "국제 은", unit: "USD/oz", value: 53.77, diff: -0.13, dec: 2 },
-    { name: "국제 백금", unit: "USD/oz", value: 1592.5, diff: -4.1, dec: 2 },
-    { name: "국제 팔라듐", unit: "USD/oz", value: 1184.0, diff: 6.5, dec: 2 },
-    { name: "원/달러", unit: "KRW", value: 1421.5, diff: 2.3, dec: 1 },
-  ],
-};
+const { fetchLive, fetchSettings, computeDomestic, won, fmtDate, DON } = window.YAMOO;
 
 // 골드바: 중량(g)과 제작 프리미엄
 const BARS = [
@@ -42,107 +27,117 @@ const ACCESSORIES = [
   { cat: "necklace", name: "스네이크 체인 목걸이", karat: "18K", g: 4.3, labor: 85000, img: "necklace-blazer.jpg" },
 ];
 
-/* ---------- 유틸 ---------- */
 const $ = s => document.querySelector(s);
-const won = n => Math.round(n).toLocaleString("ko-KR") + "원";
 const round100 = n => Math.round(n / 100) * 100;
 const round1000 = n => Math.round(n / 1000) * 1000;
-const byKey = Object.fromEntries(PRICE.items.map(i => [i.key, i]));
-const DON = 3.75;
-const perGram = (key, side) => (byKey[key][side] ?? 0) / DON;
-// 악세사리 판매용 금값(g당): 팔 때 시세 × 1.3 (제품 시세 가정)
-const KARAT_RATE = { "24K": perGram("24k", "buy"), "18K": perGram("18k", "sell") * 1.3, "14K": perGram("14k", "sell") * 1.3 };
 
-function diffHTML(d, dec = 0) {
-  if (!d) return `<span class="chg">-</span>`;
-  const cls = d > 0 ? "up" : "down";
-  const sign = d > 0 ? "▲" : "▼";
-  return `<span class="chg ${cls}">${sign} ${Math.abs(d).toLocaleString("ko-KR", { minimumFractionDigits: dec, maximumFractionDigits: dec })}</span>`;
+let state = { live: null, domestic: null };
+const item = key => state.domestic.items.find(i => i.key === key);
+
+/* ---------- 시세 불러오기 ---------- */
+const CACHE_KEY = "yamoo_live_v1";
+function loadCache() { try { const c = JSON.parse(localStorage.getItem(CACHE_KEY)); if (c) c.updatedAt = new Date(c.updatedAt); return c; } catch { return null; } }
+function saveCache(live) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(live)); } catch {} }
+
+let settings = null;
+async function refresh() {
+  const dot = $("#liveDot");
+  dot.className = "live-dot is-loading";
+  try {
+    if (!settings) settings = await fetchSettings();
+    const live = await fetchLive();
+    saveCache(live);
+    apply(live);
+    dot.className = "live-dot";
+  } catch (e) {
+    console.warn("시세 조회 실패", e);
+    dot.className = "live-dot is-error";
+    if (!state.live) {
+      const cached = loadCache();
+      if (cached) { apply(cached); $("#priceTime").textContent += " (지연)"; }
+      else $("#priceTime").textContent = "시세를 불러오지 못했습니다";
+    }
+  }
 }
 
-/* ---------- 티커 ---------- */
-function renderTicker() {
-  const items = [
-    ...PRICE.intl.map(i => ({ name: i.name, unit: i.unit, val: i.value.toLocaleString("en-US", { minimumFractionDigits: i.dec, maximumFractionDigits: i.dec }), diff: i.diff, dec: i.dec })),
-    { name: "순금 살 때", unit: "3.75g", val: byKey["24k"].buy.toLocaleString("ko-KR"), diff: byKey["24k"].diff, dec: 0 },
-    { name: "순금 팔 때", unit: "3.75g", val: byKey["24k"].sell.toLocaleString("ko-KR"), diff: byKey["24k"].diff, dec: 0 },
+function apply(live) {
+  state.live = live;
+  state.domestic = computeDomestic(live, settings || window.YAMOO.DEFAULT_SETTINGS);
+  $("#priceTime").textContent = fmtDate(live.updatedAt);
+  renderIntl();
+  renderPriceTable();
+  updateCalc();
+  renderBars();
+  renderProducts(currentFilter);
+}
+
+/* ---------- 국제 시세 카드 ---------- */
+function renderIntl() {
+  const { usd, krw } = state.live;
+  const perG = v => won(v * krw / window.YAMOO.OZ);
+  const cards = [
+    { n: "금", s: "XAU/USD", v: usd.XAU, sub: `g당 ${perG(usd.XAU)}` },
+    { n: "은", s: "XAG/USD", v: usd.XAG, sub: `g당 ${perG(usd.XAG)}` },
+    { n: "백금", s: "XPT/USD", v: usd.XPT, sub: `g당 ${perG(usd.XPT)}` },
+    { n: "팔라듐", s: "XPD/USD", v: usd.XPD, sub: `g당 ${perG(usd.XPD)}` },
+    { n: "원/달러", s: "USD/KRW", v: krw, sub: "1달러당 원", krw: true },
   ];
-  const html = items.map(i => {
-    const cls = i.diff > 0 ? "up" : "down";
-    const sign = i.diff > 0 ? "▲" : "▼";
-    return `<div class="ticker__item"><span>${i.name}</span><b class="num">${i.val}</b><span>${i.unit}</span><em class="num ${cls}" style="font-style:normal">${sign}${Math.abs(i.diff).toFixed(i.dec)}</em></div>`;
-  }).join("");
-  $("#ticker").innerHTML = html + html; // 무한 스크롤용 복제
+  $("#intl").innerHTML = cards.map(c => `
+    <div class="intl__card">
+      <p class="intl__name">${c.n} <span>${c.s}</span></p>
+      <p class="intl__val num">${c.krw ? "" : "$"}${c.v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+      <p class="intl__sub num">${c.sub}</p>
+    </div>`).join("");
 }
 
-/* ---------- 시세표 ---------- */
+/* ---------- 국내 시세표 ---------- */
 function renderPriceTable() {
-  $("#priceTime").textContent = PRICE.updated;
-  $("#priceBody").innerHTML = PRICE.items.map(i => `
+  $("#priceBody").innerHTML = state.domestic.items.map(i => `
     <tr class="${i.key === "24k" ? "is-main" : ""}">
       <td class="item">${i.name}<small>${i.sub}</small></td>
-      <td>${i.buy ? `<span class="val">${i.buy.toLocaleString("ko-KR")}</span>${diffHTML(i.diff)}` : `<span class="na">제품시세 적용</span>`}</td>
-      <td><span class="val">${i.sell.toLocaleString("ko-KR")}</span>${diffHTML(i.sellDiff ?? i.diff)}</td>
+      <td>${i.buy ? `<span class="val">${i.buy.toLocaleString("ko-KR")}</span>` : `<span class="na">제품시세 적용</span>`}</td>
+      <td><span class="val">${i.sell.toLocaleString("ko-KR")}</span></td>
     </tr>`).join("");
 }
+$("#refreshBtn").addEventListener("click", refresh);
 
-/* ---------- 차트 (예시 데이터) ---------- */
-function seeded(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
-function makeSeries(days) {
-  const rnd = seeded(days * 7919);
-  const end = byKey["24k"].buy;
-  const vals = [end];
-  for (let i = 1; i < days; i++) {
-    const drift = days > 100 ? 0.0011 : 0.0006; // 장기 상승 추세 가정
-    vals.push(vals[i - 1] * (1 - drift + (rnd() - 0.5) * 0.018));
-  }
-  return vals.reverse();
-}
-function renderChart(days = 30) {
-  const data = makeSeries(days);
-  const W = 600, H = 220, pad = 10;
-  const min = Math.min(...data), max = Math.max(...data);
-  const x = i => (i / (data.length - 1)) * W;
-  const y = v => pad + (1 - (v - min) / (max - min || 1)) * (H - pad * 2);
-  const pts = data.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
-  const grid = [0.25, 0.5, 0.75].map(t => `<line class="grid" x1="0" x2="${W}" y1="${H * t}" y2="${H * t}"/>`).join("");
-  $("#chart").innerHTML = `
-    <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c09a45" stop-opacity=".28"/><stop offset="1" stop-color="#c09a45" stop-opacity="0"/></linearGradient></defs>
-    ${grid}
-    <path class="area" d="M0,${H} L${pts.join(" L")} L${W},${H} Z"/>
-    <path class="line" d="M${pts.join(" L")}"/>`;
-  const first = data[0], last = data[data.length - 1];
-  const pct = ((last - first) / first) * 100;
-  $("#chartValue").innerHTML = `${won(last)} <small class="${pct >= 0 ? "up" : "down"}">${pct >= 0 ? "▲" : "▼"} ${Math.abs(pct).toFixed(2)}%</small>`;
-  const today = new Date(2026, 9, 29);
-  const fmt = d => `${d.getMonth() + 1}.${String(d.getDate()).padStart(2, "0")}`;
-  const labels = [0, 0.25, 0.5, 0.75, 1].map(t => fmt(new Date(today - (1 - t) * (days - 1) * 864e5)));
-  $("#chartAxis").innerHTML = labels.map(l => `<span>${l}</span>`).join("");
+/* ---------- TradingView 국제 차트 ---------- */
+function mountChart(symbol) {
+  const box = $("#tvChart");
+  box.innerHTML = `<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div>`;
+  const s = document.createElement("script");
+  s.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+  s.async = true;
+  s.textContent = JSON.stringify({
+    autosize: true, symbol, interval: "60", timezone: "Asia/Seoul", theme: "light", style: "1",
+    locale: "kr", allow_symbol_change: false, hide_side_toolbar: true, hide_volume: true,
+    calendar: false, save_image: false, support_host: "https://www.tradingview.com",
+  });
+  box.firstElementChild.appendChild(s);
 }
 document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
   document.querySelectorAll(".seg button").forEach(x => { x.classList.toggle("is-on", x === b); x.setAttribute("aria-selected", x === b); });
-  renderChart(+b.dataset.range);
+  $("#chartTitle").textContent = b.dataset.title;
+  mountChart(b.dataset.symbol);
 }));
 
 /* ---------- 계산기 ---------- */
-function initCalc() {
-  const sel = $("#calcItem");
-  sel.innerHTML = PRICE.items.map(i => `<option value="${i.key}">${i.name}</option>`).join("");
-  const update = () => {
-    const item = byKey[sel.value];
-    const w = parseFloat($("#calcWeight").value) || 0;
-    const don = $("#calcUnit").value === "g" ? w / DON : w;
-    $("#calcBuy").textContent = item.buy ? won(round100(item.buy * don)) : "제품시세";
-    $("#calcSell").textContent = won(round100(item.sell * don));
-  };
-  ["#calcItem", "#calcWeight", "#calcUnit"].forEach(s => $(s).addEventListener("input", update));
-  update();
+const calcSel = $("#calcItem");
+calcSel.innerHTML = ["24k:순금 24K", "18k:18K", "14k:14K", "pt:백금", "ag:은"].map(s => { const [k, n] = s.split(":"); return `<option value="${k}">${n}</option>`; }).join("");
+function updateCalc() {
+  if (!state.domestic) return;
+  const it = item(calcSel.value);
+  const w = parseFloat($("#calcWeight").value) || 0;
+  const don = $("#calcUnit").value === "g" ? w / DON : w;
+  $("#calcBuy").textContent = it.buy ? won(round100(it.buy * don)) : "제품시세";
+  $("#calcSell").textContent = won(round100(it.sell * don));
 }
+["#calcItem", "#calcWeight", "#calcUnit"].forEach(s => $(s).addEventListener("input", updateCalc));
 
 /* ---------- 골드바 ---------- */
 function renderBars() {
-  const g24 = perGram("24k", "buy");
-  $("#bars").innerHTML = BARS.map((b, i) => {
+  const g24 = item("24k").buy / DON;
+  $("#bars").innerHTML = BARS.map(b => {
     const price = round100(g24 * b.g * (1 + b.premium));
     return `
       <article class="bar">
@@ -155,7 +150,7 @@ function renderBars() {
           <h3 class="bar__name">YAMOO 순금 골드바 ${b.label}</h3>
           <p class="bar__spec">Au 999.9 · 보증서 · 고급 케이스</p>
           <p class="bar__price">${won(price)}</p>
-          <p class="bar__unit">1g당 ${won(price / b.g)} · 시세 연동</p>
+          <p class="bar__unit">1g당 ${won(price / b.g)} · 실시간 시세 연동</p>
           <div class="bar__btns">
             <button class="cart-btn" data-name="순금 골드바 ${b.label}">장바구니</button>
             <button class="buy-btn" data-name="순금 골드바 ${b.label}" data-buy>바로 구매</button>
@@ -166,10 +161,15 @@ function renderBars() {
 }
 
 /* ---------- 악세사리 ---------- */
+let currentFilter = "all";
 function renderProducts(filter = "all") {
+  if (!state.domestic) return;
+  currentFilter = filter;
+  // 제품 판매용 금값(g당): 팔 때 시세 × 1.3
+  const rate = { "18K": item("18k").sell / DON * 1.3, "14K": item("14k").sell / DON * 1.3 };
   const list = filter === "all" ? ACCESSORIES : ACCESSORIES.filter(p => p.cat === filter);
   $("#products").innerHTML = list.map((p, i) => {
-    const price = round1000(KARAT_RATE[p.karat] * p.g + p.labor);
+    const price = round1000(rate[p.karat] * p.g + p.labor);
     return `
       <article class="product" style="animation-delay:${i * 50}ms">
         <div class="product__img">
@@ -198,8 +198,9 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add("is-show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("is-show"), 2200);
+  toastTimer = setTimeout(() => t.classList.remove("is-show"), 2400);
 }
+window.toast = toast;
 document.addEventListener("click", e => {
   const btn = e.target.closest("[data-name]");
   if (!btn) return;
@@ -243,7 +244,7 @@ mnav.addEventListener("click", e => { if (e.target.tagName === "A") { toggle.set
 
 /* ---------- 스크롤 등장 ---------- */
 function initReveal() {
-  const els = document.querySelectorAll(".section__head, .card, .bar, .editorial__text, .steps li, .board__col, .store");
+  const els = document.querySelectorAll(".section__head, .card, .editorial__text, .steps li, .board__col, .store");
   if (!("IntersectionObserver" in window)) return;
   els.forEach(el => el.classList.add("reveal"));
   const io = new IntersectionObserver(entries => entries.forEach(en => {
@@ -252,11 +253,8 @@ function initReveal() {
   els.forEach(el => io.observe(el));
 }
 
-renderTicker();
-renderPriceTable();
-renderChart(30);
-initCalc();
-renderBars();
-renderProducts();
 initHero();
 initReveal();
+mountChart("OANDA:XAUUSD");
+refresh();
+setInterval(() => { if (!document.hidden) refresh(); }, 60000);
