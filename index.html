@@ -1,867 +1,307 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AURELIA | Fine Jewelry</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root{
-      --bg: #f7f1eb;
-      --panel: #f3e7de;
-      --white: #fffdfb;
-      --ink: #1b1715;
-      --muted: #6a5d57;
-      --line: rgba(27,23,21,0.12);
-      --gold: #b9996b;
-      --gold-deep: #8d6d43;
-      --gold-soft: #d7c09a;
-      --shadow: 0 20px 60px rgba(33, 24, 18, 0.08);
-    }
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: "Inter", sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-    }
-    img {
-      width: 100%;
-      display: block;
-    }
-    a { color: inherit; text-decoration: none; }
-    button { font: inherit; }
-
-    .container {
-      width: min(1200px, calc(100% - 40px));
-      margin: 0 auto;
-    }
-
-    .topbar {
-      border-bottom: 1px solid var(--line);
-      background: rgba(247,241,235,0.85);
-      backdrop-filter: blur(7px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .topbar-inner {
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-family: "Cormorant Garamond", serif;
-      letter-spacing: 0.12em;
-      font-size: clamp(1.8rem, 2.2vw, 2.5rem);
-      font-weight: 600;
-    }
-
-    .brand-mark {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--gold-soft), var(--gold));
-      box-shadow: 0 0 0 4px rgba(185, 153, 107, 0.15);
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 28px;
-      font-size: 0.78rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .nav a {
-      position: relative;
-      transition: color 0.25s ease;
-    }
-
-    .nav a::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      bottom: -8px;
-      width: 100%;
-      height: 1px;
-      background: var(--gold);
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.25s ease;
-    }
-
-    .nav a:hover { color: var(--ink); }
-    .nav a:hover::after { transform: scaleX(1); }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .icon-button {
-      width: 42px;
-      height: 42px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.4);
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      cursor: pointer;
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-
-    .icon-button:hover {
-      transform: translateY(-1px);
-      border-color: rgba(185, 153, 107, 0.5);
-    }
-
-    .icon-button svg {
-      width: 18px;
-      height: 18px;
-      stroke: var(--ink);
-    }
-
-    .cart-pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 18px;
-      height: 42px;
-      border-radius: 999px;
-      border: 1px solid var(--ink);
-      background: var(--ink);
-      color: var(--white);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-size: 0.7rem;
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.2s ease;
-    }
-
-    .cart-pill:hover {
-      transform: translateY(-1px);
-      background: #2d2624;
-    }
-
-    .hero {
-      padding: 54px 0 36px;
-    }
-
-    .hero-inner {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 56px;
-      align-items: center;
-    }
-
-    .eyebrow {
-      display: inline-block;
-      color: var(--gold-deep);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      font-size: 0.72rem;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      font-family: "Cormorant Garamond", serif;
-      font-size: clamp(3.3rem, 7vw, 7rem);
-      line-height: 0.9;
-      margin: 0 0 20px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-    }
-
-    .hero-copy p {
-      max-width: 520px;
-      margin: 0 0 28px;
-      color: var(--muted);
-      line-height: 1.8;
-      font-size: 1rem;
-    }
-
-    .actions {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      margin-bottom: 34px;
-    }
-
-    .primary-btn, .secondary-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 999px;
-      height: 52px;
-      padding: 0 28px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-size: 0.72rem;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      cursor: pointer;
-    }
-
-    .primary-btn {
-      background: linear-gradient(135deg, var(--gold), var(--gold-deep));
-      color: #fff;
-      box-shadow: 0 20px 35px rgba(141, 109, 67, 0.28);
-    }
-
-    .secondary-btn {
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.35);
-      color: var(--ink);
-    }
-
-    .primary-btn:hover, .secondary-btn:hover {
-      transform: translateY(-1px);
-    }
-
-    .hero-stats {
-      display: flex;
-      gap: 42px;
-      flex-wrap: wrap;
-    }
-
-    .stat-box {
-      min-width: 120px;
-    }
-
-    .stat-value {
-      font-family: "Cormorant Garamond", serif;
-      font-size: clamp(2rem, 3vw, 3rem);
-      font-weight: 600;
-      line-height: 1;
-      margin-bottom: 8px;
-    }
-
-    .stat-label {
-      color: var(--muted);
-      font-size: 0.74rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    .hero-visual {
-      position: relative;
-      min-height: 650px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .image-main {
-      width: min(540px, 100%);
-      height: 620px;
-      border-radius: 28px 28px 140px 28px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      position: relative;
-      border: 1px solid rgba(27,23,21,0.08);
-    }
-
-    .image-main img {
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .floating-card {
-      position: absolute;
-      bottom: 40px;
-      left: 30px;
-      background: rgba(255,255,255,0.72);
-      backdrop-filter: blur(9px);
-      border: 1px solid rgba(27,23,21,0.08);
-      box-shadow: 0 20px 35px rgba(27,23,21,0.08);
-      border-radius: 24px;
-      padding: 18px 18px 14px;
-      width: 230px;
-    }
-
-    .floating-label {
-      font-size: 0.63rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-
-    .floating-name {
-      font-family: "Cormorant Garamond", serif;
-      font-size: 2rem;
-      margin-bottom: 6px;
-    }
-
-    .floating-price {
-      color: var(--gold-deep);
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-size: 0.74rem;
-    }
-
-    .badge {
-      position: absolute;
-      right: 20px;
-      top: 28px;
-      background: rgba(255,255,255,0.8);
-      border: 1px solid rgba(27,23,21,0.08);
-      color: var(--ink);
-      padding: 12px 16px;
-      border-radius: 999px;
-      font-size: 0.68rem;
-      letter-spacing: 0.09em;
-      text-transform: uppercase;
-      backdrop-filter: blur(8px);
-    }
-
-    .section {
-      padding: 54px 0;
-    }
-
-    .section-head {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 20px;
-      margin-bottom: 28px;
-    }
-
-    .section-title {
-      font-family: "Cormorant Garamond", serif;
-      font-size: clamp(2.6rem, 4vw, 4rem);
-      font-weight: 600;
-      margin: 0;
-      letter-spacing: -0.02em;
-    }
-
-    .section-link {
-      color: var(--muted);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-size: 0.7rem;
-    }
-
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 30px;
-    }
-
-    .chip {
-      height: 38px;
-      padding: 0 18px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.2);
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      font-size: 0.68rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .chip.active, .chip:hover {
-      background: var(--ink);
-      color: var(--white);
-      border-color: var(--ink);
-    }
-
-    .products {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 26px;
-    }
-
-    .product-card {
-      background: rgba(255,255,255,0.2);
-      border: 1px solid rgba(27,23,21,0.08);
-      border-radius: 24px;
-      overflow: hidden;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-    }
-
-    .product-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 18px 40px rgba(27,23,21,0.08);
-    }
-
-    .product-image {
-      position: relative;
-      height: 360px;
-      overflow: hidden;
-      background: #ede2d7;
-    }
-
-    .product-image img {
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s ease;
-    }
-
-    .product-card:hover .product-image img {
-      transform: scale(1.04);
-    }
-
-    .product-tag {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      background: rgba(255,255,255,0.8);
-      border: 1px solid rgba(27,23,21,0.08);
-      border-radius: 999px;
-      padding: 8px 10px;
-      font-size: 0.62rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--ink);
-      backdrop-filter: blur(8px);
-    }
-
-    .product-info {
-      padding: 18px 18px 20px;
-    }
-
-    .product-name {
-      font-family: "Cormorant Garamond", serif;
-      font-size: 2rem;
-      margin: 0 0 6px;
-      line-height: 1;
-    }
-
-    .product-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-
-    .product-category {
-      font-size: 0.7rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .product-price {
-      font-size: 0.9rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--gold-deep);
-      font-weight: 700;
-    }
-
-    .product-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .wishlist, .add-cart {
-      flex: 1;
-      height: 42px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 0.7rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--ink);
-    }
-
-    .add-cart {
-      background: var(--ink);
-      color: var(--white);
-      border-color: var(--ink);
-    }
-
-    .wishlist:hover {
-      border-color: rgba(185, 153, 107, 0.55);
-      color: var(--gold-deep);
-    }
-
-    .add-cart:hover {
-      background: #2b2421;
-    }
-
-    .story {
-      padding: 38px 0 0;
-    }
-
-    .story-wrap {
-      background: linear-gradient(135deg, rgba(255,255,255,0.38), rgba(255,255,255,0.12));
-      border: 1px solid rgba(27,23,21,0.08);
-      border-radius: 32px;
-      overflow: hidden;
-      display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      min-height: 520px;
-    }
-
-    .story-image {
-      position: relative;
-      min-height: 520px;
-    }
-
-    .story-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .story-content {
-      display: flex;
-      align-items: center;
-      padding: 56px 44px;
-    }
-
-    .story-box {
-      max-width: 470px;
-    }
-
-    .story-box .eyebrow {
-      margin-bottom: 18px;
-    }
-
-    .story-box h3 {
-      font-family: "Cormorant Garamond", serif;
-      font-size: clamp(2.6rem, 4vw, 4rem);
-      margin: 0 0 16px;
-      line-height: 1;
-    }
-
-    .story-box p {
-      margin: 0 0 28px;
-      color: var(--muted);
-      line-height: 1.8;
-    }
-
-    .quote {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      padding-top: 20px;
-      border-top: 1px solid var(--line);
-    }
-
-    .quote-mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--gold-soft), var(--gold));
-      color: #fff;
-      display: grid;
-      place-items: center;
-      font-family: "Cormorant Garamond", serif;
-      font-size: 1.8rem;
-      line-height: 1;
-    }
-
-    .quote small {
-      display: block;
-      color: var(--muted);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-size: 0.66rem;
-      margin-top: 4px;
-    }
-
-    .collections {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 24px;
-    }
-
-    .collection-card {
-      position: relative;
-      overflow: hidden;
-      border-radius: 28px;
-      min-height: 470px;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(27,23,21,0.08);
-    }
-
-    .collection-card img {
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .collection-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(16,12,10,0.06), rgba(16,12,10,0.68));
-      display: flex;
-      align-items: end;
-      padding: 26px;
-    }
-
-    .collection-text {
-      color: #fff;
-    }
-
-    .collection-text .name {
-      font-family: "Cormorant Garamond", serif;
-      font-size: 2.6rem;
-      line-height: 1;
-      margin-bottom: 8px;
-    }
-
-    .collection-text .sub {
-      font-size: 0.7rem;
-      letter-spacing: 0.13em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.75);
-    }
-
-    .journal {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 24px;
-    }
-
-    .article {
-      background: rgba(255,255,255,0.18);
-      border: 1px solid rgba(27,23,21,0.08);
-      border-radius: 26px;
-      overflow: hidden;
-    }
-
-    .article-image {
-      height: 250px;
-      overflow: hidden;
-    }
-
-    .article-image img {
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s ease;
-    }
-
-    .article:hover .article-image img {
-      transform: scale(1.04);
-    }
-
-    .article-body {
-      padding: 22px 20px 26px;
-    }
-
-    .article-kicker {
-      font-size: 0.68rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--gold-deep);
-      margin-bottom: 12px;
-    }
-
-    .article h4 {
-      font-family: "Cormorant Garamond", serif;
-      font-size: 2rem;
-      margin: 0 0 12px;
-      line-height: 1;
-    }
-
-    .article p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.7;
-      font-size: 0.95rem;
-    }
-
-    .newsletter {
-      margin-top: 18px;
-      background: linear-gradient(135deg, rgba(185,153,107,0.16), rgba(255,255,255,0.28));
-      border: 1px solid rgba(27,23,21,0.08);
-      border-radius: 30px;
-      padding: 42px 28px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-
-    .newsletter h3 {
-      font-family: "Cormorant Garamond", serif;
-      font-size: clamp(2rem, 3vw, 3.2rem);
-      margin: 0;
-      line-height: 1;
-    }
-
-    .newsletter-form {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .newsletter input {
-      width: min(400px, 70vw);
-      height: 54px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.46);
-      padding: 0 18px;
-      color: var(--ink);
-      outline: none;
-    }
-
-    .newsletter button {
-      height: 54px;
-      border: 0;
-      border-radius: 999px;
-      padding: 0 24px;
-      background: var(--ink);
-      color: var(--white);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      font-size: 0.7rem;
-      cursor: pointer;
-    }
-
-    footer {
-      padding: 34px 0 60px;
-    }
-
-    .footer-wrap {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-      border-top: 1px solid var(--line);
-      padding-top: 24px;
-      flex-wrap: wrap;
-    }
-
-    .footer-nav {
-      display: flex;
-      gap: 18px;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 0.74rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    .copy {
-      color: var(--muted);
-      font-size: 0.8rem;
-      letter-spacing: 0.06em;
-    }
-
-    @media (max-width: 1024px) {
-      .hero-inner,
-      .story-wrap {
-        grid-template-columns: 1fr;
-      }
-
-      .products {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .collections,
-      .journal {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 760px) {
-      .nav {
-        display: none;
-      }
-
-      .topbar-inner {
-        justify-content: space-between;
-      }
-
-      .products {
-        grid-template-columns: 1fr;
-      }
-
-      .actions {
-        flex-wrap: wrap;
-      }
-
-      .hero {
-        padding-top: 36px;
-      }
-
-      .hero-visual {
-        min-height: 540px;
-      }
-
-      .image-main {
-        height: 500px;
-      }
-
-      .floating-card {
-        left: 12px;
-        bottom: 18px;
-      }
-
-      .newsletter {
-        padding: 30px 20px;
-      }
-
-      .newsletter-form {
-        width: 100%;
-      }
-
-      .newsletter input {
-        width: 100%;
-      }
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YAMOO Fine Jewelry</title>
+  <meta name="description" content="YAMOO — 일상에 머무는 빛, 파인 주얼리 쇼핑몰">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='38' r='18' fill='none' stroke='%23b08d57' stroke-width='5'/%3E%3Cpath d='M24 14h16l5 6-13 10-13-10z' fill='%23b08d57'/%3E%3C/svg%3E">
 </head>
 <body>
-  <header class="topbar">
-    <div class="container topbar-inner">
-      <div class="brand">
-        <span class="brand-mark"></span>
-        AURELIA
-      </div>
 
-      <nav class="nav">
-        <a href="#">Collection</a>
-        <a href="#">Rings</a>
-        <a href="#">Necklaces</a>
-        <a href="#">Bracelets</a>
-        <a href="#">Watches</a>
-        <a href="#">Gifts</a>
+  <!-- 주얼리 일러스트 (SVG 심볼) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f6e2b3"/><stop offset=".45" stop-color="#c9a063"/><stop offset=".7" stop-color="#a27a3e"/><stop offset="1" stop-color="#ecd29a"/>
+      </linearGradient>
+      <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#c4c7cc"/><stop offset=".7" stop-color="#8e9298"/><stop offset="1" stop-color="#eceef0"/>
+      </linearGradient>
+      <linearGradient id="rose" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f8d9cc"/><stop offset=".45" stop-color="#d49a87"/><stop offset=".7" stop-color="#b0705e"/><stop offset="1" stop-color="#f0c7b6"/>
+      </linearGradient>
+      <radialGradient id="gem" cx=".35" cy=".3" r=".8">
+        <stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#e8f1f7"/><stop offset="1" stop-color="#a9bccb"/>
+      </radialGradient>
+      <radialGradient id="pearl" cx=".35" cy=".3" r=".75">
+        <stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#f3ece2"/><stop offset="1" stop-color="#cfc2b0"/>
+      </radialGradient>
+
+      <symbol id="i-ring" viewBox="0 0 200 200">
+        <ellipse cx="100" cy="122" rx="54" ry="54" fill="none" style="stroke:var(--metal)" stroke-width="9"/>
+        <path d="M80 70 L120 70 L132 54 L100 26 L68 54 Z" fill="url(#gem)" stroke="#9fb2c2" stroke-width="1.2"/>
+        <path d="M68 54 H132 M100 26 L88 54 L100 70 L112 54 Z" fill="none" stroke="#fff" stroke-width="1" opacity=".8"/>
+        <path d="M84 70 L92 78 H108 L116 70" fill="none" style="stroke:var(--metal)" stroke-width="5" stroke-linejoin="round"/>
+      </symbol>
+
+      <symbol id="i-band" viewBox="0 0 200 200">
+        <ellipse cx="100" cy="104" rx="60" ry="60" fill="none" style="stroke:var(--metal)" stroke-width="16"/>
+        <ellipse cx="100" cy="104" rx="60" ry="60" fill="none" stroke="#fff" stroke-width="2" opacity=".5" stroke-dasharray="2 12"/>
+      </symbol>
+
+      <symbol id="i-necklace" viewBox="0 0 200 200">
+        <path d="M30 20 C 30 110, 170 110, 170 20" fill="none" style="stroke:var(--metal)" stroke-width="3" stroke-dasharray="5 3"/>
+        <path d="M100 96 v12" style="stroke:var(--metal)" stroke-width="3"/>
+        <circle cx="100" cy="112" r="5" fill="none" style="stroke:var(--metal)" stroke-width="3"/>
+        <path d="M100 118 L124 140 L100 178 L76 140 Z" fill="url(#gem)" stroke="#9fb2c2" stroke-width="1.2"/>
+        <path d="M76 140 H124 M100 118 L90 140 L100 178 L110 140 Z" fill="none" stroke="#fff" stroke-width="1" opacity=".8"/>
+      </symbol>
+
+      <symbol id="i-pearl" viewBox="0 0 200 200">
+        <path d="M30 20 C 30 120, 170 120, 170 20" fill="none" style="stroke:var(--metal)" stroke-width="2"/>
+        <g fill="url(#pearl)">
+          <circle cx="36" cy="52" r="8"/><circle cx="46" cy="72" r="8.5"/><circle cx="60" cy="88" r="9"/><circle cx="78" cy="99" r="9.5"/>
+          <circle cx="100" cy="104" r="11"/><circle cx="122" cy="99" r="9.5"/><circle cx="140" cy="88" r="9"/><circle cx="154" cy="72" r="8.5"/><circle cx="164" cy="52" r="8"/>
+        </g>
+        <path d="M100 115 v10" style="stroke:var(--metal)" stroke-width="2"/>
+        <circle cx="100" cy="146" r="20" fill="url(#pearl)"/>
+      </symbol>
+
+      <symbol id="i-earring" viewBox="0 0 200 200">
+        <g>
+          <path d="M62 30 a12 12 0 1 1 0.1 0" fill="none" style="stroke:var(--metal)" stroke-width="4"/>
+          <path d="M62 54 v18" style="stroke:var(--metal)" stroke-width="3"/>
+          <circle cx="62" cy="100" r="26" fill="none" style="stroke:var(--metal)" stroke-width="6"/>
+          <circle cx="62" cy="146" r="11" fill="url(#gem)" stroke="#9fb2c2"/>
+          <path d="M62 126 v9" style="stroke:var(--metal)" stroke-width="3"/>
+        </g>
+        <g transform="translate(76 0)">
+          <path d="M62 30 a12 12 0 1 1 0.1 0" fill="none" style="stroke:var(--metal)" stroke-width="4"/>
+          <path d="M62 54 v18" style="stroke:var(--metal)" stroke-width="3"/>
+          <circle cx="62" cy="100" r="26" fill="none" style="stroke:var(--metal)" stroke-width="6"/>
+          <circle cx="62" cy="146" r="11" fill="url(#gem)" stroke="#9fb2c2"/>
+          <path d="M62 126 v9" style="stroke:var(--metal)" stroke-width="3"/>
+        </g>
+      </symbol>
+
+      <symbol id="i-bracelet" viewBox="0 0 200 200">
+        <ellipse cx="100" cy="100" rx="76" ry="44" fill="none" style="stroke:var(--metal)" stroke-width="10"/>
+        <ellipse cx="100" cy="100" rx="76" ry="44" fill="none" stroke="#fff" stroke-width="1.5" opacity=".6" stroke-dasharray="10 6"/>
+        <g fill="url(#gem)" stroke="#9fb2c2" stroke-width="1">
+          <circle cx="100" cy="144" r="8"/><circle cx="76" cy="141" r="6"/><circle cx="124" cy="141" r="6"/><circle cx="54" cy="134" r="5"/><circle cx="146" cy="134" r="5"/>
+        </g>
+      </symbol>
+    </defs>
+  </svg>
+
+  <div class="topbar">
+    <p>신규 회원 첫 구매 <strong>10% 할인</strong> · 5만원 이상 무료배송 · 각인 서비스 무료</p>
+  </div>
+
+  <header class="header" id="header">
+    <div class="header__inner">
+      <button class="icon-btn menu-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobileNav">
+        <span></span><span></span>
+      </button>
+      <a href="#" class="logo" aria-label="YAMOO 홈">YAMOO</a>
+      <nav class="nav" aria-label="주요 메뉴">
+        <a href="#new">New In</a>
+        <a href="#shop">Shop</a>
+        <a href="#collection">Collection</a>
+        <a href="#bridal">Bridal</a>
+        <a href="#story">Story</a>
       </nav>
-
-      <div class="nav-actions">
-        <button class="icon-button" aria-label="Search">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="6"></circle>
-            <path d="M16 16L21 21"></path>
-          </svg>
+      <div class="header__actions">
+        <button class="icon-btn" aria-label="검색">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
         </button>
-
-        <button class="icon-button" aria-label="Account">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21a8 8 0 0 0-16 0"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
+        <button class="icon-btn" aria-label="위시리스트">
+          <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+          <span class="badge" id="wishCount">0</span>
         </button>
+        <button class="icon-btn" aria-label="장바구니">
+          <svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+          <span class="badge" id="cartCount">0</span>
+        </button>
+      </div>
+    </div>
+    <nav class="mobile-nav" id="mobileNav" aria-label="모바일 메뉴">
+      <a href="#new">New In</a>
+      <a href="#shop">Shop</a>
+      <a href="#collection">Collection</a>
+      <a href="#bridal">Bridal</a>
+      <a href="#story">Story</a>
+    </nav>
+  </header>
 
-        <button class="cart-pill">Cart (<span id="cartCount">0</span>)</button>
-      </*
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero__text">
+        <p class="eyebrow">2026 Winter Collection</p>
+        <h1>일상에 머무는<br><em>조용한 빛</em></h1>
+        <p class="hero__lead">매일 손끝에서 빛나는 14K·18K 파인 주얼리.<br>장인의 손으로 한 점씩 완성합니다.</p>
+        <div class="hero__cta">
+          <a href="#shop" class="btn btn--dark">컬렉션 보기</a>
+          <a href="#bridal" class="btn btn--line">브라이덜 상담</a>
+        </div>
+      </div>
+      <div class="hero__visual" aria-hidden="true">
+        <div class="hero__halo"></div>
+        <svg class="hero__jewel hero__jewel--main" style="--metal:url(#gold)"><use href="#i-ring"/></svg>
+        <svg class="hero__jewel hero__jewel--sub" style="--metal:url(#rose)"><use href="#i-band"/></svg>
+        <span class="sparkle s1"></span><span class="sparkle s2"></span><span class="sparkle s3"></span>
+      </div>
+      <a href="#new" class="hero__scroll">Scroll</a>
+    </section>
+
+    <!-- 서비스 -->
+    <section class="perks" aria-label="서비스 안내">
+      <div><strong>무료 각인</strong><span>이니셜 · 날짜 · 짧은 문구</span></div>
+      <div><strong>평생 A/S</strong><span>세척 · 광택 · 사이즈 조절</span></div>
+      <div><strong>품질 보증서</strong><span>순도 · 원산지 인증 동봉</span></div>
+      <div><strong>선물 포장</strong><span>시그니처 박스 · 메시지 카드</span></div>
+    </section>
+
+    <!-- 카테고리 -->
+    <section class="section" id="new">
+      <div class="section__head">
+        <p class="eyebrow">Category</p>
+        <h2>찾으시는 주얼리</h2>
+      </div>
+      <div class="categories">
+        <a href="#shop" class="cat" data-jump="ring"><div class="cat__img" style="--metal:url(#gold)"><svg><use href="#i-ring"/></svg></div><span>Rings</span><small>반지</small></a>
+        <a href="#shop" class="cat" data-jump="necklace"><div class="cat__img" style="--metal:url(#silver)"><svg><use href="#i-necklace"/></svg></div><span>Necklaces</span><small>목걸이</small></a>
+        <a href="#shop" class="cat" data-jump="earring"><div class="cat__img" style="--metal:url(#rose)"><svg><use href="#i-earring"/></svg></div><span>Earrings</span><small>귀걸이</small></a>
+        <a href="#shop" class="cat" data-jump="bracelet"><div class="cat__img" style="--metal:url(#gold)"><svg><use href="#i-bracelet"/></svg></div><span>Bracelets</span><small>팔찌</small></a>
+      </div>
+    </section>
+
+    <!-- 상품 -->
+    <section class="section section--tint" id="shop">
+      <div class="section__head section__head--row">
+        <div>
+          <p class="eyebrow">Best Sellers</p>
+          <h2>가장 사랑받는 아이템</h2>
+        </div>
+        <div class="filters" role="tablist" aria-label="카테고리 필터">
+          <button class="chip is-active" data-filter="all" role="tab" aria-selected="true">전체</button>
+          <button class="chip" data-filter="ring" role="tab" aria-selected="false">반지</button>
+          <button class="chip" data-filter="necklace" role="tab" aria-selected="false">목걸이</button>
+          <button class="chip" data-filter="earring" role="tab" aria-selected="false">귀걸이</button>
+          <button class="chip" data-filter="bracelet" role="tab" aria-selected="false">팔찌</button>
+        </div>
+      </div>
+      <div class="products" id="products"></div>
+    </section>
+
+    <!-- 컬렉션 배너 -->
+    <section class="collection" id="collection">
+      <div class="collection__visual" aria-hidden="true">
+        <svg style="--metal:url(#gold)"><use href="#i-pearl"/></svg>
+      </div>
+      <div class="collection__text">
+        <p class="eyebrow eyebrow--light">The Lumière Collection</p>
+        <h2>달빛을 닮은<br>진주의 결</h2>
+        <p>남해의 아코야 진주와 18K 골드가 만나 완성된 루미에르 컬렉션.
+          은은한 광택은 어떤 옷차림에도 자연스럽게 스며듭니다.</p>
+        <a href="#shop" class="btn btn--light">컬렉션 둘러보기</a>
+      </div>
+    </section>
+
+    <!-- 브라이덜 -->
+    <section class="section bridal" id="bridal">
+      <div class="bridal__card">
+        <div class="bridal__img" style="--metal:url(#silver)"><svg><use href="#i-ring"/></svg></div>
+        <div>
+          <p class="eyebrow">Bridal</p>
+          <h3>평생을 약속하는 반지</h3>
+          <p>GIA 감정 다이아몬드부터 커플 밴드까지, 1:1 프라이빗 상담으로 두 분만의 반지를 디자인해 드립니다.</p>
+          <a href="#" class="link-arrow">상담 예약하기</a>
+        </div>
+      </div>
+      <div class="bridal__card">
+        <div class="bridal__img" style="--metal:url(#gold)"><svg><use href="#i-band"/></svg></div>
+        <div>
+          <p class="eyebrow">Custom</p>
+          <h3>나만의 주얼리 제작</h3>
+          <p>소재, 스톤, 각인까지 원하는 대로. 3D 디자인 시안 확인 후 제작에 들어갑니다.</p>
+          <a href="#" class="link-arrow">커스텀 문의</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 스토리 -->
+    <section class="story" id="story">
+      <p class="eyebrow">Our Story</p>
+      <blockquote>“화려함보다 오래 머무는 것을 만듭니다.<br>매일 착용해도 질리지 않는, 당신의 일부가 되는 주얼리.”</blockquote>
+      <div class="stats">
+        <div><strong data-count="12">0</strong><span>년의 공방 경력</span></div>
+        <div><strong data-count="38000">0</strong><span>명의 고객</span></div>
+        <div><strong data-count="100">0</strong><span>% 핸드메이드</span></div>
+      </div>
+    </section>
+
+    <!-- 리뷰 -->
+    <section class="section section--tint">
+      <div class="section__head">
+        <p class="eyebrow">Reviews</p>
+        <h2>고객님들의 이야기</h2>
+      </div>
+      <div class="reviews">
+        <figure class="review">
+          <div class="stars" aria-label="별점 5점">★★★★★</div>
+          <blockquote>사진보다 실물이 훨씬 예뻐요. 매일 끼고 다니는데 변색도 전혀 없고, 각인 서비스도 정말 만족스러웠어요.</blockquote>
+          <figcaption>김*연 · 오브 솔리테어 링</figcaption>
+        </figure>
+        <figure class="review">
+          <div class="stars" aria-label="별점 5점">★★★★★</div>
+          <blockquote>엄마 생신 선물로 진주 목걸이 샀는데 포장부터 너무 고급스러워서 감동하셨어요. 재구매 의사 100%!</blockquote>
+          <figcaption>박*준 · 루미에르 펄 네크리스</figcaption>
+        </figure>
+        <figure class="review">
+          <div class="stars" aria-label="별점 5점">★★★★★</div>
+          <blockquote>결혼반지 상담받고 제작했는데 디자인 시안부터 완성까지 꼼꼼하게 챙겨주셔서 믿음이 갔습니다.</blockquote>
+          <figcaption>이*희 · 브라이덜 커스텀</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 뉴스레터 -->
+    <section class="newsletter">
+      <h2>YAMOO 소식 받기</h2>
+      <p>신상품 출시와 회원 전용 혜택을 가장 먼저 알려드립니다.</p>
+      <form class="newsletter__form" id="newsletterForm" novalidate>
+        <label for="email" class="sr-only">이메일 주소</label>
+        <input type="email" id="email" placeholder="이메일 주소를 입력하세요" required>
+        <button type="submit" class="btn btn--dark">구독하기</button>
+      </form>
+      <p class="newsletter__msg" id="newsletterMsg" role="status"></p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__grid">
+      <div>
+        <a href="#" class="logo logo--footer">YAMOO</a>
+        <p class="footer__desc">일상에 머무는 조용한 빛.<br>Fine Jewelry Atelier, Seoul.</p>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <a href="#shop">반지</a><a href="#shop">목걸이</a><a href="#shop">귀걸이</a><a href="#shop">팔찌</a>
+      </div>
+      <div>
+        <h4>Service</h4>
+        <a href="#">주문/배송 조회</a><a href="#">교환/반품</a><a href="#">A/S 신청</a><a href="#">사이즈 가이드</a>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p>고객센터 1588-0000<br>평일 10:00 – 18:00<br>점심 12:30 – 13:30</p>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>© 2026 YAMOO. All rights reserved.</p>
+      <p><a href="#">이용약관</a> · <a href="#">개인정보처리방침</a></p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
