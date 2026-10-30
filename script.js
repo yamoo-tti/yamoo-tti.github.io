@@ -7,12 +7,12 @@ const { fetchLive, fetchSettings, computeDomestic, won, fmtDate, DON } = window.
 
 // 골드바: 중량(g)과 제작 프리미엄
 const BARS = [
-  { g: 1, label: "1g", img: "bar-three.jpg", premium: 0.08, tag: "입문용" },
-  { g: 3.75, label: "3.75g", sub: "1돈", img: "bar-close.jpg", premium: 0.04, tag: "BEST" },
-  { g: 10, label: "10g", img: "bar-stack.jpg", premium: 0.03 },
-  { g: 18.75, label: "18.75g", sub: "5돈", img: "bar-pattern.jpg", premium: 0.025 },
-  { g: 37.5, label: "37.5g", sub: "10돈", img: "bar-100oz.jpg", premium: 0.02, tag: "선물 추천" },
-  { g: 100, label: "100g", img: "bar-coins.jpg", premium: 0.015 },
+  { g: 1, label: "1g", img: "gbk/bar-1g.webp", premium: 0.08, tag: "입문용" },
+  { g: 3.75, label: "3.75g", sub: "1돈", img: "gbk/bar-3_75g.webp", premium: 0.04, tag: "BEST" },
+  { g: 10, label: "10g", img: "gbk/bar-10g.webp", premium: 0.03 },
+  { g: 18.75, label: "18.75g", sub: "5돈", img: "gbk/bar-18_75g.webp", premium: 0.025 },
+  { g: 37.5, label: "37.5g", sub: "10돈", img: "gbk/bar-37_5g.webp", premium: 0.02, tag: "선물 추천" },
+  { g: 100, label: "100g", img: "gbk/bar-100g.webp", premium: 0.015 },
 ];
 
 // 악세사리: 금 종류, 중량(g), 공임(원)
@@ -173,18 +173,18 @@ function renderBars() {
     return `
       <article class="bar">
         <div class="bar__img">
-          <img src="images/${b.img}" alt="순금 골드바 ${b.label}" loading="lazy">
+          <img src="images/${b.img}" alt="GBK 순금 골드바 ${b.label}" loading="lazy">
           <span class="bar__weight">${b.label}${b.sub ? `<small>${b.sub}</small>` : ""}</span>
           ${b.tag ? `<span class="bar__tag">${b.tag}</span>` : ""}
         </div>
         <div class="bar__body">
-          <h3 class="bar__name">금비 순금 골드바 ${b.label}</h3>
-          <p class="bar__spec">Au 999.9 · 보증서 · 고급 케이스</p>
+          <h3 class="bar__name">GBK 순금 골드바 ${b.label}</h3>
+          <p class="bar__spec">Au 999.9 · GBK 정품 보증서 · 금비 공식 총판</p>
           <p class="bar__price">${won(price)}</p>
           <p class="bar__unit">1g당 ${won(price / b.g)} · 실시간 시세 연동</p>
           <div class="bar__btns">
-            <button class="cart-btn" data-name="순금 골드바 ${b.label}">장바구니</button>
-            <button class="buy-btn" data-name="순금 골드바 ${b.label}" data-buy>바로 구매</button>
+            <button class="cart-btn" data-name="GBK 순금 골드바 ${b.label}">장바구니</button>
+            <button class="buy-btn" data-name="GBK 순금 골드바 ${b.label}" data-buy>바로 구매</button>
           </div>
         </div>
       </article>`;
