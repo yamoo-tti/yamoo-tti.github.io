@@ -1,4 +1,4 @@
-/* YAMOO GOLD 관리자 */
+/* 금비 GOLD 관리자 */
 (function () {
   const { sb, esc, won, fmtDate, fetchLive, fetchSettings, computeDomestic, DEFAULT_SETTINGS } = window.YAMOO;
   const $ = s => document.querySelector(s);
