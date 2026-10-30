@@ -68,9 +68,11 @@
   }
 
   // 상품 판매가 — 골드바·카드형: 순금 살 때(g당) × 중량 × (1+프리미엄%)
+  //               실버바·은 그래뉼: 은 살 때(g당) × 중량 × (1+프리미엄%)
   //               악세사리: 해당 함량 팔 때(g당) × 1.3 × 중량 + 공임
   function productPrice(p, d) {
     const g = key => d.items.find(i => i.key === key);
+    if (p.kind === "silver") return r100(g("ag").buy / DON * Number(p.weight_g) * (1 + Number(p.premium_pct || 0) / 100));
     if (p.kind === "accessory") {
       const rate = g(String(p.karat).toLowerCase()).sell / DON * 1.3;
       return Math.round((rate * Number(p.weight_g) + Number(p.labor || 0)) / 1000) * 1000;
