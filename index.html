@@ -16,9 +16,9 @@
   <!-- 유틸 바 -->
   <div class="util">
     <div class="wrap util__inner">
-      <p class="util__call">대표번호 <strong>1588-0000</strong> <span>평일 09:00–18:00</span></p>
+      <p class="util__call">대표번호 <strong>010-5287-8002</strong> <span>평일 10:00–19:00</span></p>
       <nav class="util__links" aria-label="회원 메뉴" id="authNav">
-        <button type="button" data-open="login">로그인</button><button type="button" data-open="signup">회원가입</button><a href="#">주문조회</a><a href="#">고객센터</a>
+        <button type="button" data-open="login">로그인</button><button type="button" data-open="signup">회원가입</button><button type="button" data-lookup>접수 조회</button><a href="tel:010-5287-8002">고객센터</a>
       </nav>
     </div>
   </div>
@@ -167,14 +167,14 @@
         </div>
         <div class="bars" id="bars"></div>
 
-        <div class="zodiac">
+        <div class="zodiac" id="zodiacBlock">
           <div class="zodiac__head">
             <div>
               <p class="eyebrow eyebrow--light">Zodiac Card</p>
               <h3>십이지신 카드형 1g 골드바</h3>
               <p class="zodiac__desc">띠별 그림이 담긴 카드형 골드바. 돌·생일·새해 선물로 좋아요.</p>
             </div>
-            <p class="zodiac__price"><span>1g · 전 디자인 동일가</span><strong id="zodiacPrice">-</strong></p>
+            <p class="zodiac__price"><span>1g · 디자인별 가격</span><strong id="zodiacPrice">-</strong></p>
           </div>
           <div class="zodiac__grid" id="zodiacGrid"></div>
         </div>
@@ -233,7 +233,7 @@
           <li><span class="steps__no">03</span><strong>정밀 성분 분석</strong><p>고객이 보는 앞에서 XRF 분석기로 순도와 중량을 측정합니다.</p></li>
           <li><span class="steps__no">04</span><strong>당일 입금</strong><p>분석 결과 확인 후 현금 또는 계좌로 즉시 지급합니다.</p></li>
         </ol>
-        <div class="sell__cta"><a href="#calc" class="btn btn--gold">예상 매입가 계산하기</a><a href="#store" class="btn btn--ghost">매장 안내</a></div>
+        <div class="sell__cta"><button type="button" class="btn btn--gold" data-sell>매입 신청하기</button><a href="#calc" class="btn btn--ghost">예상 매입가 계산하기</a></div>
       </div>
     </section>
 
@@ -241,8 +241,8 @@
     <section class="section">
       <div class="wrap board">
         <div class="board__col">
-          <div class="board__head"><h3>데일리 시황</h3><a href="#">더보기 +</a></div>
-          <ul class="board__list">
+          <div class="board__head"><h3>데일리 시황</h3></div>
+          <ul class="board__list" id="boardMarket">
             <li><a href="#">국제 금값, 온스당 4,000달러대 강보합 유지</a><time>10.29</time></li>
             <li><a href="#">중앙은행 금 매입 지속… 3분기 순매입 증가</a><time>10.28</time></li>
             <li><a href="#">국내 금 1돈 소매가 82만원대 보합</a><time>10.27</time></li>
@@ -250,8 +250,8 @@
           </ul>
         </div>
         <div class="board__col">
-          <div class="board__head"><h3>공지사항</h3><a href="#">더보기 +</a></div>
-          <ul class="board__list">
+          <div class="board__head"><h3>공지사항 · 이벤트</h3></div>
+          <ul class="board__list" id="boardNotice">
             <li><a href="#">[신제품] 기념 각인 골드바 10g 출시 안내</a><time>10.25</time></li>
             <li><a href="#">11월 매장 운영시간 변경 안내</a><time>10.20</time></li>
             <li><a href="#">안심 택배 매입 서비스 보험 한도 상향</a><time>10.12</time></li>
@@ -324,11 +324,95 @@
     </div>
   </div>
 
+  <!-- 구매 문의 -->
+  <div class="modal" id="orderModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="orderTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <form class="auth-form" id="orderForm">
+        <h2 class="modal__title" id="orderTitle">구매 신청</h2>
+        <div class="order-item" id="orderItem"></div>
+        <label>수량
+          <div class="qty"><button type="button" data-qty="-1" aria-label="수량 빼기">−</button><input type="number" name="qty" value="1" min="1" max="99" inputmode="numeric"><button type="button" data-qty="1" aria-label="수량 더하기">+</button></div>
+        </label>
+        <p class="order-total">예상 금액 <strong id="orderTotal">-</strong></p>
+        <label>이름<input name="name" maxlength="40" autocomplete="name" required></label>
+        <label>휴대폰<input type="tel" name="phone" maxlength="20" placeholder="010-0000-0000" autocomplete="tel" required></label>
+        <fieldset class="seg-field"><legend>수령 방법</legend>
+          <label><input type="radio" name="receive" value="visit" checked> 매장 방문 수령</label>
+          <label><input type="radio" name="receive" value="delivery"> 안심 택배</label>
+        </fieldset>
+        <label data-when="delivery" hidden>배송 주소<input name="address" maxlength="200" autocomplete="street-address"></label>
+        <label>요청 사항 <small>선택</small><textarea name="note" rows="2" maxlength="500"></textarea></label>
+        <label class="check"><input type="checkbox" required> <span>[필수] 주문 확인 연락을 위한 이름·연락처 수집에 동의합니다</span></label>
+        <p class="form-note">결제는 아직 진행되지 않아요. 접수 후 매장에서 확정 금액과 입금 계좌를 연락드립니다. 금 시세에 따라 최종 금액이 달라질 수 있어요.</p>
+        <button class="btn btn--dark" type="submit">구매 신청하기</button>
+      </form>
+      <div class="done" id="orderDone" hidden></div>
+    </div>
+  </div>
+
+  <!-- 금 매입 신청 -->
+  <div class="modal" id="sellModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="sellTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <form class="auth-form" id="sellForm">
+        <h2 class="modal__title" id="sellTitle">금 매입 신청</h2>
+        <label>품목<input name="items" maxlength="100" placeholder="예) 18K 목걸이 1개, 14K 반지 2개" required></label>
+        <div class="row2">
+          <label>함량<select name="karat"><option value="unknown">잘 모름</option><option value="24K">순금 24K</option><option value="18K">18K</option><option value="14K">14K</option></select></label>
+          <label>대략 중량(g) <small>선택</small><input type="number" name="weight" min="0" step="0.01" inputmode="decimal"></label>
+        </div>
+        <fieldset class="seg-field"><legend>접수 방법</legend>
+          <label><input type="radio" name="method" value="visit" checked> 매장 방문</label>
+          <label><input type="radio" name="method" value="delivery"> 안심 택배</label>
+        </fieldset>
+        <label data-when="visit">방문 희망일 <small>선택</small><input type="date" name="visit_date"></label>
+        <label>이름<input name="name" maxlength="40" autocomplete="name" required></label>
+        <label>휴대폰<input type="tel" name="phone" maxlength="20" placeholder="010-0000-0000" autocomplete="tel" required></label>
+        <label>메모 <small>선택</small><textarea name="note" rows="2" maxlength="500"></textarea></label>
+        <label class="check"><input type="checkbox" required> <span>[필수] 매입 상담 연락을 위한 이름·연락처 수집에 동의합니다</span></label>
+        <p class="form-note">최종 매입가는 매장에서 순도·중량을 측정한 뒤 확정됩니다.</p>
+        <button class="btn btn--dark" type="submit">매입 신청하기</button>
+      </form>
+      <div class="done" id="sellDone" hidden></div>
+    </div>
+  </div>
+
+  <!-- 접수 조회 -->
+  <div class="modal" id="lookupModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="lookupTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <form class="auth-form" id="lookupForm">
+        <h2 class="modal__title" id="lookupTitle">접수 조회</h2>
+        <p class="form-note">구매·매입 신청 후 받은 접수번호와 연락처를 입력하세요.</p>
+        <label>접수번호<input name="code" maxlength="20" placeholder="예) O261030-7A2F9" autocapitalize="characters" required></label>
+        <label>휴대폰<input type="tel" name="phone" maxlength="20" autocomplete="tel" required></label>
+        <button class="btn btn--dark" type="submit">조회하기</button>
+      </form>
+      <div class="lookup-result" id="lookupResult" hidden></div>
+    </div>
+  </div>
+
+  <!-- 공지 보기 -->
+  <div class="modal" id="noticeModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <article class="modal__box modal__box--wide" role="dialog" aria-modal="true" aria-labelledby="noticeTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <p class="notice__meta" id="noticeMeta"></p>
+      <h2 class="modal__title" id="noticeTitle"></h2>
+      <div class="notice__body" id="noticeBody"></div>
+    </article>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="common.js"></script>
   <script src="script.js"></script>
   <script src="auth.js"></script>
+  <script src="shop.js"></script>
 </body>
 </html>
