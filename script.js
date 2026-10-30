@@ -3,48 +3,52 @@
    국제 시세·실시간 환율(gold-api.com) → 국내 3.75g 시세
    마진은 관리자 페이지 > 시세 설정 값을 사용 (미설정 시 기본값)
    ========================================================= */
-const { fetchLive, fetchSettings, computeDomestic, won, fmtDate, DON } = window.YAMOO;
+const { fetchLive, fetchSettings, computeDomestic, productPrice, esc, won, fmtDate, DON } = window.YAMOO;
 
-// 골드바: 중량(g)과 제작 프리미엄
-const BARS = [
-  { g: 1, label: "1g", img: "gbk/bar-1g.webp", premium: 0.08, tag: "입문용" },
-  { g: 3.75, label: "3.75g", sub: "1돈", img: "gbk/bar-3_75g.webp", premium: 0.04, tag: "BEST" },
-  { g: 10, label: "10g", img: "gbk/bar-10g.webp", premium: 0.03 },
-  { g: 18.75, label: "18.75g", sub: "5돈", img: "gbk/bar-18_75g.webp", premium: 0.025 },
-  { g: 37.5, label: "37.5g", sub: "10돈", img: "gbk/bar-37_5g.webp", premium: 0.02, tag: "선물 추천" },
-  { g: 100, label: "100g", img: "gbk/bar-100g.webp", premium: 0.015 },
-];
-
-// 십이지신 카드형 1g 골드바 (띠 순서). 카드 제작 프리미엄은 모든 디자인 동일
-const ZODIAC_PREMIUM = 0.1;
-const ZODIAC = [
-  { name: "쥐띠", img: "zodiac-10" }, { name: "소띠", img: "zodiac-02" },
-  { name: "호랑이띠", img: "zodiac-09" }, { name: "토끼띠", img: "zodiac-06" },
-  { name: "용띠", img: "zodiac-07" }, { name: "뱀띠", img: "zodiac-04" },
-  { name: "말띠", img: "zodiac-05" }, { name: "양띠", img: "zodiac-01" },
-  { name: "원숭이띠", img: "zodiac-11" }, { name: "닭띠", img: "zodiac-08" },
-  { name: "개띠", img: "zodiac-13" }, { name: "돼지띠", img: "zodiac-12" },
-  { name: "부엉이", img: "zodiac-03", tag: "스페셜" },
-];
-
-// 악세사리: 금 종류, 중량(g), 공임(원)
-const ACCESSORIES = [
-  { cat: "necklace", name: "오벌 링 펜던트 목걸이", karat: "14K", g: 3.2, labor: 89000, img: "necklace-oval.jpg", tag: "NEW" },
-  { cat: "ring", name: "웨이브 볼드 링", karat: "18K", g: 5.1, labor: 120000, img: "ring-mirror.jpg", tag: "BEST" },
-  { cat: "bracelet", name: "앵커 체인 팔찌", karat: "14K", g: 6.8, labor: 98000, img: "bracelet-chain.jpg" },
-  { cat: "earring", name: "트위스트 후프 귀걸이", karat: "14K", g: 2.4, labor: 69000, img: "earring-hoop.jpg", tag: "BEST" },
-  { cat: "necklace", name: "바 펜던트 목걸이", karat: "18K", g: 2.9, labor: 95000, img: "pendant.jpg" },
-  { cat: "ring", name: "미니 큐빅 반지 3종", karat: "14K", g: 1.6, labor: 59000, img: "ring-box.jpg" },
-  { cat: "bracelet", name: "참 체인 팔찌", karat: "14K", g: 1.9, labor: 64000, img: "bracelet-charm.jpg", tag: "NEW" },
-  { cat: "necklace", name: "스네이크 체인 목걸이", karat: "18K", g: 4.3, labor: 85000, img: "necklace-blazer.jpg" },
+// 상품 목록은 관리자 페이지 > 상품 관리(DB)에서 불러옴.
+// DB 연결 전에는 아래 기본 목록을 사용 (setup.sql 초기 상품과 동일)
+const P = (kind, name, weight_g, img, extra = {}) => ({ id: null, kind, name, weight_g, img, karat: "24K", premium_pct: 0, labor: 0, sold_out: false, ...extra });
+const FALLBACK_PRODUCTS = [
+  P("bar", "GBK 순금 골드바 1g", 1, "gbk/bar-1g.webp", { premium_pct: 8, tag: "입문용" }),
+  P("bar", "GBK 순금 골드바 3.75g", 3.75, "gbk/bar-3_75g.webp", { premium_pct: 4, tag: "BEST" }),
+  P("bar", "GBK 순금 골드바 10g", 10, "gbk/bar-10g.webp", { premium_pct: 3 }),
+  P("bar", "GBK 순금 골드바 18.75g", 18.75, "gbk/bar-18_75g.webp", { premium_pct: 2.5 }),
+  P("bar", "GBK 순금 골드바 37.5g", 37.5, "gbk/bar-37_5g.webp", { premium_pct: 2, tag: "선물 추천" }),
+  P("bar", "GBK 순금 골드바 100g", 100, "gbk/bar-100g.webp", { premium_pct: 1.5 }),
+  ...[["쥐띠", 10], ["소띠", 2], ["호랑이띠", 9], ["토끼띠", 6], ["용띠", 7], ["뱀띠", 4], ["말띠", 5], ["양띠", 1],
+      ["원숭이띠", 11], ["닭띠", 8], ["개띠", 13], ["돼지띠", 12], ["부엉이", 3]]
+    .map(([n, i]) => P("zodiac", n, 1, `gbk/zodiac-${String(i).padStart(2, "0")}.webp`, { premium_pct: 10, tag: n === "부엉이" ? "스페셜" : null })),
+  P("accessory", "오벌 링 펜던트 목걸이", 3.2, "necklace-oval.jpg", { karat: "14K", category: "necklace", labor: 89000, tag: "NEW" }),
+  P("accessory", "웨이브 볼드 링", 5.1, "ring-mirror.jpg", { karat: "18K", category: "ring", labor: 120000, tag: "BEST" }),
+  P("accessory", "앵커 체인 팔찌", 6.8, "bracelet-chain.jpg", { karat: "14K", category: "bracelet", labor: 98000 }),
+  P("accessory", "트위스트 후프 귀걸이", 2.4, "earring-hoop.jpg", { karat: "14K", category: "earring", labor: 69000, tag: "BEST" }),
+  P("accessory", "바 펜던트 목걸이", 2.9, "pendant.jpg", { karat: "18K", category: "necklace", labor: 95000 }),
+  P("accessory", "미니 큐빅 반지 3종", 1.6, "ring-box.jpg", { karat: "14K", category: "ring", labor: 59000 }),
+  P("accessory", "참 체인 팔찌", 1.9, "bracelet-charm.jpg", { karat: "14K", category: "bracelet", labor: 64000, tag: "NEW" }),
+  P("accessory", "스네이크 체인 목걸이", 4.3, "necklace-blazer.jpg", { karat: "18K", category: "necklace", labor: 85000 }),
 ];
 
 const $ = s => document.querySelector(s);
 const round100 = n => Math.round(n / 100) * 100;
-const round1000 = n => Math.round(n / 1000) * 1000;
 
-let state = { live: null, domestic: null };
+let state = { live: null, domestic: null, products: FALLBACK_PRODUCTS };
 const item = key => state.domestic.items.find(i => i.key === key);
+const ofKind = k => state.products.filter(p => p.kind === k);
+const priceOf = p => productPrice(p, state.domestic);
+const imgSrc = p => /^https?:\/\//.test(p.img || "") ? p.img : `images/${p.img || "bar-close.jpg"}`;
+const donLabel = g => { const d = g / DON; return Number.isInteger(Math.round(d * 1000) / 1000) && d >= 1 ? `${Math.round(d)}돈` : ""; };
+
+// 홈페이지 주문 창(shop.js)에서 쓰는 정보
+window.SHOP = { find: id => state.products.find(p => p.id === id), price: p => state.domestic ? priceOf(p) : null };
+
+async function loadProducts() {
+  const sb = window.YAMOO.sb;
+  if (!sb) return;
+  const { data, error } = await sb.from("products").select("*").eq("visible", true).order("sort").order("created_at");
+  if (error || !data || !data.length) return; // 실패하면 기본 목록 유지
+  state.products = data;
+  if (state.domestic) { renderBars(); renderProducts(currentFilter); }
+}
 
 /* ---------- 시세 불러오기 ---------- */
 const CACHE_KEY = "yamoo_live_v1";
@@ -178,44 +182,49 @@ function updateCalc() {
 ["#calcItem", "#calcWeight", "#calcUnit"].forEach(s => $(s).addEventListener("input", updateCalc));
 
 /* ---------- 골드바 ---------- */
+// 주문 버튼: DB 상품이면 id, 기본 목록이면 순번으로 찾음
+const orderAttr = p => `data-order="${p.id ? esc(p.id) : "idx:" + state.products.indexOf(p)}"`;
+
 function renderBars() {
-  const g24 = item("24k").buy / DON;
-  $("#bars").innerHTML = BARS.map(b => {
-    const price = round100(g24 * b.g * (1 + b.premium));
+  $("#bars").innerHTML = ofKind("bar").map(b => {
+    const price = priceOf(b), w = Number(b.weight_g), label = `${w}g`, don = donLabel(w);
     return `
-      <article class="bar">
+      <article class="bar${b.sold_out ? " is-soldout" : ""}">
         <div class="bar__img">
-          <img src="images/${b.img}" alt="GBK 순금 골드바 ${b.label}" loading="lazy">
-          <span class="bar__weight">${b.label}${b.sub ? `<small>${b.sub}</small>` : ""}</span>
-          ${b.tag ? `<span class="bar__tag">${b.tag}</span>` : ""}
+          <img src="${esc(imgSrc(b))}" alt="${esc(b.name)}" loading="lazy">
+          <span class="bar__weight">${label}${don ? `<small>${don}</small>` : ""}</span>
+          ${b.sold_out ? `<span class="bar__tag bar__tag--out">품절</span>` : b.tag ? `<span class="bar__tag">${esc(b.tag)}</span>` : ""}
         </div>
         <div class="bar__body">
-          <h3 class="bar__name">GBK 순금 골드바 ${b.label}</h3>
+          <h3 class="bar__name">${esc(b.name)}</h3>
           <p class="bar__spec">Au 999.9 · GBK 정품 보증서 · 금비 공식 총판</p>
           <p class="bar__price">${won(price)}</p>
-          <p class="bar__unit">1g당 ${won(price / b.g)} · 실시간 시세 연동</p>
+          <p class="bar__unit">1g당 ${won(price / w)} · 실시간 시세 연동</p>
           <div class="bar__btns">
-            <button class="cart-btn" data-name="GBK 순금 골드바 ${b.label}">장바구니</button>
-            <button class="buy-btn" data-name="GBK 순금 골드바 ${b.label}" data-buy>바로 구매</button>
+            <button class="cart-btn" data-name="${esc(b.name)}" ${b.sold_out ? "disabled" : ""}>장바구니</button>
+            <button class="buy-btn" ${orderAttr(b)} ${b.sold_out ? "disabled" : ""}>${b.sold_out ? "품절" : "바로 구매"}</button>
           </div>
         </div>
       </article>`;
   }).join("");
 
-  $("#zodiacPrice").textContent = won(round100(g24 * (1 + ZODIAC_PREMIUM)));
-  if (!$("#zodiacGrid").children.length) {
-    $("#zodiacGrid").innerHTML = ZODIAC.map(z => `
-      <article class="zcard">
-        <div class="zcard__img">
-          <img src="images/gbk/${z.img}.webp" alt="GBK 십이지신 카드형 골드바 1g ${z.name}" loading="lazy">
-          ${z.tag ? `<span class="bar__tag">${z.tag}</span>` : ""}
-        </div>
-        <div class="zcard__body">
-          <h4>${z.name}</h4>
-          <button class="zcard__btn" data-name="GBK 카드형 골드바 1g (${z.name})" aria-label="${z.name} 장바구니 담기">담기</button>
-        </div>
-      </article>`).join("");
-  }
+  const zodiac = ofKind("zodiac");
+  $("#zodiacBlock").hidden = !zodiac.length;
+  if (!zodiac.length) return;
+  const prices = zodiac.map(priceOf);
+  const lo = Math.min(...prices), hi = Math.max(...prices);
+  $("#zodiacPrice").textContent = lo === hi ? won(lo) : `${won(lo)} ~ ${won(hi)}`;
+  $("#zodiacGrid").innerHTML = zodiac.map(z => `
+    <article class="zcard${z.sold_out ? " is-soldout" : ""}">
+      <div class="zcard__img">
+        <img src="${esc(imgSrc(z))}" alt="GBK 십이지신 카드형 골드바 1g ${esc(z.name)}" loading="lazy">
+        ${z.sold_out ? `<span class="bar__tag bar__tag--out">품절</span>` : z.tag ? `<span class="bar__tag">${esc(z.tag)}</span>` : ""}
+      </div>
+      <div class="zcard__body">
+        <h4>${esc(z.name)}</h4>
+        <button class="zcard__btn" ${orderAttr(z)} ${z.sold_out ? "disabled" : ""}>${z.sold_out ? "품절" : "구매"}</button>
+      </div>
+    </article>`).join("");
 }
 
 /* ---------- 악세사리 ---------- */
@@ -223,25 +232,24 @@ let currentFilter = "all";
 function renderProducts(filter = "all") {
   if (!state.domestic) return;
   currentFilter = filter;
-  // 제품 판매용 금값(g당): 팔 때 시세 × 1.3
-  const rate = { "18K": item("18k").sell / DON * 1.3, "14K": item("14k").sell / DON * 1.3 };
-  const list = filter === "all" ? ACCESSORIES : ACCESSORIES.filter(p => p.cat === filter);
+  const all = ofKind("accessory");
+  const list = filter === "all" ? all : all.filter(p => p.category === filter);
   $("#products").innerHTML = list.map((p, i) => {
-    const price = round1000(rate[p.karat] * p.g + p.labor);
+    const price = priceOf(p);
     return `
-      <article class="product" style="animation-delay:${i * 50}ms">
+      <article class="product${p.sold_out ? " is-soldout" : ""}" style="animation-delay:${i * 50}ms">
         <div class="product__img">
-          <img src="images/${p.img}" alt="${p.name}" loading="lazy">
-          ${p.tag ? `<span class="product__tag">${p.tag}</span>` : ""}
-          <button class="add-cart" data-name="${p.name}">장바구니 담기</button>
+          <img src="${esc(imgSrc(p))}" alt="${esc(p.name)}" loading="lazy">
+          ${p.sold_out ? `<span class="product__tag product__tag--out">품절</span>` : p.tag ? `<span class="product__tag">${esc(p.tag)}</span>` : ""}
+          ${p.sold_out ? "" : `<button class="add-cart" ${orderAttr(p)}>구매 문의</button>`}
         </div>
         <div class="product__info">
-          <p class="product__spec"><span class="karat">${p.karat}</span><span>·</span><span>${p.g}g</span></p>
-          <h3 class="product__name">${p.name}</h3>
+          <p class="product__spec"><span class="karat">${esc(p.karat)}</span><span>·</span><span>${Number(p.weight_g)}g</span></p>
+          <h3 class="product__name">${esc(p.name)}</h3>
           <p class="product__price">${won(price)}<span class="product__labor">공임 ${won(p.labor)} 포함</span></p>
         </div>
       </article>`;
-  }).join("");
+  }).join("") || `<p class="products__empty">준비 중인 상품입니다.</p>`;
 }
 const chips = document.querySelectorAll(".chip");
 chips.forEach(c => c.addEventListener("click", () => {
@@ -260,9 +268,15 @@ function toast(msg) {
 }
 window.toast = toast;
 document.addEventListener("click", e => {
+  const ord = e.target.closest("[data-order]");
+  if (ord) {
+    const key = ord.dataset.order;
+    const p = key.startsWith("idx:") ? state.products[+key.slice(4)] : window.SHOP.find(key);
+    if (p && window.openOrder) window.openOrder(p);
+    return;
+  }
   const btn = e.target.closest("[data-name]");
   if (!btn) return;
-  if (btn.hasAttribute("data-buy")) { toast(`‘${btn.dataset.name}’ 주문 페이지는 준비 중입니다`); return; }
   cart++;
   const badge = $("#cartCount");
   badge.textContent = cart;
@@ -314,5 +328,6 @@ function initReveal() {
 initHero();
 initReveal();
 mountChart("OANDA:XAUUSD");
+loadProducts();
 refresh();
 setInterval(() => { if (!document.hidden) refresh(); }, 60000);
