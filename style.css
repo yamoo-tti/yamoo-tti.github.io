@@ -260,6 +260,8 @@ ul, ol { padding: 0; list-style: none; }
 .zodiac__price { text-align: right; }
 .zodiac__price span { display: block; font-size: 12px; color: #a69d8d; }
 .zodiac__price strong { font-size: 24px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+.bar--silver .bar__img { background: radial-gradient(ellipse at 50% 55%, #3a3e44 0%, #18191c 70%); }
+#silverBlock { scroll-margin-top: 90px; }
 .zodiac__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
 .zcard { background: var(--dark-2); border: 1px solid #2b2822; border-radius: 4px; overflow: hidden; transition: border-color .3s, transform .3s var(--ease); }
 .zcard:hover { border-color: #6b5a33; transform: translateY(-3px); }
