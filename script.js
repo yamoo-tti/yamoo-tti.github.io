@@ -15,6 +15,18 @@ const BARS = [
   { g: 100, label: "100g", img: "gbk/bar-100g.webp", premium: 0.015 },
 ];
 
+// 십이지신 카드형 1g 골드바 (띠 순서). 카드 제작 프리미엄은 모든 디자인 동일
+const ZODIAC_PREMIUM = 0.1;
+const ZODIAC = [
+  { name: "쥐띠", img: "zodiac-10" }, { name: "소띠", img: "zodiac-02" },
+  { name: "호랑이띠", img: "zodiac-09" }, { name: "토끼띠", img: "zodiac-06" },
+  { name: "용띠", img: "zodiac-07" }, { name: "뱀띠", img: "zodiac-04" },
+  { name: "말띠", img: "zodiac-05" }, { name: "양띠", img: "zodiac-01" },
+  { name: "원숭이띠", img: "zodiac-11" }, { name: "닭띠", img: "zodiac-08" },
+  { name: "개띠", img: "zodiac-13" }, { name: "돼지띠", img: "zodiac-12" },
+  { name: "부엉이", img: "zodiac-03", tag: "스페셜" },
+];
+
 // 악세사리: 금 종류, 중량(g), 공임(원)
 const ACCESSORIES = [
   { cat: "necklace", name: "오벌 링 펜던트 목걸이", karat: "14K", g: 3.2, labor: 89000, img: "necklace-oval.jpg", tag: "NEW" },
@@ -189,6 +201,21 @@ function renderBars() {
         </div>
       </article>`;
   }).join("");
+
+  $("#zodiacPrice").textContent = won(round100(g24 * (1 + ZODIAC_PREMIUM)));
+  if (!$("#zodiacGrid").children.length) {
+    $("#zodiacGrid").innerHTML = ZODIAC.map(z => `
+      <article class="zcard">
+        <div class="zcard__img">
+          <img src="images/gbk/${z.img}.webp" alt="GBK 십이지신 카드형 골드바 1g ${z.name}" loading="lazy">
+          ${z.tag ? `<span class="bar__tag">${z.tag}</span>` : ""}
+        </div>
+        <div class="zcard__body">
+          <h4>${z.name}</h4>
+          <button class="zcard__btn" data-name="GBK 카드형 골드바 1g (${z.name})" aria-label="${z.name} 장바구니 담기">담기</button>
+        </div>
+      </article>`).join("");
+  }
 }
 
 /* ---------- 악세사리 ---------- */
