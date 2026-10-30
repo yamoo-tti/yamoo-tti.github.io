@@ -7,7 +7,7 @@
   const GRADE = { basic: "일반", silver: "실버", gold: "골드", vip: "VIP" };
   const STATUS = { active: "정상", suspended: "정지", withdrawn: "탈퇴" };
   const ROLE = { member: "회원", admin: "관리자" };
-  const KIND = { bar: "골드바", zodiac: "카드형 1g", accessory: "악세사리" };
+  const KIND = { bar: "골드바", zodiac: "카드형 1g", silver: "실버", accessory: "악세사리" };
   const CATEGORY = { necklace: "목걸이", ring: "반지", bracelet: "팔찌", earring: "귀걸이" };
   const NCAT = { notice: "공지", event: "이벤트", market: "시황" };
   const RECEIVE = { visit: "매장 방문", delivery: "택배" };
@@ -25,6 +25,7 @@
   const IMAGES = [
     "gbk/bar-1g.webp", "gbk/bar-3_75g.webp", "gbk/bar-10g.webp", "gbk/bar-18_75g.webp", "gbk/bar-37_5g.webp", "gbk/bar-100g.webp",
     ...Array.from({ length: 13 }, (_, i) => `gbk/zodiac-${String(i + 1).padStart(2, "0")}.webp`),
+    "silver/bar-100g.svg", "silver/bar-1kg.svg", "silver/granule.svg",
     "necklace-oval.jpg", "ring-mirror.jpg", "bracelet-chain.jpg", "earring-hoop.jpg", "pendant.jpg", "ring-box.jpg",
     "bracelet-charm.jpg", "necklace-blazer.jpg", "necklace-model.jpg", "bar-close.jpg", "bar-stack.jpg", "coins.jpg",
   ];
@@ -332,7 +333,7 @@
         <td><img class="thumb" src="${esc(imgUrl(p.img))}" alt=""></td>
         <td><b>${esc(p.name)}</b>${p.tag ? ` <span class="pill g-gold">${esc(p.tag)}</span>` : ""}</td>
         <td>${KIND[p.kind]}${p.category ? " · " + CATEGORY[p.category] : ""}</td>
-        <td>${Number(p.weight_g)}g · ${p.karat}</td>
+        <td>${Number(p.weight_g)}g · ${p.kind === "silver" ? "은 999.9" : p.karat}</td>
         <td>${p.kind === "accessory" ? "공임 " + won(p.labor) : "+" + Number(p.premium_pct) + "%"}</td>
         <td>${p._price ? won(p._price) : "-"}</td>
         <td><button class="switch ${p.visible ? "is-on" : ""}" data-toggle="${p.id}:visible" aria-label="노출">${p.visible ? "노출" : "숨김"}</button></td>
@@ -353,10 +354,10 @@
       <label>상품명<input name="name" maxlength="80" required value="${esc(p.name)}" placeholder="예) GBK 순금 골드바 5g"></label>
       <div class="row2">
         <label>중량 (g)<input type="number" name="weight_g" min="0.01" step="0.01" required value="${p.weight_g}"></label>
-        <label>함량<select name="karat">${opts({ "24K": "24K", "18K": "18K", "14K": "14K" }, p.karat)}</select></label>
+        <label data-for="bar zodiac accessory">함량<select name="karat">${opts({ "24K": "24K", "18K": "18K", "14K": "14K" }, p.karat)}</select></label>
       </div>
       <div class="row2">
-        <label data-for="bar zodiac">프리미엄 (%) <small>순금 살 때 시세 대비</small><input type="number" name="premium_pct" step="0.1" value="${p.premium_pct}"></label>
+        <label data-for="bar zodiac silver">프리미엄 (%) <small>살 때 시세(금·은) 대비</small><input type="number" name="premium_pct" step="0.1" value="${p.premium_pct}"></label>
         <label data-for="accessory">공임 (원)<input type="number" name="labor" min="0" step="1000" value="${p.labor}"></label>
         <label>예상 판매가<output id="pricePreview" class="price-out">-</output></label>
       </div>
