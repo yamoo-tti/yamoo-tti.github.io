@@ -67,6 +67,17 @@
     };
   }
 
+  // 상품 판매가 — 골드바·카드형: 순금 살 때(g당) × 중량 × (1+프리미엄%)
+  //               악세사리: 해당 함량 팔 때(g당) × 1.3 × 중량 + 공임
+  function productPrice(p, d) {
+    const g = key => d.items.find(i => i.key === key);
+    if (p.kind === "accessory") {
+      const rate = g(String(p.karat).toLowerCase()).sell / DON * 1.3;
+      return Math.round((rate * Number(p.weight_g) + Number(p.labor || 0)) / 1000) * 1000;
+    }
+    return r100(g("24k").buy / DON * Number(p.weight_g) * (1 + Number(p.premium_pct || 0) / 100));
+  }
+
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const won = n => Math.round(n).toLocaleString("ko-KR") + "원";
   const fmtDate = (d, withTime = true) => {
@@ -76,5 +87,10 @@
     return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}` + (withTime ? ` ${p(d.getHours())}:${p(d.getMinutes())}` : "");
   };
 
-  window.YAMOO = { sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, esc, won, fmtDate };
+  // 주문·매입 진행 단계 (홈페이지 조회 + 관리자 공용)
+  const ORDER_STATUS = { new: "접수", confirmed: "주문 확인", paid: "입금 확인", ready: "수령 준비 완료", done: "완료", canceled: "취소" };
+  const SELL_STATUS = { new: "접수", scheduled: "일정 확정", received: "입고·감정", done: "지급 완료", canceled: "취소" };
+  const fmtPhone = p => String(p || "").replace(/^(02|0\d{2})(\d{3,4})(\d{4})$/, "$1-$2-$3");
+
+  window.YAMOO = { sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, esc, won, fmtDate };
 })();
