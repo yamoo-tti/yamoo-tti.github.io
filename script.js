@@ -18,6 +18,11 @@ const FALLBACK_PRODUCTS = [
   ...[["쥐띠", 10], ["소띠", 2], ["호랑이띠", 9], ["토끼띠", 6], ["용띠", 7], ["뱀띠", 4], ["말띠", 5], ["양띠", 1],
       ["원숭이띠", 11], ["닭띠", 8], ["개띠", 13], ["돼지띠", 12], ["부엉이", 3]]
     .map(([n, i]) => P("zodiac", n, 1, `gbk/zodiac-${String(i).padStart(2, "0")}.webp`, { premium_pct: 10, tag: n === "부엉이" ? "스페셜" : null })),
+  P("silver", "실버바 100g", 100, "silver/bar-100g.svg", { premium_pct: 8, tag: "입문용" }),
+  P("silver", "실버바 1kg", 1000, "silver/bar-1kg.svg", { premium_pct: 3, tag: "BEST" }),
+  P("silver", "은 그래뉼 100g", 100, "silver/granule.svg", { premium_pct: 6 }),
+  P("silver", "은 그래뉼 500g", 500, "silver/granule.svg", { premium_pct: 4 }),
+  P("silver", "은 그래뉼 1kg", 1000, "silver/granule.svg", { premium_pct: 3 }),
   P("accessory", "오벌 링 펜던트 목걸이", 3.2, "necklace-oval.jpg", { karat: "14K", category: "necklace", labor: 89000, tag: "NEW" }),
   P("accessory", "웨이브 볼드 링", 5.1, "ring-mirror.jpg", { karat: "18K", category: "ring", labor: 120000, tag: "BEST" }),
   P("accessory", "앵커 체인 팔찌", 6.8, "bracelet-chain.jpg", { karat: "14K", category: "bracelet", labor: 98000 }),
@@ -185,11 +190,15 @@ function updateCalc() {
 // 주문 버튼: DB 상품이면 id, 기본 목록이면 순번으로 찾음
 const orderAttr = p => `data-order="${p.id ? esc(p.id) : "idx:" + state.products.indexOf(p)}"`;
 
-function renderBars() {
-  $("#bars").innerHTML = ofKind("bar").map(b => {
-    const price = priceOf(b), w = Number(b.weight_g), label = `${w}g`, don = donLabel(w);
-    return `
-      <article class="bar${b.sold_out ? " is-soldout" : ""}">
+const wLabel = w => w >= 1000 && w % 1000 === 0 ? `${w / 1000}kg` : `${w}g`;
+const barSpec = b => b.kind === "silver"
+  ? (b.name.includes("그래뉼") ? "Ag 999.9 · 알갱이(그래뉼) 형태 · 소분 보관 용이" : "Ag 999.9 · 순은 실버바 · 품질보증서")
+  : "Au 999.9 · GBK 정품 보증서 · 금비 공식 총판";
+
+function barCard(b) {
+  const price = priceOf(b), w = Number(b.weight_g), label = wLabel(w), don = b.kind === "silver" ? "" : donLabel(w);
+  return `
+      <article class="bar${b.kind === "silver" ? " bar--silver" : ""}${b.sold_out ? " is-soldout" : ""}">
         <div class="bar__img">
           <img src="${esc(imgSrc(b))}" alt="${esc(b.name)}" loading="lazy">
           <span class="bar__weight">${label}${don ? `<small>${don}</small>` : ""}</span>
@@ -197,7 +206,7 @@ function renderBars() {
         </div>
         <div class="bar__body">
           <h3 class="bar__name">${esc(b.name)}</h3>
-          <p class="bar__spec">Au 999.9 · GBK 정품 보증서 · 금비 공식 총판</p>
+          <p class="bar__spec">${barSpec(b)}</p>
           <p class="bar__price">${won(price)}</p>
           <p class="bar__unit">1g당 ${won(price / w)} · 실시간 시세 연동</p>
           <div class="bar__btns">
@@ -206,7 +215,13 @@ function renderBars() {
           </div>
         </div>
       </article>`;
-  }).join("");
+}
+
+function renderBars() {
+  $("#bars").innerHTML = ofKind("bar").map(barCard).join("");
+  const silver = ofKind("silver");
+  $("#silverBlock").hidden = !silver.length;
+  $("#silverBars").innerHTML = silver.map(barCard).join("");
 
   const zodiac = ofKind("zodiac");
   $("#zodiacBlock").hidden = !zodiac.length;
