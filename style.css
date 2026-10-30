@@ -252,6 +252,24 @@ ul, ol { padding: 0; list-style: none; }
 .bar__btns .cart-btn:hover { border-color: var(--gold-hi); color: var(--gold-hi); }
 .bar__btns .buy-btn { background: linear-gradient(135deg, #d8b562, #a98235); color: #1a160e; }
 
+/* 십이지신 카드형 */
+.zodiac { margin-top: clamp(48px, 6vw, 72px); padding-top: clamp(32px, 4vw, 44px); border-top: 1px solid #2b2822; }
+.zodiac__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
+.zodiac__head h3 { font-family: var(--serif); font-weight: 500; font-size: clamp(22px, 2.4vw, 28px); letter-spacing: -.02em; }
+.zodiac__desc { margin-top: 6px; font-size: 14px; color: #a69d8d; }
+.zodiac__price { text-align: right; }
+.zodiac__price span { display: block; font-size: 12px; color: #a69d8d; }
+.zodiac__price strong { font-size: 24px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+.zodiac__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.zcard { background: var(--dark-2); border: 1px solid #2b2822; border-radius: 4px; overflow: hidden; transition: border-color .3s, transform .3s var(--ease); }
+.zcard:hover { border-color: #6b5a33; transform: translateY(-3px); }
+.zcard__img { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+.zcard__img img { width: 100%; height: 100%; object-fit: cover; }
+.zcard__body { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px 14px; }
+.zcard__body h4 { margin: 0; font-size: 15px; font-weight: 500; color: #fff; }
+.zcard__btn { height: 32px; padding: 0 14px; font-size: 12px; border: 1px solid #4a4436; color: #e6dfd1; border-radius: 2px; transition: border-color .25s, color .25s; }
+.zcard__btn:hover { border-color: var(--gold-hi); color: var(--gold-hi); }
+
 /* ---------- Accessories ---------- */
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip { height: 38px; padding: 0 18px; border: 1px solid var(--line); border-radius: 19px; font-size: 14px; color: var(--ink-2); background: #fff; transition: all .2s; }
@@ -372,6 +390,11 @@ ul, ol { padding: 0; list-style: none; }
   .tv-chart { min-height: 340px; }
   .util__me { display: none; }
   .bar__img { aspect-ratio: 16 / 9; }
+  .zodiac__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .zcard__btn { padding: 0 10px; }
+  .zodiac__price { text-align: left; }
+  .zcard__body { padding: 10px; }
+  .zcard__body h4 { font-size: 14px; }
   .steps { grid-template-columns: 1fr; }
   .calc__row { flex-direction: column; align-items: stretch; }
   .calc__input input { width: 100%; flex: 1; }
