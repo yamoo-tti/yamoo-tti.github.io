@@ -6,7 +6,7 @@
   const toast = m => window.toast && window.toast(m);
 
   const STATUS_MSG = {
-    suspended: "이용이 정지된 계정입니다. 고객센터(1588-0000)로 문의해 주세요.",
+    suspended: "이용이 정지된 계정입니다. 고객센터(010-5287-8002)로 문의해 주세요.",
     withdrawn: "탈퇴 처리된 계정입니다.",
   };
 
@@ -40,11 +40,11 @@
 
   function renderNav(profile) {
     if (!profile) {
-      nav.innerHTML = `<button type="button" data-open="login">로그인</button><button type="button" data-open="signup">회원가입</button><a href="#">주문조회</a><a href="#">고객센터</a>`;
+      nav.innerHTML = `<button type="button" data-open="login">로그인</button><button type="button" data-open="signup">회원가입</button><button type="button" data-lookup>접수 조회</button><a href="tel:010-5287-8002">고객센터</a>`;
       return;
     }
     const admin = profile.role === "admin" ? `<a href="admin.html" class="util__admin">관리자</a>` : "";
-    nav.innerHTML = `<span class="util__me"><b>${esc(profile.name || profile.email)}</b>님</span>${admin}<button type="button" id="logoutBtn">로그아웃</button><a href="#">고객센터</a>`;
+    nav.innerHTML = `<span class="util__me"><b>${esc(profile.name || profile.email)}</b>님</span>${admin}<button type="button" id="logoutBtn">로그아웃</button><button type="button" data-lookup>접수 조회</button><a href="tel:010-5287-8002">고객센터</a>`;
   }
 
   async function loadProfile(user) {
