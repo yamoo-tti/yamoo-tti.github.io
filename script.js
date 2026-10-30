@@ -178,7 +178,7 @@ function renderBars() {
           ${b.tag ? `<span class="bar__tag">${b.tag}</span>` : ""}
         </div>
         <div class="bar__body">
-          <h3 class="bar__name">YAMOO 순금 골드바 ${b.label}</h3>
+          <h3 class="bar__name">금비 순금 골드바 ${b.label}</h3>
           <p class="bar__spec">Au 999.9 · 보증서 · 고급 케이스</p>
           <p class="bar__price">${won(price)}</p>
           <p class="bar__unit">1g당 ${won(price / b.g)} · 실시간 시세 연동</p>
