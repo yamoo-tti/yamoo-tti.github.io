@@ -167,7 +167,7 @@ end $$;
 --         악세사리: 18K/14K 팔 때 시세(g당) × 1.3 × 중량 + 공임
 create table if not exists public.products (
   id          uuid primary key default gen_random_uuid(),
-  kind        text not null check (kind in ('bar','zodiac','accessory')),
+  kind        text not null check (kind in ('bar','zodiac','silver','accessory')),
   name        text not null check (char_length(name) between 1 and 80),
   weight_g    numeric not null check (weight_g > 0),
   karat       text not null default '24K' check (karat in ('24K','18K','14K')),
@@ -221,6 +221,20 @@ do $$ begin
       ('accessory', '미니 큐빅 반지 3종',    1.6, '14K', 'ring',     0, 59000,  'ring-box.jpg',        null,   60),
       ('accessory', '참 체인 팔찌',          1.9, '14K', 'bracelet', 0, 64000,  'bracelet-charm.jpg',  'NEW',  70),
       ('accessory', '스네이크 체인 목걸이',  4.3, '18K', 'necklace', 0, 85000,  'necklace-blazer.jpg', null,   80);
+  end if;
+end $$;
+
+-- 7-1) 실버바 · 은 그래뉼 (은 살 때 시세 × 중량 × (1+프리미엄%))
+alter table public.products drop constraint if exists products_kind_check;
+alter table public.products add constraint products_kind_check check (kind in ('bar','zodiac','silver','accessory'));
+do $$ begin
+  if not exists (select 1 from public.products where kind = 'silver') then
+    insert into public.products (kind, name, weight_g, karat, premium_pct, img, tag, sort) values
+      ('silver', '실버바 100g',     100,  '24K', 8, 'silver/bar-100g.svg', '입문용', 10),
+      ('silver', '실버바 1kg',      1000, '24K', 3, 'silver/bar-1kg.svg',  'BEST',   20),
+      ('silver', '은 그래뉼 100g',  100,  '24K', 6, 'silver/granule.svg',  null,     30),
+      ('silver', '은 그래뉼 500g',  500,  '24K', 4, 'silver/granule.svg',  null,     40),
+      ('silver', '은 그래뉼 1kg',   1000, '24K', 3, 'silver/granule.svg',  null,     50);
   end if;
 end $$;
 
