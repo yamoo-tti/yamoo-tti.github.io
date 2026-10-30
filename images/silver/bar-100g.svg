@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+<defs>
+<linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9bfc6"/><stop offset="1" stop-color="#6d737b"/></linearGradient>
+<linearGradient id="t" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".35" stop-color="#d3d8de"/><stop offset=".6" stop-color="#f1f3f6"/><stop offset="1" stop-color="#aab1b9"/></linearGradient>
+</defs>
+<g transform="translate(200 150) scale(0.78) translate(-200 -150)">
+<rect x="70" y="60" width="260" height="180" rx="20" fill="url(#s)"/>
+<rect x="88" y="76" width="224" height="148" rx="10" fill="url(#t)" stroke="#9aa1a9" stroke-width="1.5"/>
+<g font-family="Georgia, 'Times New Roman', serif" text-anchor="middle" fill="#6b7179">
+<text x="200" y="124" font-size="19" letter-spacing="4" fill="#fff" opacity=".8" dy="1">FINE SILVER</text>
+<text x="200" y="124" font-size="19" letter-spacing="4">FINE SILVER</text>
+<text x="200" y="160" font-size="28" font-weight="bold" fill="#fff" opacity=".8" dy="1">999.9</text>
+<text x="200" y="160" font-size="28" font-weight="bold">999.9</text>
+<text x="200" y="200" font-size="24" fill="#fff" opacity=".8" dy="1">100 g</text>
+<text x="200" y="200" font-size="24">100 g</text>
+</g></g></svg>
