@@ -96,14 +96,16 @@ function apply(live) {
 /* ---------- 국제 시세 (원화 1돈 환산) ---------- */
 const usdFmt = v => "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const donWon = sym => window.YAMOO.perDon(state.live, sym);
+// 국내 판매가와 비교해 오해가 없도록 국제 시세도 부가세(10%) 포함 금액을 크게 표시
+const donWonVat = sym => donWon(sym) * window.YAMOO.VAT;
 function renderIntl() {
   const { usd, krw } = state.live;
   const metals = [["금", "XAU"], ["은", "XAG"], ["백금", "XPT"], ["팔라듐", "XPD"]];
   $("#intl").innerHTML = metals.map(([n, s]) => `
     <div class="intl__card">
-      <p class="intl__name">국제 ${n} <span>1돈 환산</span></p>
-      <p class="intl__val num">${won(donWon(s))}</p>
-      <p class="intl__sub num">${usdFmt(usd[s])}/oz</p>
+      <p class="intl__name">국제 ${n} <span>1돈 · VAT 포함</span></p>
+      <p class="intl__val num">${won(donWonVat(s))}</p>
+      <p class="intl__sub num">VAT 별도 ${won(donWon(s))} · ${usdFmt(usd[s])}/oz</p>
     </div>`).join("") + `
     <div class="intl__card">
       <p class="intl__name">원/달러 <span>실시간</span></p>
@@ -121,10 +123,10 @@ function renderTicker() {
     ["순금 팔 때", won(g.sell), "3.75g", true],
     ["18K 팔 때", won(item("18k").sell), "3.75g"],
     ["14K 팔 때", won(item("14k").sell), "3.75g"],
-    ["국제 금", won(donWon("XAU")), "1돈 환산"],
-    ["국제 은", won(donWon("XAG")), "1돈 환산"],
-    ["국제 백금", won(donWon("XPT")), "1돈 환산"],
-    ["국제 팔라듐", won(donWon("XPD")), "1돈 환산"],
+    ["국제 금", won(donWonVat("XAU")), "1돈 · VAT 포함"],
+    ["국제 은", won(donWonVat("XAG")), "1돈 · VAT 포함"],
+    ["국제 백금", won(donWonVat("XPT")), "1돈 · VAT 포함"],
+    ["국제 팔라듐", won(donWonVat("XPD")), "1돈 · VAT 포함"],
     ["원/달러", state.live.krw.toFixed(2) + "원", "실시간"],
   ];
   const html = items.map(([n, v, u, gold]) => `<div class="ticker__item${gold ? " is-gold" : ""}"><span>${n}</span><b class="num">${v}</b><em>${u}</em></div>`).join("");
