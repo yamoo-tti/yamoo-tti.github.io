@@ -211,7 +211,8 @@
       : `<thead><tr><th>접수번호</th><th>접수일시</th><th>${isO ? "상품 · 수량" : "품목 · 함량"}</th><th>고객</th><th>${isO ? "수령" : "방법 · 방문일"}</th><th>${isO ? "금액" : "매입가"}</th><th>상태</th><th>처리</th></tr></thead>`;
     if (!list.length) return head + `<tbody><tr><td class="empty" colspan="8">${compact ? "처리할 접수가 없습니다 👍" : "접수가 없습니다"}</td></tr></tbody>`;
     return head + "<tbody>" + list.map(r => {
-      const what = isO ? `${esc(r.product_name)} <span class="muted">× ${r.qty}</span>` : `${esc(r.items)} <span class="muted">${KARAT[r.karat] || ""}${r.weight_g ? " · " + Number(r.weight_g) + "g" : ""}</span>`;
+      const multi = isO && Array.isArray(r.items) && r.items.length > 1;
+      const what = isO ? (multi ? `${esc(r.product_name)} <span class="muted">총 ${r.qty}개</span>` : `${esc(r.product_name)} <span class="muted">× ${r.qty}</span>`) : `${esc(r.items)} <span class="muted">${KARAT[r.karat] || ""}${r.weight_g ? " · " + Number(r.weight_g) + "g" : ""}</span>`;
       const who = `<b>${esc(r.name)}</b><span>${esc(fmtPhone(r.phone))}</span>`;
       const st = `<span class="pill st-${esc(r.status)}">${esc(c.status[r.status])}</span>${isToday(r.created_at) && r.status === "new" ? ' <span class="pill st-today">오늘</span>' : ""}`;
       if (compact) return `<tr class="clickable" data-rec="${kind}:${r.id}"><td>${fmtDate(r.created_at).slice(5)}</td><td class="ellipsis">${what}</td><td class="who">${who}</td><td>${st}</td></tr>`;
@@ -299,7 +300,7 @@
     const tel = `<a href="tel:${esc(r.phone)}">${esc(fmtPhone(r.phone))}</a>`;
     const meta = isO
       ? `<dt>접수번호</dt><dd><b>${esc(r.code)}</b></dd><dt>접수일시</dt><dd>${fmtDate(r.created_at)}</dd>
-         <dt>상품</dt><dd>${esc(r.product_name)} × ${r.qty}</dd><dt>확정 금액</dt><dd>${r.final_price ? `<b>${won(r.final_price)}</b>${Number(r.shipping_fee) ? ` <span class="muted">택배비 ${won(r.shipping_fee)} 포함</span>` : ""}${r.price_locked_at ? ` <span class="muted">(${fmtDate(r.price_locked_at)} 시세 자동 확정)</span>` : ""}` : "-"}</dd>
+         <dt>상품</dt><dd>${Array.isArray(r.items) && r.items.length ? `<ul class="items-list">${r.items.map(i => `<li>${esc(i.name)} × ${i.qty}${i.subtotal ? ` <span class="muted">${won(i.subtotal)}</span>` : ""}</li>`).join("")}</ul>` : `${esc(r.product_name)} × ${r.qty}`}</dd><dt>확정 금액</dt><dd>${r.final_price ? `<b>${won(r.final_price)}</b>${Number(r.shipping_fee) ? ` <span class="muted">택배비 ${won(r.shipping_fee)} 포함</span>` : ""}${r.price_locked_at ? ` <span class="muted">(${fmtDate(r.price_locked_at)} 시세 자동 확정)</span>` : ""}` : "-"}</dd>
          ${r.pay_deadline ? `<dt>입금 기한</dt><dd>${fmtDate(r.pay_deadline)}${r.status === "confirmed" ? " · 지나면 자동 취소" : ""}</dd>` : ""}
          <dt>화면 표시 금액</dt><dd>${r.quoted_price ? won(r.quoted_price) : "-"}</dd>
          <dt>고객</dt><dd>${esc(r.name)} · ${tel}${r.user_id ? ' <span class="pill r-admin">회원</span>' : ""}</dd>
