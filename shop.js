@@ -37,6 +37,25 @@
     return sync;
   }
 
+  // 입금 계좌 · 입금 기한 (관리자 페이지 > 시세 설정에서 수정)
+  let shopInfo = { bank_name: "", bank_account: "", bank_holder: "", pay_minutes: 30 };
+  if (sb) sb.from("shop_info").select("bank_name,bank_account,bank_holder,pay_minutes").eq("id", 1).maybeSingle()
+    .then(({ data }) => { if (data) { shopInfo = data; const m = $("#payMinutes"); if (m) m.textContent = data.pay_minutes; } });
+  const hm = d => { const x = new Date(d); return `${String(x.getMonth() + 1).padStart(2, "0")}/${String(x.getDate()).padStart(2, "0")} ${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}`; };
+  const payBox = (amount, deadline, bank) => `
+      <dl class="pay-box">
+        <dt>입금액</dt><dd><strong>${won(amount)}</strong></dd>
+        <dt>입금 계좌</dt><dd>${esc(bank.bank_name)} ${esc(bank.bank_account)}<br><span>예금주 ${esc(bank.bank_holder)}</span>
+          <button type="button" class="copy-btn" data-copy="${esc(bank.bank_account)}">계좌번호 복사</button></dd>
+        <dt>입금 기한</dt><dd><b>${hm(deadline)}</b>까지 <span>(지나면 자동 취소)</span></dd>
+      </dl>`;
+  document.addEventListener("click", async e => {
+    const b = e.target.closest("[data-copy]");
+    if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.copy.replace(/[^0-9-]/g, "")); toast("계좌번호를 복사했어요"); }
+    catch { toast(b.dataset.copy); }
+  });
+
   const rpcError = err => {
     const m = (err && err.message) || "";
     return /[가-힣]/.test(m) ? m : "접수 중 문제가 생겼어요. 잠시 후 다시 시도하거나 " + PHONE + "로 전화 주세요.";
@@ -47,7 +66,7 @@
       <p class="done__icon" aria-hidden="true">✓</p>
       <h2 class="modal__title">${title}</h2>
       <p class="done__code">접수번호 <strong>${esc(code)}</strong></p>
-      <p class="form-note">${lines}</p>
+      <div class="form-note">${lines}</div>
       <p class="form-note">진행 상황은 상단 <b>접수 조회</b>에서 접수번호와 연락처로 확인할 수 있어요.</p>
       <button class="btn btn--dark" type="button" data-close>확인</button>`;
   }
@@ -101,8 +120,15 @@
     if (error) { toast(rpcError(error)); return; }
     f.hidden = true;
     const done = $("#orderDone");
-    done.innerHTML = doneHtml(data, "구매 신청이 접수됐어요",
-      `영업시간(평일 10:00–19:00) 안에 매장에서 확정 금액과 입금 방법을 연락드립니다.<br>급하시면 ${PHONE}로 전화 주세요.`);
+    const r = typeof data === "string" ? { code: data } : (data || {});
+    if (r.total) {
+      done.innerHTML = doneHtml(r.code, "주문이 확정됐어요",
+        `확정일시 ${hm(r.locked_at)} 시세 기준 금액이에요.` + payBox(r.total, r.deadline, r) +
+        `입력하신 휴대폰으로도 같은 내용을 문자로 보내드려요. 입금이 확인되면 ${f.receive.value === "delivery" ? "보험 등기로 발송" : "매장 수령 일정을 안내"}해 드려요.`);
+    } else {
+      done.innerHTML = doneHtml(r.code, "구매 신청이 접수됐어요",
+        `지금은 시세를 확인하지 못해 금액을 바로 확정하지 못했어요. 곧 매장에서 확정 금액과 입금 계좌를 연락드립니다.<br>급하시면 ${PHONE}로 전화 주세요.`);
+    }
     done.hidden = false;
   });
 
@@ -172,6 +198,8 @@
           ${r.status === "canceled"
             ? `<p class="track__cancel">취소된 접수입니다. 문의: ${PHONE}</p>`
             : `<ol class="track__steps">${keys.map((k, i) => `<li class="${i < at ? "is-past" : i === at ? "is-now" : ""}">${steps[k]}</li>`).join("")}</ol>`}
+          ${r.kind === "order" && r.status === "confirmed" && r.amount && r.deadline ? payBox(r.amount, r.deadline, shopInfo) : ""}
+          ${r.kind === "order" && r.amount && r.status !== "confirmed" && r.status !== "canceled" ? `<p class="track__time">확정 금액 ${won(r.amount)}</p>` : ""}
           <p class="track__time">최근 업데이트 ${fmtDate(r.updated_at)}</p>
         </div>`;
     }).join("");
