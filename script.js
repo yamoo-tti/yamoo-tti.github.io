@@ -195,11 +195,13 @@ function updateCalc() {
 
 /* ---------- 골드바 ---------- */
 // 주문 버튼: DB 상품이면 id, 기본 목록이면 순번으로 찾음
-const orderAttr = p => `data-order="${p.id ? esc(p.id) : "idx:" + state.products.indexOf(p)}"`;
+const orderKey = p => p.id ? esc(p.id) : "idx:" + state.products.indexOf(p);
+const orderAttr = p => `data-order="${orderKey(p)}"`;
+const cartAttr = p => `data-cart="${orderKey(p)}"`;
 
 const wLabel = w => w >= 1000 && w % 1000 === 0 ? `${w / 1000}kg` : `${w}g`;
 const barSpec = b => b.kind === "silver"
-  ? (b.name.includes("그래뉼") ? "Ag 999.9 · 알갱이(그래뉼) 형태 · 소분 보관 용이" : "Ag 999.9 · 순은 실버바 · 품질보증서")
+  ? (b.name.includes("그래뉼") ? "Ag 999.9 · 그래뉼(알갱이) · 품질보증서" : "Ag 999.9 · 순은 실버바 · 품질보증서")
   : "Au 999.9 · GBK 정품 보증서 · 금비 공식 총판";
 
 function barCard(b) {
@@ -217,7 +219,7 @@ function barCard(b) {
           <p class="bar__price">${won(price)}</p>
           <p class="bar__unit">1g당 ${won(price / w)} · 실시간 시세 연동</p>
           <div class="bar__btns">
-            <button class="cart-btn" data-name="${esc(b.name)}" ${b.sold_out ? "disabled" : ""}>장바구니</button>
+            <button class="cart-btn" ${cartAttr(b)} ${b.sold_out ? "disabled" : ""}>장바구니</button>
             <button class="buy-btn" ${orderAttr(b)} ${b.sold_out ? "disabled" : ""}>${b.sold_out ? "품절" : "바로 구매"}</button>
           </div>
         </div>
@@ -244,7 +246,7 @@ function renderBars() {
       </div>
       <div class="zcard__body">
         <h4>${esc(z.name)}</h4>
-        <button class="zcard__btn" ${orderAttr(z)} ${z.sold_out ? "disabled" : ""}>${z.sold_out ? "품절" : "구매"}</button>
+        <div class="zcard__btns"><button class="zcard__cart" ${cartAttr(z)} ${z.sold_out ? "disabled" : ""} aria-label="장바구니 담기">담기</button><button class="zcard__btn" ${orderAttr(z)} ${z.sold_out ? "disabled" : ""}>${z.sold_out ? "품절" : "구매"}</button></div>
       </div>
     </article>`).join("");
 }
@@ -280,7 +282,7 @@ chips.forEach(c => c.addEventListener("click", () => {
 }));
 
 /* ---------- 장바구니 / 토스트 ---------- */
-let cart = 0, toastTimer;
+let toastTimer;
 function toast(msg) {
   const t = $("#toast");
   t.textContent = msg;
@@ -297,14 +299,11 @@ document.addEventListener("click", e => {
     if (p && window.openOrder) window.openOrder(p);
     return;
   }
-  const btn = e.target.closest("[data-name]");
-  if (!btn) return;
-  cart++;
-  const badge = $("#cartCount");
-  badge.textContent = cart;
-  badge.classList.add("has-items");
-  badge.classList.remove("bump"); void badge.offsetWidth; badge.classList.add("bump");
-  toast(`‘${btn.dataset.name}’을(를) 장바구니에 담았습니다`);
+  const c = e.target.closest("[data-cart]");
+  if (!c) return;
+  const key = c.dataset.cart;
+  const p = key.startsWith("idx:") ? state.products[+key.slice(4)] : window.SHOP.find(key);
+  if (p && window.addToCart) window.addToCart(p);
 });
 
 /* ---------- 히어로 슬라이더 ---------- */
