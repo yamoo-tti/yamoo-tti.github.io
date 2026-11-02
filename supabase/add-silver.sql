@@ -5,8 +5,7 @@ alter table public.products add constraint products_kind_check check (kind in ('
 do $$ begin
   if not exists (select 1 from public.products where kind = 'silver') then
     insert into public.products (kind, name, weight_g, karat, premium_pct, img, tag, sort) values
-      ('silver', '실버바 100g',     100,  '24K', 8, 'silver/bar-100g.svg', '입문용', 10),
-      ('silver', '실버바 1kg',      1000, '24K', 3, 'silver/bar-1kg.jpg',      'BEST',   20),
+      ('silver', '실버바 500g',     500,  '24K', 3, 'silver/bar-500g.jpg',     'BEST',   20),
       ('silver', '은 그래뉼 100g',  100,  '24K', 6, 'silver/granule-100g.jpg', null,     30),
       ('silver', '은 그래뉼 500g',  500,  '24K', 4, 'silver/granule.svg',      null,     40),
       ('silver', '은 그래뉼 1kg',   1000, '24K', 3, 'silver/granule-1kg.jpg',  null,     50);
