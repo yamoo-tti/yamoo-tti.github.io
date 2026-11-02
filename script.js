@@ -10,11 +10,11 @@ const { fetchLive, fetchSettings, computeDomestic, productPrice, esc, won, fmtDa
 const P = (kind, name, weight_g, img, extra = {}) => ({ id: null, kind, name, weight_g, img, karat: "24K", premium_pct: 0, labor: 0, sold_out: false, ...extra });
 const FALLBACK_PRODUCTS = [
   P("bar", "GBK 순금 골드바 1g", 1, "gbk/bar-1g.webp", { premium_pct: 8, tag: "입문용" }),
-  P("bar", "GBK 순금 골드바 1.875g (반돈)", 1.875, "gbk/bar-1_875g.webp", { premium_pct: 5.42 }),
+  P("bar", "GBK 순금 골드바 1.875g (반돈)", 1.875, "gbk/bar-1_875g.webp", { premium_pct: 6.42 }),
   P("bar", "GBK 순금 골드바 3.75g", 3.75, "gbk/bar-3_75g.webp", { premium_pct: 4, tag: "BEST" }),
-  P("bar", "GBK 순금 골드바 7.5g (두돈)", 7.5, "gbk/bar-7_5g.webp", { premium_pct: 2.11 }),
+  P("bar", "GBK 순금 골드바 7.5g (두돈)", 7.5, "gbk/bar-7_5g.webp", { premium_pct: 3.08 }),
   P("bar", "GBK 순금 골드바 10g", 10, "gbk/bar-10g.webp", { premium_pct: 3 }),
-  P("bar", "GBK 순금 골드바 11.25g (세돈)", 11.25, "gbk/bar-11_25g.webp", { premium_pct: -1.6 }),
+  P("bar", "GBK 순금 골드바 11.25g (세돈)", 11.25, "gbk/bar-11_25g.webp", { premium_pct: -0.67 }),
   P("bar", "GBK 순금 골드바 18.75g", 18.75, "gbk/bar-18_75g.webp", { premium_pct: 2.5 }),
   P("bar", "GBK 순금 골드바 37.5g", 37.5, "gbk/bar-37_5g.webp", { premium_pct: 2, tag: "선물 추천" }),
   P("bar", "GBK 순금 골드바 100g", 100, "gbk/bar-100g.webp", { premium_pct: 1.5 }),
