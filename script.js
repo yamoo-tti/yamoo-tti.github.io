@@ -18,8 +18,7 @@ const FALLBACK_PRODUCTS = [
   ...[["쥐띠", 10], ["소띠", 2], ["호랑이띠", 9], ["토끼띠", 6], ["용띠", 7], ["뱀띠", 4], ["말띠", 5], ["양띠", 1],
       ["원숭이띠", 11], ["닭띠", 8], ["개띠", 13], ["돼지띠", 12], ["부엉이", 3]]
     .map(([n, i]) => P("zodiac", n, 1, `gbk/zodiac-${String(i).padStart(2, "0")}.webp`, { premium_pct: 10, tag: n === "부엉이" ? "스페셜" : null })),
-  P("silver", "실버바 100g", 100, "silver/bar-100g.svg", { premium_pct: 8, tag: "입문용" }),
-  P("silver", "실버바 1kg", 1000, "silver/bar-1kg.jpg", { premium_pct: 3, tag: "BEST" }),
+  P("silver", "실버바 500g", 500, "silver/bar-500g.jpg", { premium_pct: 3, tag: "BEST" }),
   P("silver", "은 그래뉼 100g", 100, "silver/granule-100g.jpg", { premium_pct: 6 }),
   P("silver", "은 그래뉼 500g", 500, "silver/granule.svg", { premium_pct: 4 }),
   P("silver", "은 그래뉼 1kg", 1000, "silver/granule-1kg.jpg", { premium_pct: 3 }),
