@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261102d">
+  <link rel="stylesheet" href="style.css?v=20261102e">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M14 46 22 22h20l8 24z' fill='%23c9a14a'/%3E%3Cpath d='M22 22h20l-3 6H25z' fill='%23f2dc9b'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -295,7 +295,7 @@
     <div class="wrap">
       <div class="footer__top">
         <a href="#" class="logo logo--footer"><span>금비<em>GOLD</em></span></a>
-        <nav><a href="#">회사소개</a><a href="#">이용약관</a><a href="#"><strong>개인정보처리방침</strong></a><a href="#">가맹점 모집</a><a href="#">제휴문의</a></nav>
+        <nav><a href="terms.html">이용약관</a><a href="privacy.html"><strong>개인정보처리방침</strong></a><a href="#store">매장안내</a><a href="tel:010-5287-8002">고객센터</a></nav>
       </div>
       <p class="footer__info">
         상호 금비 · 대표 김신애 · 사업자등록번호 101-12-25419 · 통신판매업신고 제2021-서울종로-1219호<br>
@@ -329,7 +329,8 @@
         <label>이메일<input type="email" name="email" autocomplete="email" required></label>
         <label>비밀번호 <small>8자 이상</small><input type="password" name="password" minlength="8" autocomplete="new-password" required></label>
         <label>휴대폰<input type="tel" name="phone" maxlength="20" placeholder="010-0000-0000" autocomplete="tel"></label>
-        <label class="check"><input type="checkbox" name="terms" required> <span>[필수] 이용약관 및 개인정보 수집·이용에 동의합니다</span></label>
+        <label class="check"><input type="checkbox" name="terms" required> <span>[필수] <a href="terms.html" target="_blank" class="u">이용약관</a> 및 <a href="privacy.html" target="_blank" class="u">개인정보 수집·이용</a>에 동의합니다</span></label>
+        <p class="consent-sum">수집 항목: 이메일·비밀번호·이름(필수), 휴대폰(선택) · 목적: 회원 관리 및 주문·매입 안내 · 보관: 탈퇴 시까지 · 동의하지 않으면 가입할 수 없어요 (비회원으로도 신청 가능)</p>
         <label class="check"><input type="checkbox" name="marketing"> <span>[선택] 시세 알림·이벤트 소식을 받겠습니다</span></label>
         <button class="btn btn--dark" type="submit">가입하기</button>
       </form>
@@ -357,8 +358,10 @@
         </fieldset>
         <label data-when="delivery" hidden>배송 주소<input name="address" maxlength="200" autocomplete="street-address"></label>
         <label>요청 사항 <small>선택</small><textarea name="note" rows="2" maxlength="500"></textarea></label>
-        <label class="check"><input type="checkbox" required> <span>[필수] 주문 확인 연락을 위한 이름·연락처 수집에 동의합니다</span></label>
-        <p class="form-note">결제는 아직 진행되지 않아요. 접수 후 매장에서 확정 금액과 입금 계좌를 연락드립니다. 금 시세에 따라 최종 금액이 달라질 수 있어요.</p>
+        <label class="check"><input type="checkbox" required> <span>[필수] 금·은 시세 상품은 <b>최종 금액 확정·입금 후 단순 변심에 의한 취소·반품이 불가</b>함을 확인했습니다 <a href="terms.html#a11" target="_blank" class="u">자세히</a></span></label>
+        <label class="check"><input type="checkbox" required> <span>[필수] <a href="privacy.html" target="_blank" class="u">개인정보 수집·이용</a>에 동의합니다</span></label>
+        <p class="consent-sum">수집 항목: 이름·연락처(택배 시 주소) · 목적: 주문 안내·상품 인도 · 보관: 거래 시 5년(전자상거래법), 미거래 시 1년 · 동의하지 않으면 온라인 신청은 어렵고 전화(010-5287-8002)로 주문할 수 있어요</p>
+        <p class="form-note">결제는 아직 진행되지 않아요. 접수 후 매장에서 최종 금액과 입금 계좌를 연락드리며, 입금 전에는 언제든 취소할 수 있어요. 택배는 보험 등기로 보내며 배송비는 금액 안내 때 함께 알려드려요.</p>
         <button class="btn btn--dark" type="submit">구매 신청하기</button>
       </form>
       <div class="done" id="orderDone" hidden></div>
@@ -385,7 +388,8 @@
         <label>이름<input name="name" maxlength="40" autocomplete="name" required></label>
         <label>휴대폰<input type="tel" name="phone" maxlength="20" placeholder="010-0000-0000" autocomplete="tel" required></label>
         <label>메모 <small>선택</small><textarea name="note" rows="2" maxlength="500"></textarea></label>
-        <label class="check"><input type="checkbox" required> <span>[필수] 매입 상담 연락을 위한 이름·연락처 수집에 동의합니다</span></label>
+        <label class="check"><input type="checkbox" required> <span>[필수] <a href="privacy.html" target="_blank" class="u">개인정보 수집·이용</a>에 동의합니다</span></label>
+        <p class="consent-sum">수집 항목: 이름·연락처·품목 정보 · 목적: 매입 상담·감정 결과 안내·대금 지급 · 보관: 거래 시 5년, 미거래 시 1년 · 동의하지 않으면 온라인 신청은 어렵고 전화로 상담할 수 있어요</p>
         <p class="form-note">최종 매입가는 매장에서 순도·중량을 측정한 뒤 확정됩니다.</p>
         <button class="btn btn--dark" type="submit">매입 신청하기</button>
       </form>
@@ -423,9 +427,9 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261102d"></script>
-  <script src="script.js?v=20261102d"></script>
-  <script src="auth.js?v=20261102d"></script>
-  <script src="shop.js?v=20261102d"></script>
+  <script src="common.js?v=20261102e"></script>
+  <script src="script.js?v=20261102e"></script>
+  <script src="auth.js?v=20261102e"></script>
+  <script src="shop.js?v=20261102e"></script>
 </body>
 </html>
