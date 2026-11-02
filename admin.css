@@ -234,3 +234,6 @@ button.kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -12px rgb
 
 /* Netlify 무료 요금제가 자동으로 붙이는 'Powered by Netlify' 배지 숨김 */
 #nl-badge-frame, #nl-hud-frame { display: none !important; }
+
+.items-list { margin: 0; padding-left: 1.1em; list-style: disc; }
+.items-list li { margin: 2px 0; }
