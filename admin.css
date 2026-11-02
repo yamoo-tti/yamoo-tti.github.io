@@ -231,3 +231,6 @@ button.kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -12px rgb
 .st-pick { font-size: 12px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; background: #fff; max-width: 120px; }
 
 .row-actions .st-pick { height: 28px; width: auto; min-width: 0; }
+
+/* Netlify 무료 요금제가 자동으로 붙이는 'Powered by Netlify' 배지 숨김 */
+#nl-badge-frame, #nl-hud-frame { display: none !important; }
