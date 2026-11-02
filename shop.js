@@ -125,9 +125,17 @@
     });
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }
+    const r = typeof data === "string" ? { code: data } : (data || {});
+    // 주문 완료 페이지로 이동 (정보는 이 브라우저 탭에만 잠시 보관)
+    if (r.code) {
+      const pname = current.kind === "zodiac" ? `GBK 카드형 골드바 1g (${current.name})` : current.name;
+      try { sessionStorage.setItem("keumbi_order_" + r.code, JSON.stringify({ ...r, product: pname, qty, receive: f.receive.value })); }
+      catch { /* 저장이 막힌 브라우저면 완료 페이지에서 연락처로 다시 확인 */ }
+      location.href = "order-done.html?code=" + encodeURIComponent(r.code);
+      return;
+    }
     f.hidden = true;
     const done = $("#orderDone");
-    const r = typeof data === "string" ? { code: data } : (data || {});
     if (r.total) {
       done.innerHTML = doneHtml(r.code, "주문이 확정됐어요",
         `확정일시 ${hm(r.locked_at)} 시세 기준 금액이에요.${r.shipping_fee ? ` (택배비 ${won(r.shipping_fee)} 포함)` : ""}` + payBox(r.total, r.deadline, r) +
