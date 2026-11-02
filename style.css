@@ -485,3 +485,50 @@ ul, ol { padding: 0; list-style: none; }
 .copy-btn { display: inline-block; margin-top: 6px; padding: 4px 10px; border: 1px solid var(--ink); border-radius: 2px; font-size: 12px; }
 .copy-btn:hover { background: var(--ink); color: #fff; }
 .order-total small { display: block; text-align: right; font-size: 12px; font-weight: 400; color: var(--muted); }
+
+/* ---------- 주문 완료 페이지 ---------- */
+.od-body { background: var(--tint); }
+.od { max-width: 620px; margin: 0 auto; padding: clamp(28px, 6vw, 56px) 16px 64px; }
+.od__loading { text-align: center; color: var(--muted); padding: 80px 0; }
+.od__card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: clamp(24px, 5vw, 40px); text-align: center; box-shadow: 0 20px 50px -30px rgba(40,30,10,.35); }
+.od__card h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(24px, 4vw, 30px); letter-spacing: -.02em; margin-top: 10px; }
+.od__kicker { font-size: 13px; color: var(--gold-2); font-weight: 500; }
+.od__icon { width: 56px; height: 56px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; font-size: 26px; color: #fff; background: linear-gradient(135deg, var(--gold-hi), var(--gold-2)); }
+.od__icon--off { background: var(--muted); }
+.od__code { display: inline-block; margin-top: 14px; padding: 8px 16px; border: 1px dashed var(--gold); border-radius: 4px; font-size: 14px; color: var(--ink-2); }
+.od__code strong { font-size: 18px; color: var(--ink); margin-left: 6px; letter-spacing: .02em; }
+.od__lead { margin-top: 16px; color: var(--ink-2); font-size: 15px; }
+.od__steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 24px 0 4px; font-size: 12px; color: var(--muted); }
+.od__steps li { padding-top: 10px; border-top: 3px solid var(--line); }
+.od__steps li.is-past { border-color: var(--gold-hi); }
+.od__steps li.is-now { border-color: var(--gold-2); color: var(--ink); font-weight: 700; }
+.od__timer { margin: 22px 0 6px; padding: 18px; border-radius: 8px; background: var(--dark); color: #d9d1c2; display: grid; gap: 2px; }
+.od__timer span { font-size: 13px; color: #a69d8d; }
+.od__timer strong { font-size: 40px; font-weight: 700; color: var(--gold-hi); font-variant-numeric: tabular-nums; letter-spacing: .04em; line-height: 1.2; }
+.od__timer em { font-style: normal; font-size: 12.5px; color: #a69d8d; }
+.od__timer.is-urgent strong { color: #ff8a73; }
+.od__timer.is-over { background: #3a1d17; }
+.od__timer.is-over strong { color: #ff8a73; font-size: 26px; }
+.od__info { display: grid; grid-template-columns: auto 1fr; gap: 12px 18px; margin-top: 18px; padding: 20px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; text-align: left; font-size: 14.5px; }
+.od__info dt { color: var(--muted); white-space: nowrap; }
+.od__info dd { margin: 0; color: var(--ink-2); }
+.od__info dd b { color: var(--ink); font-size: 16px; }
+.od__amount { font-size: 26px; font-weight: 700; color: var(--ink) !important; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.od__amount small { display: block; font-size: 12.5px; font-weight: 400; color: var(--muted); }
+.od__copy { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.od__notes { margin-top: 18px; padding-left: 1.2em; list-style: disc; text-align: left; font-size: 13.5px; color: var(--ink-2); }
+.od__notes li { margin-top: 4px; }
+.od__notes a { text-decoration: underline; color: var(--gold-2); }
+.od__actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+.od__btn { min-width: 160px; justify-content: center; }
+.od__btn--line { border: 1px solid var(--ink); background: transparent; color: var(--ink); }
+.od__ask { display: flex; gap: 8px; margin-top: 18px; }
+.od__ask input { flex: 1; min-width: 0; height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
+.od__err { margin-top: 10px; color: var(--up); font-size: 13.5px; }
+.legal-foot a { text-decoration: underline; }
+@media (max-width: 480px) {
+  .od__info { grid-template-columns: 1fr; gap: 2px; }
+  .od__info dt { margin-top: 10px; }
+  .od__info dt:first-child { margin-top: 0; }
+  .od__btn { flex: 1; min-width: 0; }
+}
