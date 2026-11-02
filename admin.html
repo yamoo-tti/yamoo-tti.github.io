@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261102i">
+  <link rel="stylesheet" href="admin.css?v=20261102j">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M14 46 22 22h20l8 24z' fill='%23c9a14a'/%3E%3Cpath d='M22 22h20l-3 6H25z' fill='%23f2dc9b'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -92,7 +92,7 @@
       <!-- 구매 신청 -->
       <section class="view" data-view="orders" hidden>
         <header class="view__head"><h1>구매 신청</h1><button class="btn btn--line" data-refresh>새로고침</button></header>
-        <p class="desc"><b>처리 순서</b> 접수 → 주문 확인(고객에게 전화해 금액·계좌 안내) → 입금 확인 → 수령 준비 완료(방문 수령 안내 또는 택배 발송) → 완료. 고객은 홈페이지 '접수 조회'에서 단계를 볼 수 있어요.</p>
+        <p class="desc"><b>처리 순서</b> 금액 확정·입금 대기(주문 즉시 자동, 기한 지나면 자동 취소) → <b>입금 확인</b>(통장 확인 후 꼭 눌러 주세요) → 수령 준비 완료(방문 수령 안내 또는 택배 발송) → 완료. ‘상태 변경’으로 아무 단계로나 옮기거나 되돌릴 수 있고, ‘취소’로 바로 취소할 수 있어요. 고객은 홈페이지 ‘주문내역’에서 단계를 봐요.</p>
         <div class="tabs" id="orderTabs"></div>
         <form class="filters" id="orderSearch"><input type="search" name="q" placeholder="접수번호 · 이름 · 연락처 · 상품명 검색"><button class="btn btn--dark" type="submit">검색</button></form>
         <div class="panel panel--flush"><div class="table-wrap"><table class="table" id="orderTable"></table></div></div>
@@ -248,7 +248,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261102i"></script>
-  <script src="admin.js?v=20261102i"></script>
+  <script src="common.js?v=20261102j"></script>
+  <script src="admin.js?v=20261102j"></script>
 </body>
 </html>
