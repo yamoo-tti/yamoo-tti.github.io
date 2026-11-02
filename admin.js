@@ -25,7 +25,7 @@
   const IMAGES = [
     "gbk/bar-1g.webp", "gbk/bar-3_75g.webp", "gbk/bar-10g.webp", "gbk/bar-18_75g.webp", "gbk/bar-37_5g.webp", "gbk/bar-100g.webp",
     ...Array.from({ length: 13 }, (_, i) => `gbk/zodiac-${String(i + 1).padStart(2, "0")}.webp`),
-    "silver/bar-1kg.jpg", "silver/granule-100g.jpg", "silver/granule-1kg.jpg", "silver/granule-1kg-2.jpg",
+    "silver/bar-500g.jpg", "silver/granule-100g.jpg", "silver/granule-1kg.jpg", "silver/granule-1kg-2.jpg",
     "silver/bar-100g.svg", "silver/bar-1kg.svg", "silver/granule.svg",
     "necklace-oval.jpg", "ring-mirror.jpg", "bracelet-chain.jpg", "earring-hoop.jpg", "pendant.jpg", "ring-box.jpg",
     "bracelet-charm.jpg", "necklace-blazer.jpg", "necklace-model.jpg", "bar-close.jpg", "bar-stack.jpg", "coins.jpg",
