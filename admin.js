@@ -216,7 +216,9 @@
       const st = `<span class="pill st-${esc(r.status)}">${esc(c.status[r.status])}</span>${isToday(r.created_at) && r.status === "new" ? ' <span class="pill st-today">오늘</span>' : ""}`;
       if (compact) return `<tr class="clickable" data-rec="${kind}:${r.id}"><td>${fmtDate(r.created_at).slice(5)}</td><td class="ellipsis">${what}</td><td class="who">${who}</td><td>${st}</td></tr>`;
       const i = c.flow.indexOf(r.status), next = i >= 0 && i < c.flow.length - 1 ? c.flow[i + 1] : null;
-      const money = isO ? (r.final_price ? `<b>${won(r.final_price)}</b>` : r.quoted_price ? `<span class="muted">예상 ${won(r.quoted_price)}</span>` : "-") : (r.final_amount ? `<b>${won(r.final_amount)}</b>` : "-");
+      const due = isO && r.status === "confirmed" && r.pay_deadline
+        ? `<br><span class="${new Date(r.pay_deadline) < new Date() ? "danger-text" : "muted"}">입금기한 ${fmtDate(r.pay_deadline).slice(11)}</span>` : "";
+      const money = isO ? (r.final_price ? `<b>${won(r.final_price)}</b>${due}` : r.quoted_price ? `<span class="muted">예상 ${won(r.quoted_price)}</span>` : "-") : (r.final_amount ? `<b>${won(r.final_amount)}</b>` : "-");
       const how = isO ? RECEIVE[r.receive] : `${RECEIVE[r.method]}${r.visit_date ? " · " + r.visit_date.slice(5).replace("-", ".") : ""}`;
       return `<tr class="clickable" data-rec="${kind}:${r.id}">
         <td class="code">${esc(r.code)}</td><td>${fmtDate(r.created_at)}</td><td class="ellipsis">${what}</td>
@@ -282,7 +284,9 @@
     const tel = `<a href="tel:${esc(r.phone)}">${esc(fmtPhone(r.phone))}</a>`;
     const meta = isO
       ? `<dt>접수번호</dt><dd><b>${esc(r.code)}</b></dd><dt>접수일시</dt><dd>${fmtDate(r.created_at)}</dd>
-         <dt>상품</dt><dd>${esc(r.product_name)} × ${r.qty}</dd><dt>예상 금액</dt><dd>${r.quoted_price ? won(r.quoted_price) + " (접수 시점 시세)" : "-"}</dd>
+         <dt>상품</dt><dd>${esc(r.product_name)} × ${r.qty}</dd><dt>확정 금액</dt><dd>${r.final_price ? `<b>${won(r.final_price)}</b>${r.price_locked_at ? ` <span class="muted">(${fmtDate(r.price_locked_at)} 시세 자동 확정)</span>` : ""}` : "-"}</dd>
+         ${r.pay_deadline ? `<dt>입금 기한</dt><dd>${fmtDate(r.pay_deadline)}${r.status === "confirmed" ? " · 지나면 자동 취소" : ""}</dd>` : ""}
+         <dt>화면 표시 금액</dt><dd>${r.quoted_price ? won(r.quoted_price) : "-"}</dd>
          <dt>고객</dt><dd>${esc(r.name)} · ${tel}${r.user_id ? ' <span class="pill r-admin">회원</span>' : ""}</dd>
          <dt>수령</dt><dd>${RECEIVE[r.receive]}</dd>${r.address ? `<dt>주소</dt><dd>${esc(r.address)}</dd>` : ""}
          ${r.note ? `<dt>요청사항</dt><dd>${esc(r.note)}</dd>` : ""}`
@@ -626,7 +630,31 @@
     $("#settingsMeta").textContent = data ? `최종 수정 ${fmtDate(data.updated_at)}` : "";
     try { liveCache = await fetchLive(); } catch { liveCache = null; }
     preview();
+    loadShop();
   }
+
+  // 주문 · 입금 · 문자 설정 (shop_info)
+  const SHOP_FIELDS = ["bank_name", "bank_account", "bank_holder", "pay_minutes", "owner_phone", "sms_sender"];
+  async function loadShop() {
+    const f = $("#shopForm");
+    const { data, error } = await sb.from("shop_info").select("*").eq("id", 1).maybeSingle();
+    if (error || !data) { $("#shopMeta").textContent = "설정 테이블이 없어요 · order-sms.sql 을 먼저 실행해 주세요"; f.querySelector("[type=submit]").disabled = true; return; }
+    SHOP_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; });
+    f.sms_enabled.checked = !!data.sms_enabled;
+    $("#shopMeta").textContent = `최종 수정 ${fmtDate(data.updated_at)}`;
+  }
+  $("#shopForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = e.target, btn = f.querySelector("[type=submit]");
+    const row = { updated_at: new Date().toISOString(), sms_enabled: f.sms_enabled.checked };
+    SHOP_FIELDS.forEach(k => { row[k] = k === "pay_minutes" ? parseInt(f[k].value, 10) : f[k].value.trim(); });
+    btn.disabled = true;
+    const { error } = await sb.from("shop_info").update(row).eq("id", 1);
+    btn.disabled = false;
+    if (error) return fail(error);
+    toast("주문·입금 설정을 저장했습니다");
+    loadShop();
+  });
   function readSettings() {
     const f = $("#settingsForm"), s = {};
     Object.keys(DEFAULT_SETTINGS).forEach(k => { s[k] = parseFloat(f[k].value); if (isNaN(s[k])) s[k] = DEFAULT_SETTINGS[k]; });
