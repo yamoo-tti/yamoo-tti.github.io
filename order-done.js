@@ -18,7 +18,20 @@
 
   let saved = null;
   try { saved = JSON.parse(sessionStorage.getItem("keumbi_order_" + code)); } catch { saved = null; }
-  if (saved) render(saved); else askPhone();
+  if (saved) render(saved); else tryMember();
+
+  // 로그인한 회원이면 휴대폰 번호 없이 바로 보여줌
+  async function tryMember() {
+    if (!sb) return askPhone();
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return askPhone();
+    const [{ data }, shop] = await Promise.all([sb.rpc("my_requests"), sb.from("shop_info").select("*").eq("id", 1).maybeSingle()]);
+    const r = data && data.find(x => x.kind === "order" && x.code === code);
+    if (!r) return askPhone();
+    const s = shop.data || {};
+    render({ code, product: r.title, total: r.amount, shipping_fee: r.shipping_fee, deadline: r.deadline, locked_at: r.locked_at,
+      status: r.status, receive: r.method, bank_name: s.bank_name, bank_account: s.bank_account, bank_holder: s.bank_holder });
+  }
 
   // 새로고침하거나 다른 기기에서 열었을 때: 연락처로 다시 확인
   function askPhone(msg) {
