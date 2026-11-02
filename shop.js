@@ -12,7 +12,7 @@
     setTimeout(() => { const f = el.querySelector("input:not([type=hidden]):not([type=radio]):not([type=checkbox]), select"); f && f.focus(); }, 30);
   }
   function closeModal(el) { el.hidden = true; document.body.style.overflow = ""; }
-  ["#orderModal", "#sellModal", "#lookupModal", "#noticeModal"].forEach(id => {
+  ["#orderModal", "#sellModal", "#lookupModal", "#noticeModal", "#cartModal"].forEach(id => {
     const el = $(id);
     el.addEventListener("click", e => { if (e.target.closest("[data-close]")) closeModal(el); });
   });
@@ -146,6 +146,121 @@
     }
     done.hidden = false;
   });
+
+  /* ---------- 장바구니 (이 브라우저에 저장) ---------- */
+  const CART_KEY = "keumbi_cart_v1";
+  const cartModal = $("#cartModal"), cartForm = $("#cartForm");
+  const syncCartReceive = bindWhen(cartForm, "receive");
+  let cartItems = [];
+  try { cartItems = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { cartItems = []; }
+  const saveCart = () => { try { localStorage.setItem(CART_KEY, JSON.stringify(cartItems)); } catch {} updateCartBadge(); };
+  const cartCount = () => cartItems.reduce((s, i) => s + i.qty, 0);
+  const displayName = p => p.kind === "zodiac" ? `GBK 카드형 골드바 1g (${p.name})` : p.name;
+  const imgOf = p => /^https?:/.test(p.img || "") ? p.img : "images/" + (p.img || "bar-close.jpg");
+
+  function updateCartBadge() {
+    const b = $("#cartCount"), n = cartCount();
+    if (!b) return;
+    b.textContent = n;
+    b.classList.toggle("has-items", n > 0);
+  }
+
+  window.addToCart = function (p) {
+    if (!sb || !p.id) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
+    if (p.sold_out) { toast("품절된 상품이에요"); return; }
+    const it = cartItems.find(i => i.id === p.id);
+    if (it) it.qty = Math.min(99, it.qty + 1); else cartItems.push({ id: p.id, qty: 1 });
+    if (cartItems.length > 20) { cartItems.pop(); toast("장바구니에는 20종류까지 담을 수 있어요"); return; }
+    saveCart();
+    const b = $("#cartCount");
+    if (b) { b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump"); }
+    toast(`‘${displayName(p)}’을(를) 장바구니에 담았어요`);
+  };
+
+  // 장바구니 내용 + 합계 (가격은 현재 시세로 다시 계산)
+  function renderCart() {
+    // 판매 종료·숨김 상품은 빼고 보여줌
+    const rows = cartItems.map(i => ({ ...i, p: window.SHOP.find(i.id) }));
+    const gone = rows.filter(r => !r.p);
+    if (gone.length) { cartItems = cartItems.filter(i => window.SHOP.find(i.id)); saveCart(); }
+    const live = rows.filter(r => r.p);
+    if (!live.length) {
+      $("#cartList").innerHTML = `<div class="cart-empty"><p>장바구니가 비어 있어요.</p><a href="#goldbar" class="btn btn--dark" data-close>골드바 보러 가기</a></div>`;
+      cartForm.hidden = true;
+      return;
+    }
+    cartForm.hidden = false;
+    let goods = 0, priced = true;
+    $("#cartList").innerHTML = (gone.length ? `<p class="cart-warn">판매가 끝난 상품 ${gone.length}개를 장바구니에서 뺐어요.</p>` : "") + live.map(r => {
+      const unit = window.SHOP.price(r.p);
+      if (unit == null) priced = false; else goods += unit * r.qty;
+      return `
+        <div class="cart-row${r.p.sold_out ? " is-soldout" : ""}">
+          <img src="${esc(imgOf(r.p))}" alt="">
+          <div class="cart-row__info">
+            <b>${esc(displayName(r.p))}</b>
+            <span>${unit != null ? won(unit) + " / 개" : "가격 확인 중"}${r.p.sold_out ? ' · <em>품절</em>' : ""}</span>
+          </div>
+          <div class="qty qty--sm"><button type="button" data-cq="${esc(r.id)}:-1" aria-label="빼기">−</button><input value="${r.qty}" readonly aria-label="수량"><button type="button" data-cq="${esc(r.id)}:1" aria-label="더하기">+</button></div>
+          <p class="cart-row__sub">${unit != null ? won(unit * r.qty) : "-"}</p>
+          <button type="button" class="cart-row__x" data-cdel="${esc(r.id)}" aria-label="삭제">×</button>
+        </div>`;
+    }).join("");
+    const fee = cartForm.receive.value === "delivery" ? Number(shopInfo.delivery_fee) || 0 : 0;
+    $("#cartGoods").textContent = priced ? won(goods) : "-";
+    $("#cartFee").textContent = won(fee);
+    $("#cartTotal").textContent = priced ? won(goods + fee) : "매장 문의";
+    const hasSoldOut = live.some(r => r.p.sold_out);
+    $("#cartSubmit").disabled = hasSoldOut;
+    $("#cartSubmit").textContent = hasSoldOut ? "품절 상품을 빼 주세요" : `${live.length}종 ${cartCount()}개 주문하기`;
+  }
+
+  function openCart() {
+    if (!sb) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
+    syncCartReceive();
+    renderCart();
+    openModal(cartModal);
+  }
+  const cartBtn = $("#cartBtn");
+  if (cartBtn) cartBtn.addEventListener("click", openCart);
+  cartModal.addEventListener("click", e => {
+    const q = e.target.closest("[data-cq]");
+    if (q) {
+      const [id, d] = q.dataset.cq.split(":");
+      const it = cartItems.find(i => i.id === id);
+      if (it) { it.qty = Math.min(99, Math.max(1, it.qty + +d)); saveCart(); renderCart(); }
+      return;
+    }
+    const x = e.target.closest("[data-cdel]");
+    if (x) { cartItems = cartItems.filter(i => i.id !== x.dataset.cdel); saveCart(); renderCart(); return; }
+    if (e.target.closest("a[data-close]")) closeModal(cartModal);
+  });
+  cartForm.addEventListener("change", e => { if (e.target.name === "receive") renderCart(); });
+
+  cartForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = cartForm, btn = $("#cartSubmit");
+    const items = cartItems.filter(i => window.SHOP.find(i.id)).map(i => ({ id: i.id, qty: i.qty }));
+    if (!items.length) { renderCart(); return; }
+    btn.disabled = true;
+    const { data, error } = await sb.rpc("submit_cart", {
+      p_items: items, p_name: f.name.value, p_phone: f.phone.value,
+      p_receive: f.receive.value, p_address: f.address.value, p_note: f.note.value,
+    });
+    btn.disabled = false;
+    if (error) { toast(rpcError(error)); return; }
+    const r = data || {};
+    const names = items.map(i => displayName(window.SHOP.find(i.id)));
+    try {
+      sessionStorage.setItem("keumbi_order_" + r.code, JSON.stringify({
+        ...r, receive: f.receive.value,
+        product: names[0] + (names.length > 1 ? ` 외 ${names.length - 1}건` : ""),
+      }));
+    } catch {}
+    cartItems = []; saveCart();
+    location.href = "order-done.html?code=" + encodeURIComponent(r.code);
+  });
+  updateCartBadge();
 
   /* ---------- 금 매입 신청 ---------- */
   const sellModal = $("#sellModal"), sellForm = $("#sellForm");
