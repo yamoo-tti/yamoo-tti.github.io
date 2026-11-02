@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <script>if(location.hostname==="yamoo-tti.github.io")location.replace("https://keumbi.netlify.app"+location.pathname+location.search+location.hash);</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>주문내역 · 금비 GOLD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20261102i">
+  <link rel="stylesheet" href="legal.css?v=20261102i">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M14 46 22 22h20l8 24z' fill='%23c9a14a'/%3E%3Cpath d='M22 22h20l-3 6H25z' fill='%23f2dc9b'/%3E%3C/svg%3E">
+</head>
+<body class="od-body">
+  <header class="legal-top">
+    <div class="wrap">
+      <a class="logo-text" href="./">금비<em>GOLD</em></a>
+      <nav><a href="./#goldbar">골드바</a><a href="./#silverBlock">실버</a><a href="my-orders.html" aria-current="page">주문내역</a></nav>
+    </div>
+  </header>
+
+  <main class="mo">
+    <div class="mo__head">
+      <h1>주문내역</h1>
+      <p class="mo__who" id="who"></p>
+    </div>
+    <div id="list"><p class="od__loading">불러오는 중…</p></div>
+
+    <section class="mo__guest" id="guest" hidden>
+      <h2>접수번호로 찾기</h2>
+      <p class="muted">로그인하지 않고 주문하셨다면 접수번호와 휴대폰 번호로 확인할 수 있어요.</p>
+      <form class="mo__find" id="findForm">
+        <input name="code" placeholder="접수번호 (예: O261102-7A2F9)" autocapitalize="characters" required>
+        <input type="tel" name="phone" placeholder="휴대폰 번호" autocomplete="tel" required>
+        <button class="btn btn--dark" type="submit">조회</button>
+      </form>
+      <div id="found"></div>
+    </section>
+  </main>
+
+  <footer class="legal-foot">
+    <div class="wrap">상호 금비 · 대표 김신애 · 사업자등록번호 101-12-25419 · 통신판매업신고 제2021-서울종로-1219호<br>서울특별시 종로구 율곡로10길 105 디아망 빌딩 2층 · 고객센터 010-5287-8002 · <a href="terms.html">이용약관</a> · <a href="privacy.html">개인정보처리방침</a></div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="common.js?v=20261102i"></script>
+  <script src="my-orders.js?v=20261102i"></script>
+</body>
+</html>
