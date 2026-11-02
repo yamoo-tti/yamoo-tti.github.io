@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261102k">
+  <link rel="stylesheet" href="style.css?v=20261102m">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M14 46 22 22h20l8 24z' fill='%23c9a14a'/%3E%3Cpath d='M22 22h20l-3 6H25z' fill='%23f2dc9b'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -43,7 +43,7 @@
       </nav>
       <div class="header__actions">
         <button class="icon-btn" aria-label="검색"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
-        <button class="icon-btn" aria-label="장바구니"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="badge" id="cartCount">0</span></button>
+        <button class="icon-btn" aria-label="장바구니" id="cartBtn"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="badge" id="cartCount">0</span></button>
       </div>
     </div>
     <nav class="mobile-nav" id="mobileNav" aria-label="모바일 메뉴">
@@ -64,7 +64,7 @@
           <div class="wrap slide__inner">
             <p class="slide__eyebrow">Fine Gold 999.9</p>
             <h1>가치를 지키는<br>가장 단단한 방법</h1>
-            <p class="slide__lead">KRX 인증 정련사가 제작한 순도 99.99% 골드바.<br>1g부터 100g까지, 오늘 시세 그대로 만나보세요.</p>
+            <p class="slide__lead">ISO 9001·14001 인증 제조사의 순도 99.99% GBK 골드바.<br>1g부터 100g까지, 오늘 시세 그대로 만나보세요.</p>
             <div class="slide__cta"><a href="#goldbar" class="btn btn--gold">골드바 보기</a><a href="#price" class="btn btn--ghost">오늘의 금시세</a></div>
           </div>
         </article>
@@ -164,7 +164,7 @@
             <h2>골드바</h2>
           </div>
           <ul class="assure">
-            <li>순도 99.99%</li><li>KRX 인증 정련사</li><li>품질보증서 동봉</li><li>실시간 시세 연동</li>
+            <li>순도 99.99%</li><li>ISO 인증 제조 · 공인 감정 검증</li><li>품질보증서 동봉</li><li>실시간 시세 연동</li>
           </ul>
         </div>
         <div class="bars" id="bars"></div>
@@ -368,6 +368,36 @@
     </div>
   </div>
 
+  <!-- 장바구니 -->
+  <div class="modal" id="cartModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__box modal__box--wide" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <h2 class="modal__title" id="cartTitle">장바구니</h2>
+      <div id="cartList" class="cart-list"></div>
+      <form class="auth-form" id="cartForm">
+        <div class="cart-sum">
+          <p><span>상품 합계</span><b id="cartGoods">-</b></p>
+          <p data-when="delivery" hidden><span>택배비</span><b id="cartFee">-</b></p>
+          <p class="cart-sum__total"><span>현재 시세 총액</span><strong id="cartTotal">-</strong></p>
+        </div>
+        <label>이름<input name="name" maxlength="40" autocomplete="name" required></label>
+        <label>휴대폰<input type="tel" name="phone" maxlength="20" placeholder="010-0000-0000" autocomplete="tel" required></label>
+        <fieldset class="seg-field"><legend>수령 방법</legend>
+          <label><input type="radio" name="receive" value="visit" checked> 매장 방문 수령</label>
+          <label><input type="radio" name="receive" value="delivery"> 안심 택배</label>
+        </fieldset>
+        <label data-when="delivery" hidden>배송 주소<input name="address" maxlength="200" autocomplete="street-address"></label>
+        <label>요청 사항 <small>선택</small><textarea name="note" rows="2" maxlength="500"></textarea></label>
+        <label class="check"><input type="checkbox" required> <span>[필수] 금·은 시세 상품은 <b>최종 금액 확정·입금 후 단순 변심에 의한 취소·반품이 불가</b>함을 확인했습니다 <a href="terms.html#a11" target="_blank" class="u">자세히</a></span></label>
+        <label class="check"><input type="checkbox" required> <span>[필수] <a href="privacy.html" target="_blank" class="u">개인정보 수집·이용</a>에 동의합니다</span></label>
+        <p class="consent-sum">수집 항목: 이름·연락처(택배 시 주소) · 목적: 주문 안내·상품 인도 · 보관: 거래 시 5년(전자상거래법), 미거래 시 1년 · 동의하지 않으면 온라인 신청은 어렵고 전화(010-5287-8002)로 주문할 수 있어요</p>
+        <p class="form-note">주문하는 순간의 시세로 <b>금액이 확정</b>되고, 입금 계좌가 화면과 문자로 안내돼요. 기한 안에 입금되지 않으면 자동 취소돼요.</p>
+        <button class="btn btn--dark" type="submit" id="cartSubmit">주문하기</button>
+      </form>
+    </div>
+  </div>
+
   <!-- 금 매입 신청 -->
   <div class="modal" id="sellModal" hidden>
     <div class="modal__backdrop" data-close></div>
@@ -427,9 +457,9 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261102k"></script>
-  <script src="script.js?v=20261102k"></script>
-  <script src="auth.js?v=20261102k"></script>
-  <script src="shop.js?v=20261102k"></script>
+  <script src="common.js?v=20261102m"></script>
+  <script src="script.js?v=20261102m"></script>
+  <script src="auth.js?v=20261102m"></script>
+  <script src="shop.js?v=20261102m"></script>
 </body>
 </html>
