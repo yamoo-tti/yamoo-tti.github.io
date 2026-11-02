@@ -19,10 +19,10 @@ const FALLBACK_PRODUCTS = [
       ["원숭이띠", 11], ["닭띠", 8], ["개띠", 13], ["돼지띠", 12], ["부엉이", 3]]
     .map(([n, i]) => P("zodiac", n, 1, `gbk/zodiac-${String(i).padStart(2, "0")}.webp`, { premium_pct: 10, tag: n === "부엉이" ? "스페셜" : null })),
   P("silver", "실버바 100g", 100, "silver/bar-100g.svg", { premium_pct: 8, tag: "입문용" }),
-  P("silver", "실버바 1kg", 1000, "silver/bar-1kg.svg", { premium_pct: 3, tag: "BEST" }),
-  P("silver", "은 그래뉼 100g", 100, "silver/granule.svg", { premium_pct: 6 }),
+  P("silver", "실버바 1kg", 1000, "silver/bar-1kg.jpg", { premium_pct: 3, tag: "BEST" }),
+  P("silver", "은 그래뉼 100g", 100, "silver/granule-100g.jpg", { premium_pct: 6 }),
   P("silver", "은 그래뉼 500g", 500, "silver/granule.svg", { premium_pct: 4 }),
-  P("silver", "은 그래뉼 1kg", 1000, "silver/granule.svg", { premium_pct: 3 }),
+  P("silver", "은 그래뉼 1kg", 1000, "silver/granule-1kg.jpg", { premium_pct: 3 }),
   P("accessory", "오벌 링 펜던트 목걸이", 3.2, "necklace-oval.jpg", { karat: "14K", category: "necklace", labor: 89000, tag: "NEW" }),
   P("accessory", "웨이브 볼드 링", 5.1, "ring-mirror.jpg", { karat: "18K", category: "ring", labor: 120000, tag: "BEST" }),
   P("accessory", "앵커 체인 팔찌", 6.8, "bracelet-chain.jpg", { karat: "14K", category: "bracelet", labor: 98000 }),
