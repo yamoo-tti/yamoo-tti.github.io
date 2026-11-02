@@ -284,7 +284,7 @@
     const tel = `<a href="tel:${esc(r.phone)}">${esc(fmtPhone(r.phone))}</a>`;
     const meta = isO
       ? `<dt>접수번호</dt><dd><b>${esc(r.code)}</b></dd><dt>접수일시</dt><dd>${fmtDate(r.created_at)}</dd>
-         <dt>상품</dt><dd>${esc(r.product_name)} × ${r.qty}</dd><dt>확정 금액</dt><dd>${r.final_price ? `<b>${won(r.final_price)}</b>${r.price_locked_at ? ` <span class="muted">(${fmtDate(r.price_locked_at)} 시세 자동 확정)</span>` : ""}` : "-"}</dd>
+         <dt>상품</dt><dd>${esc(r.product_name)} × ${r.qty}</dd><dt>확정 금액</dt><dd>${r.final_price ? `<b>${won(r.final_price)}</b>${Number(r.shipping_fee) ? ` <span class="muted">택배비 ${won(r.shipping_fee)} 포함</span>` : ""}${r.price_locked_at ? ` <span class="muted">(${fmtDate(r.price_locked_at)} 시세 자동 확정)</span>` : ""}` : "-"}</dd>
          ${r.pay_deadline ? `<dt>입금 기한</dt><dd>${fmtDate(r.pay_deadline)}${r.status === "confirmed" ? " · 지나면 자동 취소" : ""}</dd>` : ""}
          <dt>화면 표시 금액</dt><dd>${r.quoted_price ? won(r.quoted_price) : "-"}</dd>
          <dt>고객</dt><dd>${esc(r.name)} · ${tel}${r.user_id ? ' <span class="pill r-admin">회원</span>' : ""}</dd>
@@ -634,7 +634,7 @@
   }
 
   // 주문 · 입금 · 문자 설정 (shop_info)
-  const SHOP_FIELDS = ["bank_name", "bank_account", "bank_holder", "pay_minutes", "owner_phone", "sms_sender"];
+  const SHOP_FIELDS = ["bank_name", "bank_account", "bank_holder", "pay_minutes", "delivery_fee", "owner_phone", "sms_sender"];
   async function loadShop() {
     const f = $("#shopForm");
     const { data, error } = await sb.from("shop_info").select("*").eq("id", 1).maybeSingle();
@@ -647,7 +647,7 @@
     e.preventDefault();
     const f = e.target, btn = f.querySelector("[type=submit]");
     const row = { updated_at: new Date().toISOString(), sms_enabled: f.sms_enabled.checked };
-    SHOP_FIELDS.forEach(k => { row[k] = k === "pay_minutes" ? parseInt(f[k].value, 10) : f[k].value.trim(); });
+    SHOP_FIELDS.forEach(k => { row[k] = ["pay_minutes", "delivery_fee"].includes(k) ? parseInt(f[k].value, 10) : f[k].value.trim(); });
     btn.disabled = true;
     const { error } = await sb.from("shop_info").update(row).eq("id", 1);
     btn.disabled = false;
