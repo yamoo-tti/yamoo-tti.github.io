@@ -23,7 +23,7 @@
   const ORDER_FLOW = ["new", "confirmed", "paid", "ready", "done"];
   const SELL_FLOW = ["new", "scheduled", "received", "done"];
   const IMAGES = [
-    "gbk/bar-1g.webp", "gbk/bar-3_75g.webp", "gbk/bar-10g.webp", "gbk/bar-18_75g.webp", "gbk/bar-37_5g.webp", "gbk/bar-100g.webp",
+    "gbk/bar-1g.webp", "gbk/bar-1_875g.webp", "gbk/bar-3_75g.webp", "gbk/bar-7_5g.webp", "gbk/bar-10g.webp", "gbk/bar-11_25g.webp", "gbk/bar-18_75g.webp", "gbk/bar-37_5g.webp", "gbk/bar-100g.webp",
     ...Array.from({ length: 13 }, (_, i) => `gbk/zodiac-${String(i + 1).padStart(2, "0")}.webp`),
     "silver/bar-500g.jpg", "silver/granule-100g.jpg", "silver/granule-1kg.jpg", "silver/granule-1kg-2.jpg",
     "silver/bar-100g.svg", "silver/bar-1kg.svg", "silver/granule.svg",
@@ -358,7 +358,7 @@
         <label data-for="bar zodiac accessory">함량<select name="karat">${opts({ "24K": "24K", "18K": "18K", "14K": "14K" }, p.karat)}</select></label>
       </div>
       <div class="row2">
-        <label data-for="bar zodiac silver">프리미엄 (%) <small>살 때 시세(금·은) 대비</small><input type="number" name="premium_pct" step="0.1" value="${p.premium_pct}"></label>
+        <label data-for="bar zodiac silver">프리미엄 (%) <small>살 때 시세(금·은) 대비</small><input type="number" name="premium_pct" step="any" value="${p.premium_pct}"></label>
         <label data-for="accessory">공임 (원)<input type="number" name="labor" min="0" step="1000" value="${p.labor}"></label>
         <label>예상 판매가<output id="pricePreview" class="price-out">-</output></label>
       </div>
