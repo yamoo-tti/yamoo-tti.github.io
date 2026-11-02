@@ -564,3 +564,5 @@ ul, ol { padding: 0; list-style: none; }
 .mo__find { display: grid; grid-template-columns: 1.3fr 1fr auto; gap: 8px; margin: 14px 0 16px; }
 .mo__find input { height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 4px; background: #fff; min-width: 0; }
 @media (max-width: 560px) { .mo__find { grid-template-columns: 1fr; } }
+/* Netlify 무료 요금제가 자동으로 붙이는 'Powered by Netlify' 배지 숨김 */
+#nl-badge-frame, #nl-hud-frame { display: none !important; }
