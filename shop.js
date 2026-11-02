@@ -38,9 +38,14 @@
   }
 
   // 입금 계좌 · 입금 기한 (관리자 페이지 > 시세 설정에서 수정)
-  let shopInfo = { bank_name: "", bank_account: "", bank_holder: "", pay_minutes: 30 };
-  if (sb) sb.from("shop_info").select("bank_name,bank_account,bank_holder,pay_minutes").eq("id", 1).maybeSingle()
-    .then(({ data }) => { if (data) { shopInfo = data; const m = $("#payMinutes"); if (m) m.textContent = data.pay_minutes; } });
+  let shopInfo = { bank_name: "", bank_account: "", bank_holder: "", pay_minutes: 30, delivery_fee: 3000 };
+  if (sb) sb.from("shop_info").select("*").eq("id", 1).maybeSingle()
+    .then(({ data }) => {
+      if (!data) return;
+      shopInfo = { ...shopInfo, ...data };
+      const m = $("#payMinutes"); if (m) m.textContent = data.pay_minutes;
+      const d = $("#deliveryFee"); if (d) d.textContent = won(shopInfo.delivery_fee);
+    });
   const hm = d => { const x = new Date(d); return `${String(x.getMonth() + 1).padStart(2, "0")}/${String(x.getDate()).padStart(2, "0")} ${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}`; };
   const payBox = (amount, deadline, bank) => `
       <dl class="pay-box">
@@ -79,9 +84,11 @@
   function updateTotal() {
     const qty = Math.min(99, Math.max(1, parseInt(orderForm.qty.value, 10) || 1));
     const unit = window.SHOP.price(current);
-    $("#orderTotal").textContent = unit ? won(unit * qty) : "매장 문의";
-    return unit ? unit * qty : null;
+    const fee = orderForm.receive.value === "delivery" ? Number(shopInfo.delivery_fee) || 0 : 0;
+    $("#orderTotal").innerHTML = unit ? won(unit * qty + fee) + (fee ? `<small>택배비 ${won(fee)} 포함</small>` : "") : "매장 문의";
+    return unit ? unit * qty + fee : null;
   }
+  orderForm.addEventListener("change", e => { if (e.target.name === "receive") updateTotal(); });
 
   window.openOrder = function (p) {
     if (!sb || !p.id) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
@@ -123,7 +130,7 @@
     const r = typeof data === "string" ? { code: data } : (data || {});
     if (r.total) {
       done.innerHTML = doneHtml(r.code, "주문이 확정됐어요",
-        `확정일시 ${hm(r.locked_at)} 시세 기준 금액이에요.` + payBox(r.total, r.deadline, r) +
+        `확정일시 ${hm(r.locked_at)} 시세 기준 금액이에요.${r.shipping_fee ? ` (택배비 ${won(r.shipping_fee)} 포함)` : ""}` + payBox(r.total, r.deadline, r) +
         `입력하신 휴대폰으로도 같은 내용을 문자로 보내드려요. 입금이 확인되면 ${f.receive.value === "delivery" ? "보험 등기로 발송" : "매장 수령 일정을 안내"}해 드려요.`);
     } else {
       done.innerHTML = doneHtml(r.code, "구매 신청이 접수됐어요",
