@@ -105,7 +105,7 @@ function renderIntl() {
     <div class="intl__card">
       <p class="intl__name">국제 ${n} <span>1돈 · VAT 포함</span></p>
       <p class="intl__val num">${won(donWonVat(s))}</p>
-      <p class="intl__sub num">VAT 별도 ${won(donWon(s))} · ${usdFmt(usd[s])}/oz</p>
+      <p class="intl__sub num">${usdFmt(usd[s])}/oz</p>
     </div>`).join("") + `
     <div class="intl__card">
       <p class="intl__name">원/달러 <span>실시간</span></p>
