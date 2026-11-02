@@ -29,7 +29,7 @@
     const r = data && data.find(x => x.kind === "order" && x.code === code);
     if (!r) return askPhone();
     const s = shop.data || {};
-    render({ code, product: r.title, total: r.amount, shipping_fee: r.shipping_fee, deadline: r.deadline, locked_at: r.locked_at,
+    render({ code, product: r.title, items: r.items, total: r.amount, shipping_fee: r.shipping_fee, deadline: r.deadline, locked_at: r.locked_at,
       status: r.status, receive: r.method, bank_name: s.bank_name, bank_account: s.bank_account, bank_holder: s.bank_holder });
   }
 
@@ -57,7 +57,7 @@
       const r = !error && data && data.find(x => x.kind === "order");
       if (!r) return askPhone("일치하는 주문이 없어요. 접수번호와 휴대폰 번호를 확인해 주세요.");
       const s = shop.data || {};
-      render({ code, product: r.title, total: r.amount, deadline: r.deadline, status: r.status,
+      render({ code, product: r.title, items: r.items, total: r.amount, deadline: r.deadline, status: r.status,
         bank_name: s.bank_name, bank_account: s.bank_account, bank_holder: s.bank_holder });
     });
   }
@@ -109,7 +109,8 @@
         </div>` : ""}
 
         <dl class="od__info">
-          ${o.product ? `<dt>상품</dt><dd>${esc(o.product)}${o.qty ? ` × ${o.qty}` : ""}</dd>` : ""}
+          ${Array.isArray(o.items) && o.items.length ? `<dt>상품</dt><dd><ul class="od__items">${o.items.map(i => `<li><span>${esc(i.name)} × ${i.qty}</span>${i.subtotal ? `<b>${won(i.subtotal)}</b>` : ""}</li>`).join("")}</ul></dd>`
+            : o.product ? `<dt>상품</dt><dd>${esc(o.product)}${o.qty ? ` × ${o.qty}` : ""}</dd>` : ""}
           ${o.locked_at ? `<dt>금액 확정</dt><dd>${hm(o.locked_at)} 시세 기준</dd>` : ""}
           <dt>${waiting ? "입금하실 금액" : "확정 금액"}</dt>
           <dd class="od__amount">${won(o.total)}${Number(o.shipping_fee) ? `<small>택배비 ${won(o.shipping_fee)} 포함</small>` : ""}</dd>
