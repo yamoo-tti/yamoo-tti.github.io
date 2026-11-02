@@ -532,3 +532,35 @@ ul, ol { padding: 0; list-style: none; }
   .od__info dt:first-child { margin-top: 0; }
   .od__btn { flex: 1; min-width: 0; }
 }
+.done[hidden] { display: none; }
+
+/* ---------- 주문내역 페이지 ---------- */
+.mo { max-width: 760px; margin: 0 auto; padding: clamp(28px, 6vw, 56px) 16px 64px; }
+.mo__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.mo__head h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(26px, 4vw, 32px); letter-spacing: -.02em; }
+.mo__who { font-size: 14px; color: var(--muted); }
+.mo__who .btn { height: 42px; padding: 0 18px; }
+.mo__card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; margin-bottom: 12px; }
+.mo__card.is-wait { border-color: var(--gold); box-shadow: 0 10px 30px -20px rgba(156,118,41,.6); }
+.mo__card.is-off { opacity: .6; }
+.mo__top { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.mo__kind { padding: 2px 8px; border-radius: 3px; background: var(--tint); color: var(--ink-2); font-weight: 500; }
+.mo__st { margin-left: auto; font-weight: 700; color: var(--ink); }
+.is-wait .mo__st { color: var(--up); }
+.is-done .mo__st { color: #2f8a4b; }
+.mo__title { margin-top: 8px; font-size: 16px; font-weight: 500; color: var(--ink); }
+.mo__bottom { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; }
+.mo__code { font-size: 13px; color: var(--muted); letter-spacing: .02em; }
+.mo__amt { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mo__wait { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); font-size: 13.5px; color: var(--ink-2); }
+.mo__wait b { color: var(--up); font-size: 16px; font-variant-numeric: tabular-nums; }
+.mo__wait .btn { height: 40px; padding: 0 16px; font-size: 13px; }
+.mo__note { margin-top: 8px; font-size: 13px; color: var(--muted); }
+.mo__empty { text-align: center; padding: 40px 0; color: var(--muted); }
+.mo__empty .btn { margin-top: 14px; }
+.mo__guest { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); }
+.mo__guest h2 { font-size: 17px; font-weight: 700; }
+.mo__guest .muted { margin-top: 4px; font-size: 13.5px; color: var(--muted); }
+.mo__find { display: grid; grid-template-columns: 1.3fr 1fr auto; gap: 8px; margin: 14px 0 16px; }
+.mo__find input { height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 4px; background: #fff; min-width: 0; }
+@media (max-width: 560px) { .mo__find { grid-template-columns: 1fr; } }
