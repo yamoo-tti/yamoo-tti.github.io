@@ -136,7 +136,7 @@ function renderTicker() {
 const CHART_SYM = { "OANDA:XAUUSD": "XAU", "OANDA:XAGUSD": "XAG", "OANDA:XPTUSD": "XPT" };
 let chartSymbol = "OANDA:XAUUSD";
 function updateChartKrw() {
-  if (!state.live) return;
+  if (!state.live || !$("#chartKrw")) return; // 차트 옆 원화 표시는 제거됨
   const m = CHART_SYM[chartSymbol];
   $("#chartKrw").textContent = m ? `현재 1돈 ${won(donWon(m))}` : `현재 ${state.live.krw.toFixed(2)}원`;
 }
