@@ -223,3 +223,6 @@ button.kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -12px rgb
   .main { padding-top: 20px; }
   .settings fieldset { grid-template-columns: 1fr; }
 }
+
+.sub-head { margin: 36px 0 4px; font-size: 18px; font-weight: 700; }
+#shopForm { max-width: 760px; }
