@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261102e">
+  <link rel="stylesheet" href="admin.css?v=20261102f">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M14 46 22 22h20l8 24z' fill='%23c9a14a'/%3E%3Cpath d='M22 22h20l-3 6H25z' fill='%23f2dc9b'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -174,6 +174,26 @@
             <table class="mini-table" id="previewTable"></table>
           </div>
         </div>
+
+        <h2 class="sub-head">주문 · 입금 · 문자 설정</h2>
+        <p class="desc">손님이 구매 신청을 하면 그 순간 시세로 금액이 확정되고, 아래 계좌와 입금 기한이 화면과 문자로 안내됩니다. 기한이 지나면 주문은 자동 취소됩니다.</p>
+        <form class="panel settings" id="shopForm">
+          <fieldset><legend>입금 계좌</legend>
+            <label>은행<input name="bank_name" maxlength="20" required></label>
+            <label>계좌번호<input name="bank_account" maxlength="30" required></label>
+            <label>예금주<input name="bank_holder" maxlength="20" required></label>
+          </fieldset>
+          <fieldset><legend>주문 · 문자</legend>
+            <label>입금 기한 (분)<input type="number" name="pay_minutes" min="5" max="1440" step="1" required></label>
+            <label>새 접수 알림 받을 번호<input name="owner_phone" maxlength="20" required></label>
+            <label>문자 발신번호 <small>솔라피에 등록한 번호</small><input name="sms_sender" maxlength="20" required></label>
+            <label class="inline"><input type="checkbox" name="sms_enabled"> 문자 발송 켜기 <small>솔라피 키를 등록해야 실제로 발송돼요</small></label>
+          </fieldset>
+          <div class="settings__foot">
+            <p id="shopMeta" class="muted"></p>
+            <button class="btn btn--gold" type="submit">저장</button>
+          </div>
+        </form>
       </section>
 
       <!-- 변경 이력 -->
@@ -227,7 +247,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261102e"></script>
-  <script src="admin.js?v=20261102e"></script>
+  <script src="common.js?v=20261102f"></script>
+  <script src="admin.js?v=20261102f"></script>
 </body>
 </html>
