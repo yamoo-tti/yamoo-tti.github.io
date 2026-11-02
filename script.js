@@ -98,13 +98,15 @@ const usdFmt = v => "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, 
 const donWon = sym => window.YAMOO.perDon(state.live, sym);
 // 국내 판매가와 비교해 오해가 없도록 국제 시세도 부가세(10%) 포함 금액을 크게 표시
 const donWonVat = sym => donWon(sym) * window.YAMOO.VAT;
+// 은은 1돈 대신 1g 가격으로 표시
+const intlVal = sym => sym === "XAG" ? [won(donWonVat(sym) / DON), "1g · VAT 포함"] : [won(donWonVat(sym)), "1돈 · VAT 포함"];
 function renderIntl() {
   const { usd, krw } = state.live;
   const metals = [["금", "XAU"], ["은", "XAG"], ["백금", "XPT"], ["팔라듐", "XPD"]];
   $("#intl").innerHTML = metals.map(([n, s]) => `
     <div class="intl__card">
-      <p class="intl__name">국제 ${n} <span>1돈 · VAT 포함</span></p>
-      <p class="intl__val num">${won(donWonVat(s))}</p>
+      <p class="intl__name">국제 ${n} <span>${intlVal(s)[1]}</span></p>
+      <p class="intl__val num">${intlVal(s)[0]}</p>
       <p class="intl__sub num">${usdFmt(usd[s])}/oz</p>
     </div>`).join("") + `
     <div class="intl__card">
@@ -124,7 +126,7 @@ function renderTicker() {
     ["18K 팔 때", won(item("18k").sell), "3.75g"],
     ["14K 팔 때", won(item("14k").sell), "3.75g"],
     ["국제 금", won(donWonVat("XAU")), "1돈 · VAT 포함"],
-    ["국제 은", won(donWonVat("XAG")), "1돈 · VAT 포함"],
+    ["국제 은", ...intlVal("XAG")],
     ["국제 백금", won(donWonVat("XPT")), "1돈 · VAT 포함"],
     ["국제 팔라듐", won(donWonVat("XPD")), "1돈 · VAT 포함"],
     ["원/달러", state.live.krw.toFixed(2) + "원", "실시간"],
@@ -145,11 +147,13 @@ function updateChartKrw() {
 
 /* ---------- 국내 시세표 ---------- */
 function renderPriceTable() {
+  // 은은 1g 가격으로 표시 (나머지는 3.75g 기준)
+  const per = i => i.key === "ag" ? v => Math.round(v / DON) : v => v;
   $("#priceBody").innerHTML = state.domestic.items.map(i => `
     <tr class="${i.key === "24k" ? "is-main" : ""}">
-      <td class="item">${i.name}<small>${i.sub}</small></td>
-      <td>${i.buy ? `<span class="val">${i.buy.toLocaleString("ko-KR")}</span>` : `<span class="na">제품시세 적용</span>`}</td>
-      <td><span class="val">${i.sell.toLocaleString("ko-KR")}</span></td>
+      <td class="item">${i.name}<small>${i.sub}${i.key === "ag" ? " · <b>1g 기준</b>" : ""}</small></td>
+      <td>${i.buy ? `<span class="val">${per(i)(i.buy).toLocaleString("ko-KR")}</span>` : `<span class="na">제품시세 적용</span>`}</td>
+      <td><span class="val">${per(i)(i.sell).toLocaleString("ko-KR")}</span></td>
     </tr>`).join("");
 }
 $("#refreshBtn").addEventListener("click", refresh);
