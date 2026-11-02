@@ -208,7 +208,7 @@
     const c = REQ[kind], isO = kind === "orders";
     const head = compact
       ? `<thead><tr><th>접수</th><th>${isO ? "상품" : "품목"}</th><th>고객</th><th>상태</th></tr></thead>`
-      : `<thead><tr><th>접수번호</th><th>접수일시</th><th>${isO ? "상품 · 수량" : "품목 · 함량"}</th><th>고객</th><th>${isO ? "수령" : "방법 · 방문일"}</th><th>${isO ? "금액" : "매입가"}</th><th>상태</th><th>다음 단계</th></tr></thead>`;
+      : `<thead><tr><th>접수번호</th><th>접수일시</th><th>${isO ? "상품 · 수량" : "품목 · 함량"}</th><th>고객</th><th>${isO ? "수령" : "방법 · 방문일"}</th><th>${isO ? "금액" : "매입가"}</th><th>상태</th><th>처리</th></tr></thead>`;
     if (!list.length) return head + `<tbody><tr><td class="empty" colspan="8">${compact ? "처리할 접수가 없습니다 👍" : "접수가 없습니다"}</td></tr></tbody>`;
     return head + "<tbody>" + list.map(r => {
       const what = isO ? `${esc(r.product_name)} <span class="muted">× ${r.qty}</span>` : `${esc(r.items)} <span class="muted">${KARAT[r.karat] || ""}${r.weight_g ? " · " + Number(r.weight_g) + "g" : ""}</span>`;
@@ -223,7 +223,14 @@
       return `<tr class="clickable" data-rec="${kind}:${r.id}">
         <td class="code">${esc(r.code)}</td><td>${fmtDate(r.created_at)}</td><td class="ellipsis">${what}</td>
         <td class="who">${who}</td><td>${how}</td><td>${money}</td><td>${st}</td>
-        <td><div class="row-actions">${next ? `<button data-next="${kind}:${r.id}:${next}">→ ${esc(c.status[next])}</button>` : ""}</div></td>
+        <td><div class="row-actions">
+          ${next ? `<button data-next="${kind}:${r.id}:${next}">→ ${esc(c.status[next])}</button>` : ""}
+          <select class="st-pick" data-setstatus="${kind}:${r.id}" aria-label="상태 바꾸기">
+            <option value="">상태 변경…</option>
+            ${Object.entries(c.status).filter(([k]) => k !== r.status && k !== "canceled").map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("")}
+          </select>
+          ${r.status !== "canceled" ? `<button class="danger" data-next="${kind}:${r.id}:canceled">취소</button>` : ""}
+        </div></td>
       </tr>`;
     }).join("") + "</tbody>";
   }
@@ -242,7 +249,15 @@
 
   async function setStatus(kind, id, status) {
     const c = REQ[kind];
-    const { error } = await sb.from(c.table).update({ status }).eq("id", id);
+    const row = (cache[kind] || []).find(x => x.id === id) || {};
+    const patch = { status };
+    if (status === "canceled" && !confirm(`${row.code || "이 접수"}을(를) 취소할까요?`)) return;
+    // 입금 대기로 되돌릴 때 기한이 이미 지났으면, 바로 자동 취소되지 않게 기한을 30분 연장
+    if (kind === "orders" && status === "confirmed" && row.pay_deadline && new Date(row.pay_deadline) < new Date()) {
+      if (!confirm("입금 기한이 이미 지난 주문이에요. 기한을 지금부터 30분 연장할까요?\n(취소를 누르면 상태를 바꾸지 않아요)")) return;
+      patch.pay_deadline = new Date(Date.now() + 30 * 60000).toISOString();
+    }
+    const { error } = await sb.from(c.table).update(patch).eq("id", id);
     if (error) return fail(error);
     toast(`'${c.status[status]}'(으)로 변경했습니다`);
     loaders[current](); refreshBadges();
@@ -311,6 +326,10 @@
         if (isO) patch.final_price = num(f.final_price.value);
         else { patch.final_amount = num(f.final_amount.value); patch.visit_date = f.visit_date.value || null; }
         if (patch.status === "canceled" && r.status !== "canceled" && !confirm("이 접수를 취소 처리할까요?")) return false;
+        if (isO && patch.status === "confirmed" && r.pay_deadline && new Date(r.pay_deadline) < new Date()) {
+          if (!confirm("입금 기한이 이미 지난 주문이에요. 기한을 지금부터 30분 연장할까요?")) return false;
+          patch.pay_deadline = new Date(Date.now() + 30 * 60000).toISOString();
+        }
         must(await sb.from(c.table).update(patch).eq("id", r.id));
         toast("저장했습니다");
       },
@@ -441,7 +460,16 @@
   $("#addNotice").addEventListener("click", () => openNotice(null));
 
   /* ---------- 행 클릭 공통 ---------- */
+  // 목록에서 바로 상태 바꾸기 (중간 단계로 되돌리기 포함)
+  document.addEventListener("change", e => {
+    const s = e.target.closest("[data-setstatus]");
+    if (!s || !s.value) return;
+    const [kind, id] = s.dataset.setstatus.split(":");
+    const v = s.value; s.value = "";
+    setStatus(kind, +id, v);
+  });
   document.addEventListener("click", async e => {
+    if (e.target.closest(".st-pick")) return; // 선택 상자를 눌러도 상세 창이 열리지 않게
     const nx = e.target.closest("[data-next]");
     if (nx) { const [kind, id, st] = nx.dataset.next.split(":"); return setStatus(kind, +id, st); }
     const tg = e.target.closest("[data-toggle]");
