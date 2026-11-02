@@ -90,7 +90,7 @@
   };
 
   // 주문·매입 진행 단계 (홈페이지 조회 + 관리자 공용)
-  const ORDER_STATUS = { new: "접수", confirmed: "주문 확인", paid: "입금 확인", ready: "수령 준비 완료", done: "완료", canceled: "취소" };
+  const ORDER_STATUS = { new: "접수", confirmed: "금액 확정·입금 대기", paid: "입금 확인", ready: "수령 준비 완료", done: "완료", canceled: "취소" };
   const SELL_STATUS = { new: "접수", scheduled: "일정 확정", received: "입고·감정", done: "지급 완료", canceled: "취소" };
   const fmtPhone = p => String(p || "").replace(/^(02|0\d{2})(\d{3,4})(\d{4})$/, "$1-$2-$3");
 
