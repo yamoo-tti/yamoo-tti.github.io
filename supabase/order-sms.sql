@@ -20,6 +20,7 @@ create table if not exists public.shop_info (
   updated_at   timestamptz not null default now()
 );
 insert into public.shop_info (id) values (1) on conflict (id) do nothing;
+alter table public.shop_info add column if not exists delivery_fee int not null default 3000 check (delivery_fee >= 0);
 alter table public.shop_info enable row level security;
 drop policy if exists "shop_info_read" on public.shop_info;
 create policy "shop_info_read" on public.shop_info for select using (true);
@@ -31,6 +32,7 @@ grant update on public.shop_info to authenticated;
 -- 주문에 입금 기한 · 금액 확정 시각 추가
 alter table public.orders add column if not exists pay_deadline timestamptz;
 alter table public.orders add column if not exists price_locked_at timestamptz;
+alter table public.orders add column if not exists shipping_fee numeric not null default 0;
 
 -- 서버가 1분마다 받아 두는 국제 시세 (원화/온스)
 create table if not exists public.live_prices (
@@ -45,6 +47,9 @@ create table if not exists public.price_fetches (
 );
 alter table public.live_prices enable row level security;
 alter table public.price_fetches enable row level security;
+drop policy if exists "live_prices_read" on public.live_prices;
+create policy "live_prices_read" on public.live_prices for select using (true);
+grant select on public.live_prices to anon, authenticated;
 
 create or replace function public.refresh_live_prices()
 returns void language plpgsql security definer set search_path = public, extensions as $$
@@ -137,7 +142,7 @@ create function public.submit_order(
 declare
   pr public.products; si public.shop_info;
   c text; ph text := public.clean_phone(p_phone); pname text;
-  unit numeric; total numeric; dl timestamptz; kst text;
+  unit numeric; total numeric; fee numeric := 0; dl timestamptz; kst text;
 begin
   select * into pr from public.products where id = p_product_id and visible;
   if not found then raise exception '상품을 찾을 수 없습니다'; end if;
@@ -153,23 +158,24 @@ begin
   c := public.new_code('O');
   pname := case when pr.kind = 'zodiac' then 'GBK 카드형 골드바 1g (' || pr.name || ')' else pr.name end;
   unit := public.quote_price(pr);              -- 시세를 못 받았으면 null → 예전처럼 매장에서 금액 안내
+  if p_receive = 'delivery' then fee := coalesce(si.delivery_fee, 0); end if;
   if unit is not null then
-    total := unit * p_qty;
+    total := unit * p_qty + fee;
     dl := now() + make_interval(mins => si.pay_minutes);
   end if;
 
   insert into public.orders (code, user_id, product_id, product_name, qty, quoted_price, final_price,
-                             price_locked_at, pay_deadline, status, name, phone, receive, address, note)
+                             price_locked_at, pay_deadline, shipping_fee, status, name, phone, receive, address, note)
   values (c, auth.uid(), pr.id, pname, p_qty, p_quoted, total,
-          case when total is not null then now() end, dl,
+          case when total is not null then now() end, dl, fee,
           case when total is not null then 'confirmed' else 'new' end,
           trim(p_name), ph, p_receive,
           left(nullif(trim(p_address), ''), 200), left(nullif(trim(p_note), ''), 500));
 
   kst := to_char(now() at time zone 'Asia/Seoul', 'MM/DD HH24:MI');
   if total is not null then
-    perform public.send_sms(ph, format(E'[금비 GOLD] 주문 확정\n접수번호 %s\n%s × %s\n확정일시 %s\n입금액 %s원\n계좌 %s %s (예금주 %s)\n%s까지 입금이 확인되지 않으면 자동 취소됩니다.\n문의 010-5287-8002',
-      c, pname, p_qty, kst, public.fmt_won(total), si.bank_name, si.bank_account, si.bank_holder,
+    perform public.send_sms(ph, format(E'[금비 GOLD] 주문 확정\n접수번호 %s\n%s × %s\n확정일시 %s\n입금액 %s원%s\n계좌 %s %s (예금주 %s)\n%s까지 입금이 확인되지 않으면 자동 취소됩니다.\n문의 010-5287-8002',
+      c, pname, p_qty, kst, public.fmt_won(total), case when fee > 0 then ' (택배비 ' || public.fmt_won(fee) || '원 포함)' else '' end, si.bank_name, si.bank_account, si.bank_holder,
       to_char(dl at time zone 'Asia/Seoul', 'MM/DD HH24:MI')));
   else
     perform public.send_sms(ph, format(E'[금비 GOLD] 구매 신청 접수\n접수번호 %s\n%s × %s\n확정 금액과 입금 계좌를 곧 연락드립니다.\n문의 010-5287-8002', c, pname, p_qty));
@@ -180,7 +186,7 @@ begin
     case when p_receive = 'delivery' then '택배' else '방문수령' end));
 
   return jsonb_build_object(
-    'code', c, 'total', total, 'locked_at', case when total is not null then now() end, 'deadline', dl,
+    'code', c, 'total', total, 'shipping_fee', fee, 'locked_at', case when total is not null then now() end, 'deadline', dl,
     'bank_name', si.bank_name, 'bank_account', si.bank_account, 'bank_holder', si.bank_holder);
 end $$;
 revoke all on function public.submit_order(uuid, int, text, text, text, text, text, numeric) from public;
