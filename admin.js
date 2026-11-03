@@ -7,7 +7,7 @@
   const GRADE = { basic: "일반", silver: "실버", gold: "골드", vip: "VIP" };
   const STATUS = { active: "정상", suspended: "정지", withdrawn: "탈퇴" };
   const ROLE = { member: "회원", admin: "관리자" };
-  const KIND = { bar: "골드바", zodiac: "카드형 1g", silver: "실버", accessory: "악세사리", gift: "순금선물" };
+  const KIND = { bar: "골드바", zodiac: "카드형 1g", silver: "실버", accessory: "주얼리 (24K·실버)", gift: "순금선물" };
   const CATEGORY = { necklace: "목걸이", ring: "반지", bracelet: "팔찌", earring: "귀걸이", goods: "순금 기념품", dol: "돌선물", key: "행운의 열쇠", memo: "기념 골드바" };
   const CAT_OF = { accessory: ["necklace", "ring", "bracelet", "earring"], gift: ["goods", "dol", "key", "memo"] };
   const KARAT_KO = { "24K": "순금 24K", "18K": "18K", "14K": "14K", SV: "실버 925" };
@@ -251,7 +251,8 @@
     if (!t) return;
     const [kind, k] = t.dataset.tab.split(":");
     if (REQ[kind]) { reqTab[kind] = k; renderRequests(kind); }
-    else if (kind === "products") { productTab = k; renderProducts(); }
+    else if (kind === "products") { productTab = k; productSub = "all"; renderProducts(); }
+    else if (kind === "psub") { productSub = k; renderProducts(); }
     else if (kind === "logs") { logTab = k; renderLogs(); }
   });
   Object.keys(REQ).forEach(kind => $(REQ[kind].search).addEventListener("submit", e => {
@@ -519,7 +520,12 @@
   });
 
   /* ---------- 상품 관리 ---------- */
-  let products = [], productTab = "bar";
+  let products = [], productTab = "bar", productSub = "all";
+  // 관리 화면 묶음: 악세사리는 24K(순금)와 실버(실버바와 함께)로 나눠 보여줌
+  const PGROUP = { bar: "골드바", zodiac: "카드형 1g", gold24: "24K", silver: "실버", gift: "순금선물" };
+  const PSUB = { gold24: ["necklace", "ring", "bracelet", "earring"], gift: ["goods", "dol", "key", "memo"] };
+  const groupOf = p => p.kind === "accessory" ? (p.karat === "SV" ? "silver" : "gold24") : p.kind;
+  const kindLabel = p => p.kind === "accessory" ? (p.karat === "SV" ? "실버 주얼리" : "24K") : KIND[p.kind];
   async function loadProducts() {
     const { data, error } = await sb.from("products").select("*").order("kind").order("sort").order("created_at");
     if (error) return fail(error);
@@ -530,15 +536,19 @@
     renderProducts();
   }
   function renderProducts() {
-    const tabs = [...Object.entries(KIND), ["all", "전체"]];
-    $("#productTabs").innerHTML = tabs.map(([k, v]) => `<button data-tab="products:${k}" class="${productTab === k ? "is-on" : ""}">${v} <span>${k === "all" ? products.length : products.filter(p => p.kind === k).length}</span></button>`).join("");
-    const list = productTab === "all" ? products : products.filter(p => p.kind === productTab);
+    const tabs = [...Object.entries(PGROUP), ["all", "전체"]];
+    const inTab = productTab === "all" ? products : products.filter(p => groupOf(p) === productTab);
+    const subs = PSUB[productTab] || [];
+    $("#productTabs").innerHTML = tabs.map(([k, v]) => `<button data-tab="products:${k}" class="${productTab === k ? "is-on" : ""}">${v} <span>${k === "all" ? products.length : products.filter(p => groupOf(p) === k).length}</span></button>`).join("")
+      + (subs.length ? `<span class="ptabs-sep" aria-hidden="true">›</span>` + [["all", "전체"], ...subs.map(c => [c, CATEGORY[c]])].map(([k, v]) =>
+        `<button data-tab="psub:${k}" class="sub${productSub === k ? " is-on" : ""}">${v} <span>${k === "all" ? inTab.length : inTab.filter(p => p.category === k).length}</span></button>`).join("") : "");
+    const list = productSub === "all" || !subs.length ? inTab : inTab.filter(p => p.category === productSub);
     const head = `<thead><tr><th></th><th>상품명</th><th>종류</th><th>중량 · 함량</th><th>가격 조정</th><th>현재 판매가</th><th>노출</th><th>품절</th><th>순서</th></tr></thead>`;
     $("#productTable").innerHTML = head + "<tbody>" + (list.length ? list.map(p => `
       <tr class="clickable${p.visible ? "" : " is-dim"}" data-product="${p.id}">
         <td><img class="thumb" src="${esc(imgUrl(p.img))}" alt=""></td>
         <td><b>${esc(p.name)}</b>${p.tag ? ` <span class="pill g-gold">${esc(p.tag)}</span>` : ""}</td>
-        <td>${KIND[p.kind]}${p.category ? " · " + CATEGORY[p.category] : ""}</td>
+        <td>${kindLabel(p)}${p.category ? " · " + CATEGORY[p.category] : ""}</td>
         <td>${Number(p.weight_g)}g · ${p.kind === "silver" ? "은 999.9" : KARAT_KO[p.karat] || p.karat}</td>
         <td>${hasLabor(p.kind) ? "공임 " + won(p.labor) : "+" + Number(p.premium_pct) + "%"}</td>
         <td>${p._price ? won(p._price) : "-"}</td>
@@ -550,7 +560,8 @@
 
   function openProduct(p) {
     const isNew = !p;
-    p = p || { kind: productTab === "all" ? "bar" : productTab, name: "", weight_g: "", karat: "24K", category: null, premium_pct: 0, labor: 0, img: "", tag: "", sort: (products.length + 1) * 10, visible: true, sold_out: false };
+    const newKind = { all: "bar", gold24: "accessory" }[productTab] || productTab;
+    p = p || { kind: newKind, name: "", weight_g: "", karat: "24K", category: PSUB[productTab] && productSub !== "all" ? productSub : null, premium_pct: 0, labor: 0, img: "", tag: "", sort: (products.length + 1) * 10, visible: true, sold_out: false };
     const html = `
       <div class="pimg"><img id="pimgPreview" src="${esc(imgUrl(p.img))}" alt=""></div>
       <div class="row2">
