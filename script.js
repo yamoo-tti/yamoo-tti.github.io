@@ -88,6 +88,7 @@ function apply(live) {
   $("#priceTime").textContent = fmtDate(live.updatedAt);
   renderPriceTable();
   renderIntl();
+  renderTicker();
   updateCalc();
   renderBars();
   renderProducts(currentFilter);
@@ -101,6 +102,7 @@ const donWonVat = sym => donWon(sym) * window.YAMOO.VAT;
 // 은은 1돈 대신 1g 가격으로 표시
 const intlVal = sym => sym === "XAG" ? [won(donWonVat(sym) / DON), "1g · VAT 포함"] : [won(donWonVat(sym)), "1돈 · VAT 포함"];
 function renderIntl() {
+  if (!$("#intl")) return; // 국제 시세 카드는 손님 화면에서 뺌
   const { usd, krw } = state.live;
   const metals = [["금", "XAU"], ["은", "XAG"], ["백금", "XPT"], ["팔라듐", "XPD"]];
   $("#intl").innerHTML = metals.map(([n, s]) => `
@@ -114,7 +116,6 @@ function renderIntl() {
       <p class="intl__val num">${krw.toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}원</p>
       <p class="intl__sub">1달러 기준</p>
     </div>`;
-  renderTicker();
   updateChartKrw();
 }
 
@@ -125,11 +126,8 @@ function renderTicker() {
     ["순금 팔 때", won(g.sell), "3.75g", true],
     ["18K 팔 때", won(item("18k").sell), "3.75g"],
     ["14K 팔 때", won(item("14k").sell), "3.75g"],
-    ["국제 금", won(donWonVat("XAU")), "1돈 · VAT 포함"],
-    ["국제 은", ...intlVal("XAG")],
-    ["국제 백금", won(donWonVat("XPT")), "1돈 · VAT 포함"],
-    ["국제 팔라듐", won(donWonVat("XPD")), "1돈 · VAT 포함"],
-    ["원/달러", state.live.krw.toFixed(2) + "원", "실시간"],
+    ["백금 살 때", won(item("pt").buy), "3.75g"],
+    ["은 살 때", won(item("ag").buy / DON), "1g"],
   ];
   const html = items.map(([n, v, u, gold]) => `<div class="ticker__item${gold ? " is-gold" : ""}"><span>${n}</span><b class="num">${v}</b><em>${u}</em></div>`).join("");
   const track = $("#ticker");
