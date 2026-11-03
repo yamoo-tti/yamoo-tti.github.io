@@ -101,5 +101,36 @@
   const COURIERS = ["우체국택배", "CJ대한통운", "한진택배", "롯데택배", "로젠택배", "경동택배"];
   const trackUrl = (courier, no) => "https://search.naver.com/search.naver?query=" + encodeURIComponent(`${courier || ""} ${no}`.trim());
 
-  window.YAMOO = { sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate };
+  // 상품정보 제공고시 (귀금속·보석·시계류). 관리자가 상품마다 info 칸에 적은 값이 있으면 그 값을 씀
+  const INFO_FIELDS = { material: "소재 · 순도", weight: "중량", maker: "제조자 (수입자)", origin: "제조국", size: "치수", caution: "착용·보관 시 주의사항", spec: "주요 사양 · 등급" };
+  const ASK = "매장 문의 (010-5287-8002)";
+  function infoDefaults(p) {
+    const w = Number(p.weight_g), k = p.kind;
+    const don = Math.round(w / DON * 1000) / 1000;
+    const gold = k === "bar" || k === "zodiac";
+    return {
+      material: k === "silver" ? "순은 (Ag 999.9)" : gold ? "순금 24K (Au 999.9)"
+        : p.karat === "18K" ? "18K 금 (금 함량 75%)" : p.karat === "14K" ? "14K 금 (금 함량 58.5%)" : String(p.karat || ""),
+      weight: k === "accessory" ? `약 ${w}g (수작업 특성상 조금 차이가 날 수 있어요)`
+        : (w >= 1000 && w % 1000 === 0 ? `${w / 1000}kg` : `${w}g`) + (gold ? ` (${don}돈)` : ""),
+      maker: gold ? "GBK" : ASK,
+      origin: ASK,
+      size: k === "zodiac" ? "카드형 (상품 이미지 참고)" : "상품 이미지 참고",
+      caution: k === "accessory"
+        ? "향수·화장품·땀·온천수·바닷물에 닿으면 변색될 수 있어요. 운동·잠잘 때는 빼 두고, 다른 장신구와 따로 보관해 주세요."
+        : "투자·소장용 제품이에요. 맨손으로 만지면 지문·얼룩이 남을 수 있으니 받은 케이스에 넣어 보관해 주세요." + (k === "silver" ? " 은은 공기와 닿으면 색이 변할 수 있어요." : ""),
+      spec: "해당 없음 (보석 없음)",
+    };
+  }
+  function productInfo(p) {
+    const d = infoDefaults(p), o = (p && p.info) || {};
+    const rows = Object.entries(INFO_FIELDS).map(([key, label]) => [label, String(o[key] || "").trim() || d[key]]);
+    return rows.concat([
+      ["보증서 제공 여부", "제공 (모든 상품에 보증서 동봉)"],
+      ["품질보증기준", "공정거래위원회 소비자분쟁해결기준에 따름"],
+      ["A/S 책임자 · 전화번호", "금비 GOLD · 010-5287-8002"],
+    ]);
+  }
+
+  window.YAMOO = { sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
 })();
