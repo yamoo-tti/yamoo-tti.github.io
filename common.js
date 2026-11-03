@@ -102,8 +102,7 @@
   const trackUrl = (courier, no) => "https://search.naver.com/search.naver?query=" + encodeURIComponent(`${courier || ""} ${no}`.trim());
 
   // 상품정보 제공고시 (귀금속·보석·시계류). 관리자가 상품마다 info 칸에 적은 값이 있으면 그 값을 씀
-  const INFO_FIELDS = { material: "소재 · 순도", weight: "중량", maker: "제조자 (수입자)", origin: "제조국", size: "치수", caution: "착용·보관 시 주의사항", spec: "주요 사양 · 등급" };
-  const ASK = "매장 문의 (010-5287-8002)";
+  const INFO_FIELDS = { material: "소재 · 순도", weight: "중량", origin: "제조국", size: "치수", caution: "착용·보관 시 주의사항", spec: "주요 사양 · 등급" };
   function infoDefaults(p) {
     const w = Number(p.weight_g), k = p.kind;
     const don = Math.round(w / DON * 1000) / 1000;
@@ -113,8 +112,7 @@
         : p.karat === "18K" ? "18K 금 (금 함량 75%)" : p.karat === "14K" ? "14K 금 (금 함량 58.5%)" : String(p.karat || ""),
       weight: k === "accessory" ? `약 ${w}g (수작업 특성상 조금 차이가 날 수 있어요)`
         : (w >= 1000 && w % 1000 === 0 ? `${w / 1000}kg` : `${w}g`) + (gold ? ` (${don}돈)` : ""),
-      maker: gold ? "GBK" : ASK,
-      origin: ASK,
+      origin: "한국",
       size: k === "zodiac" ? "카드형 (상품 이미지 참고)" : "상품 이미지 참고",
       caution: k === "accessory"
         ? "향수·화장품·땀·온천수·바닷물에 닿으면 변색될 수 있어요. 운동·잠잘 때는 빼 두고, 다른 장신구와 따로 보관해 주세요."
