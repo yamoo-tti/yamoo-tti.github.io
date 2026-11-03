@@ -231,6 +231,7 @@ function renderBars() {
   const silver = ofKind("silver");
   $("#silverBlock").hidden = !silver.length;
   $("#silverBars").innerHTML = silver.map(barCard).join("");
+  refreshSearch();
 
   const zodiac = ofKind("zodiac");
   $("#zodiacBlock").hidden = !zodiac.length;
@@ -305,6 +306,116 @@ document.addEventListener("click", e => {
   const p = key.startsWith("idx:") ? state.products[+key.slice(4)] : window.SHOP.find(key);
   if (p && window.addToCart) window.addToCart(p);
 });
+
+/* ---------- 상품 검색 ---------- */
+const searchPanel = $("#searchPanel"), searchInput = $("#searchInput"), searchBtn = $("#searchBtn");
+const SEARCH_KEYS = ["1돈", "반돈", "10돈", "100g", "카드형", "용띠", "실버바", "그래뉼"];
+const CAT_KO = { necklace: "목걸이", ring: "반지", bracelet: "팔찌", earring: "귀걸이" };
+const DON_WORD = { 0.5: "반돈", 1: "한돈", 2: "두돈", 3: "세돈", 5: "닷돈", 10: "열돈" };
+const norm = s => String(s || "").toLowerCase().replace(/\s+/g, "");
+
+// 상품마다 무게 표현(10g, 1kg, 1000g, 1돈, 한돈 …)과 검색용 단어를 만들어 둠
+function searchInfo(p) {
+  const w = Number(p.weight_g), d = Math.round(w / DON * 1000) / 1000;
+  const weights = new Set([`${w}g`]);
+  if (w >= 1000 && w % 1000 === 0) weights.add(`${w / 1000}kg`);
+  if (p.kind !== "silver" && p.kind !== "accessory") {
+    if (Number.isInteger(d) || d === 0.5) weights.add(`${d}돈`);
+    if (DON_WORD[d]) weights.add(DON_WORD[d]);
+  }
+  const words = {
+    bar: "골드바 금괴 순금 금 GBK 24K 999.9 보증서",
+    zodiac: "카드형 골드바 십이지 십이지신 띠 순금 금 GBK 24K 선물 돌 백일 보증서",
+    silver: `실버 순은 은 ${p.name.includes("그래뉼") ? "그래뉼 알갱이" : "실버바"} 보증서`,
+    accessory: `악세사리 액세서리 주얼리 쥬얼리 ${CAT_KO[p.category] || ""} ${p.karat || ""}`,
+  }[p.kind] || "";
+  return { weights: [...weights].map(norm), hay: norm(`${p.name} ${p.tag || ""} ${words} ${[...weights].join(" ")}`) };
+}
+
+function searchMatch(p, terms) {
+  const info = searchInfo(p);
+  return terms.every(t => {
+    if (/^\d+(\.\d+)?(g|kg|돈)$/.test(t)) return info.weights.includes(t);
+    if (/^\d+(\.\d+)?$/.test(t)) return info.weights.includes(t + "g") || info.weights.includes(t + "돈");
+    return info.hay.includes(t);
+  });
+}
+
+const KIND_ORDER = { bar: 0, zodiac: 1, silver: 2, accessory: 3 };
+const KIND_KO = { bar: "골드바", zodiac: "카드형 골드바", silver: "실버", accessory: "악세사리" };
+function searchRow(p) {
+  const price = state.domestic ? priceOf(p) : null, w = Number(p.weight_g);
+  const name = p.kind === "zodiac" ? `카드형 골드바 1g · ${p.name}` : p.name;
+  const sub = p.kind === "accessory" ? `${p.karat} · ${w}g` : p.kind === "silver" ? `순은 · ${wLabel(w)}` : `순금 24K · ${wLabel(w)}${donLabel(w) ? " · " + donLabel(w) : ""}`;
+  const off = p.sold_out ? "disabled" : "";
+  return `
+    <article class="sres${p.sold_out ? " is-soldout" : ""}">
+      <img src="${esc(imgSrc(p))}" alt="" loading="lazy">
+      <div class="sres__body">
+        <p class="sres__kind">${KIND_ORDER[p.kind] !== undefined ? KIND_KO[p.kind] : ""}${p.sold_out ? ` · <b>품절</b>` : ""}</p>
+        <h3 class="sres__name">${esc(name)}</h3>
+        <p class="sres__sub">${esc(sub)}</p>
+        <p class="sres__price">${price ? won(price) : "시세 확인 중"}</p>
+      </div>
+      <div class="sres__btns">
+        ${p.kind === "accessory" ? "" : `<button class="sres__cart" ${cartAttr(p)} ${off}>담기</button>`}
+        <button class="sres__buy" ${orderAttr(p)} ${off}>${p.sold_out ? "품절" : p.kind === "accessory" ? "구매 문의" : "구매"}</button>
+      </div>
+    </article>`;
+}
+
+function refreshSearch() {
+  if (!searchPanel || searchPanel.hidden) return;
+  const q = searchInput.value.trim();
+  const terms = q.split(/\s+/).map(norm).filter(Boolean);
+  const list = $("#searchList"), count = $("#searchCount");
+  $("#searchKeys").innerHTML = (q ? "" : `<p>추천 검색어</p>`) + SEARCH_KEYS.map(k => `<button type="button" data-skey="${esc(k)}"${norm(k) === norm(q) ? ' class="is-on"' : ""}>${esc(k)}</button>`).join("");
+  if (!terms.length) {
+    const hot = state.products.filter(p => p.tag && !p.sold_out && p.kind !== "accessory").slice(0, 6);
+    count.textContent = hot.length ? "인기 상품" : "";
+    list.innerHTML = hot.map(searchRow).join("");
+    return;
+  }
+  const hits = state.products.filter(p => searchMatch(p, terms)).sort((a, b) => {
+    const an = norm(a.name).includes(terms[0]) ? 0 : 1, bn = norm(b.name).includes(terms[0]) ? 0 : 1;
+    return (a.sold_out - b.sold_out) || (an - bn) || ((KIND_ORDER[a.kind] ?? 9) - (KIND_ORDER[b.kind] ?? 9)) || (a.weight_g - b.weight_g);
+  });
+  count.innerHTML = `<b>‘${esc(q)}’</b> 검색 결과 ${hits.length}개`;
+  list.innerHTML = hits.map(searchRow).join("") || `
+    <div class="search__empty">
+      <p>찾으시는 상품이 없어요.</p>
+      <span>무게(예: 3.75g, 1돈)나 종류(골드바, 실버)로 검색해 보세요.<br>원하시는 상품은 <a href="tel:010-5287-8002">010-5287-8002</a>로 문의해 주세요.</span>
+    </div>`;
+}
+
+function openSearch() {
+  searchPanel.hidden = false;
+  searchBtn.setAttribute("aria-expanded", "true");
+  document.body.style.overflow = "hidden";
+  refreshSearch();
+  setTimeout(() => searchInput.focus(), 30);
+}
+function closeSearch() {
+  searchPanel.hidden = true;
+  searchBtn.setAttribute("aria-expanded", "false");
+  document.body.style.overflow = "";
+}
+if (searchPanel) {
+  searchBtn.addEventListener("click", openSearch);
+  let st;
+  searchInput.addEventListener("input", () => { clearTimeout(st); st = setTimeout(refreshSearch, 120); });
+  $("#searchForm").addEventListener("submit", e => { e.preventDefault(); refreshSearch(); searchInput.blur(); });
+  searchPanel.addEventListener("click", e => {
+    if (e.target.closest("[data-sclose]")) return closeSearch();
+    const k = e.target.closest("[data-skey]");
+    if (k) { searchInput.value = k.dataset.skey; refreshSearch(); return; }
+    if (e.target.closest("[data-order]")) closeSearch(); // 구매 창으로 넘어감
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && !searchPanel.hidden) closeSearch();
+    else if (e.key === "/" && searchPanel.hidden && !/input|textarea|select/i.test(document.activeElement.tagName) && !document.querySelector(".modal:not([hidden])")) { e.preventDefault(); openSearch(); }
+  });
+}
 
 /* ---------- 히어로 슬라이더 ---------- */
 function initHero() {
