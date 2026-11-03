@@ -193,7 +193,7 @@ begin
   end if;
   if new.receive = 'delivery' and new.tracking_no is not null and new.status in ('ready', 'done')
      and (new.tracking_no is distinct from old.tracking_no or old.status not in ('ready', 'done')) then
-    perform public.send_sms(new.phone, format(E'[금비 GOLD] 발송 완료\n접수번호 %s\n%s %s\n배송 조회: keumbi.netlify.app/my-orders.html\n문의 010-5287-8002',
+    perform public.send_sms(new.phone, format(E'[금비 GOLD] 발송 완료\n접수번호 %s\n%s %s\n배송 조회: keumbi.wnsdn9203.workers.dev/my-orders\n문의 010-5287-8002',
       new.code, coalesce(new.courier, '택배'), new.tracking_no));
   end if;
   if new.receive = 'visit' and new.status = 'ready' and old.status is distinct from 'ready' then
