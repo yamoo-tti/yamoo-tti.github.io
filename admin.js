@@ -1,6 +1,6 @@
 /* 금비 GOLD 관리자 */
 (function () {
-  const { sb, esc, won, fmtDate, fetchLive, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, DEFAULT_SETTINGS } = window.YAMOO;
+  const { sb, esc, won, fmtDate, fetchLive, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, DEFAULT_SETTINGS, INFO_FIELDS, infoDefaults } = window.YAMOO;
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
 
@@ -570,13 +570,22 @@
         <label>순서 <small>작을수록 앞</small><input type="number" name="sort" step="1" value="${p.sort}"></label>
       </div>
       <label class="inline"><input type="checkbox" name="visible" ${p.visible ? "checked" : ""}> 홈페이지에 노출</label>
-      <label class="inline"><input type="checkbox" name="sold_out" ${p.sold_out ? "checked" : ""}> 품절 (구매 버튼 막기)</label>`;
+      <label class="inline"><input type="checkbox" name="sold_out" ${p.sold_out ? "checked" : ""}> 품절 (구매 버튼 막기)</label>
+      <fieldset class="box pinfo-edit">
+        <legend>상품정보 제공고시</legend>
+        <p class="muted">비워 두면 흐린 글씨(기본값)가 손님에게 보여요. 보증서·품질보증기준·A/S는 모든 상품 공통이에요.</p>
+        ${Object.entries(INFO_FIELDS).map(([k, label]) => k === "caution"
+          ? `<label>${label}<textarea name="info_${k}" rows="2" maxlength="300">${esc((p.info || {})[k] || "")}</textarea></label>`
+          : `<label>${label}<input name="info_${k}" maxlength="120" value="${esc((p.info || {})[k] || "")}"></label>`).join("")}
+      </fieldset>`;
     openEdit(isNew ? "상품 추가" : "상품 수정", html, {
       after: f => {
         const sync = async () => {
           const k = f.kind.value;
           f.querySelectorAll("[data-for]").forEach(el => { el.hidden = !el.dataset.for.split(" ").includes(k); });
           $("#pimgPreview").src = imgUrl(f.img.value.trim());
+          const dflt = infoDefaults({ kind: k, weight_g: Number(f.weight_g.value) || 0, karat: f.karat.value });
+          Object.keys(INFO_FIELDS).forEach(key => { f["info_" + key].placeholder = dflt[key]; });
           try {
             const d = await domestic();
             const w = Number(f.weight_g.value);
@@ -594,6 +603,7 @@
           labor: f.kind.value === "accessory" ? Number(f.labor.value) || 0 : 0,
           img: f.img.value.trim() || null, tag: f.tag.value.trim() || null, sort: parseInt(f.sort.value, 10) || 0,
           visible: f.visible.checked, sold_out: f.sold_out.checked,
+          info: Object.fromEntries(Object.keys(INFO_FIELDS).map(k => [k, f["info_" + k].value.trim()]).filter(([, v]) => v)),
         };
         must(isNew ? await sb.from("products").insert(row) : await sb.from("products").update(row).eq("id", p.id));
         toast(isNew ? "상품을 추가했습니다" : "저장했습니다 · 홈페이지에 바로 반영돼요");
