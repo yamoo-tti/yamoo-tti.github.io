@@ -69,11 +69,19 @@
 
   // 상품 판매가 — 골드바·카드형: 순금 살 때(g당) × 중량 × (1+프리미엄%)
   //               실버바·은 그래뉼: 은 살 때(g당) × 중량 × (1+프리미엄%)
-  //               악세사리: 해당 함량 팔 때(g당) × 1.3 × 중량 + 공임
+  //               악세사리·순금선물: 순금 24K = 순금 살 때(g당) × 중량 + 공임
+  //                                  실버 925 = 은 살 때(g당) × 중량 + 공임
+  //                                  18K·14K = 해당 함량 팔 때(g당) × 1.3 × 중량 + 공임
+  //  ※ supabase quote_price 와 같은 식 유지
   function productPrice(p, d) {
     const g = key => d.items.find(i => i.key === key);
     if (p.kind === "silver") return r100(g("ag").buy / DON * Number(p.weight_g) * (1 + Number(p.premium_pct || 0) / 100));
-    if (p.kind === "accessory") {
+    if (p.kind === "accessory" || p.kind === "gift") {
+      const k = String(p.karat).toUpperCase();
+      if (k === "24K" || k === "SV") {
+        const rate = g(k === "SV" ? "ag" : "24k").buy / DON;
+        return Math.round((rate * Number(p.weight_g) + Number(p.labor || 0)) / 1000) * 1000;
+      }
       const rate = g(String(p.karat).toLowerCase()).sell / DON * 1.3;
       return Math.round((rate * Number(p.weight_g) + Number(p.labor || 0)) / 1000) * 1000;
     }
@@ -106,15 +114,15 @@
   function infoDefaults(p) {
     const w = Number(p.weight_g), k = p.kind;
     const don = Math.round(w / DON * 1000) / 1000;
-    const gold = k === "bar" || k === "zodiac";
+    const gold = k === "bar" || k === "zodiac" || k === "gift";
     return {
-      material: k === "silver" ? "순은 (Ag 999.9)" : gold ? "순금 24K (Au 999.9)"
+      material: k === "silver" ? "순은 (Ag 999.9)" : gold || p.karat === "24K" ? "순금 24K (Au 999.9)" : p.karat === "SV" ? "실버 925 (은 함량 92.5%)"
         : p.karat === "18K" ? "18K 금 (금 함량 75%)" : p.karat === "14K" ? "14K 금 (금 함량 58.5%)" : String(p.karat || ""),
       weight: k === "accessory" ? `약 ${w}g (수작업 특성상 조금 차이가 날 수 있어요)`
         : (w >= 1000 && w % 1000 === 0 ? `${w / 1000}kg` : `${w}g`) + (gold ? ` (${don}돈)` : ""),
       origin: "한국",
       size: k === "zodiac" ? "카드형 (상품 이미지 참고)" : "상품 이미지 참고",
-      caution: k === "accessory"
+      caution: k === "accessory" || (k === "gift" && ["dol"].includes(p.category))
         ? "향수·화장품·땀·온천수·바닷물에 닿으면 변색될 수 있어요. 운동·잠잘 때는 빼 두고, 다른 장신구와 따로 보관해 주세요."
         : "투자·소장용 제품이에요. 맨손으로 만지면 지문·얼룩이 남을 수 있으니 받은 케이스에 넣어 보관해 주세요." + (k === "silver" ? " 은은 공기와 닿으면 색이 변할 수 있어요." : ""),
       spec: "해당 없음 (보석 없음)",
