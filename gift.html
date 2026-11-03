@@ -22,69 +22,11 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
-  <!-- 상품 그림 (카드·상세 공용) -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <defs>
-      <linearGradient id="gG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e2a6"/><stop offset=".45" stop-color="#d4ad57"/><stop offset="1" stop-color="#94701f"/></linearGradient>
-      <linearGradient id="gG2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#8a6719"/><stop offset=".5" stop-color="#e3c375"/><stop offset="1" stop-color="#b38a33"/></linearGradient>
-      <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a3a22"/><stop offset="1" stop-color="#3a2414"/></linearGradient>
-      <symbol id="art-ring" viewBox="0 0 200 200">
-        <ellipse cx="100" cy="168" rx="58" ry="8" fill="#000" opacity=".25"/>
-        <circle cx="100" cy="108" r="52" fill="none" stroke="url(#gG)" stroke-width="16"/>
-        <circle cx="100" cy="108" r="44" fill="none" stroke="#7a5a17" stroke-width="1.5" opacity=".6"/>
-        <rect x="78" y="40" width="44" height="26" rx="5" fill="url(#gG2)" stroke="#f6e2a6" stroke-width="1"/>
-        <text x="100" y="59" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="15" font-weight="600" fill="#5a4210">福</text>
-      </symbol>
-      <symbol id="art-necklace" viewBox="0 0 200 200">
-        <path d="M40 30 C40 110, 80 128, 100 128 C120 128, 160 110, 160 30" fill="none" stroke="url(#gG)" stroke-width="3" stroke-dasharray="5 3"/>
-        <circle cx="100" cy="131" r="4" fill="none" stroke="url(#gG)" stroke-width="2.5"/>
-        <circle cx="100" cy="160" r="26" fill="url(#gG)"/>
-        <circle cx="100" cy="160" r="20" fill="none" stroke="#7a5a17" stroke-width="1.2" opacity=".6"/>
-        <text x="100" y="166" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="16" font-weight="600" fill="#5a4210">壽</text>
-      </symbol>
-      <symbol id="art-bracelet" viewBox="0 0 200 200">
-        <ellipse cx="100" cy="164" rx="62" ry="8" fill="#000" opacity=".25"/>
-        <ellipse cx="100" cy="104" rx="62" ry="40" fill="none" stroke="url(#gG)" stroke-width="8" stroke-dasharray="10 3"/>
-        <ellipse cx="100" cy="104" rx="62" ry="40" fill="none" stroke="#7a5a17" stroke-width="1" opacity=".35"/>
-        <rect x="86" y="132" width="28" height="16" rx="4" fill="url(#gG2)" stroke="#f6e2a6" stroke-width="1"/>
-        <text x="100" y="144" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="10" font-weight="600" fill="#5a4210">福</text>
-      </symbol>
-      <symbol id="art-key" viewBox="0 0 200 200">
-        <g transform="rotate(-35 100 100)">
-          <circle cx="100" cy="52" r="30" fill="url(#gG)"/>
-          <circle cx="100" cy="52" r="13" fill="#f3efe7"/>
-          <circle cx="100" cy="52" r="24" fill="none" stroke="#7a5a17" stroke-width="1.2" opacity=".6"/>
-          <rect x="93" y="80" width="14" height="92" rx="3" fill="url(#gG2)"/>
-          <rect x="107" y="140" width="20" height="10" rx="2" fill="url(#gG2)"/>
-          <rect x="107" y="157" width="14" height="10" rx="2" fill="url(#gG2)"/>
-        </g>
-      </symbol>
-      <symbol id="art-bar" viewBox="0 0 200 200">
-        <ellipse cx="100" cy="160" rx="66" ry="8" fill="#000" opacity=".25"/>
-        <path d="M44 150 L58 54 H142 L156 150 Z" fill="url(#gG)"/>
-        <path d="M58 54 H142 L136 64 H64 Z" fill="#f8e7b4" opacity=".7"/>
-        <rect x="68" y="72" width="64" height="66" rx="3" fill="none" stroke="#7a5a17" stroke-width="1.2" opacity=".7"/>
-        <text x="100" y="94" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="11" letter-spacing="2" fill="#5a4210">FINE GOLD</text>
-        <text x="100" y="110" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="13" font-weight="600" fill="#5a4210">999.9</text>
-        <text x="100" y="128" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="10" fill="#5a4210">축 승진</text>
-      </symbol>
-      <symbol id="art-plaque" viewBox="0 0 200 200">
-        <ellipse cx="100" cy="174" rx="60" ry="7" fill="#000" opacity=".25"/>
-        <rect x="46" y="26" width="108" height="144" rx="4" fill="url(#wood)" stroke="#2a190d" stroke-width="2"/>
-        <rect x="56" y="36" width="88" height="124" rx="2" fill="#efe6d2"/>
-        <circle cx="100" cy="66" r="18" fill="url(#gG)"/>
-        <text x="100" y="71" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="13" font-weight="600" fill="#5a4210">感</text>
-        <text x="100" y="100" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="12" font-weight="600" fill="#3a2a10">감 사 패</text>
-        <rect x="68" y="110" width="64" height="2" fill="#c9b994"/><rect x="68" y="118" width="56" height="2" fill="#c9b994"/><rect x="68" y="126" width="60" height="2" fill="#c9b994"/>
-        <rect x="80" y="140" width="40" height="8" rx="1" fill="url(#gG2)"/>
-      </symbol>
-    </defs>
-  </svg>
 
   <header class="legal-top">
     <div class="wrap">
       <a class="logo-text" href="./"><svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="sealG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ecd08a"/><stop offset=".5" stop-color="#c9a14a"/><stop offset="1" stop-color="#9c7629"/></linearGradient></defs><rect width="40" height="40" rx="7" fill="url(#sealG)"/><rect x="3" y="3" width="34" height="34" rx="5" fill="none" stroke="#fff3cf" stroke-width=".9" opacity=".8"/><path d="M13.52 17.56L21.73 17.56L23.28 15.61C23.28 15.61 23.44 15.74 23.75 15.99C24.06 16.24 24.44 16.54 24.88 16.88C25.32 17.23 25.72 17.56 26.09 17.87C26.02 18.15 25.78 18.29 25.39 18.29L13.73 18.29ZM9.5 22.15L25.88 22.15L27.54 20C27.54 20 27.65 20.08 27.85 20.23C28.06 20.39 28.32 20.6 28.64 20.86C28.97 21.12 29.3 21.39 29.64 21.67C29.99 21.96 30.3 22.22 30.58 22.47C30.51 22.74 30.28 22.88 29.88 22.88L9.71 22.88ZM8.2 31.03L26.68 31.03L28.5 28.7C28.5 28.7 28.61 28.78 28.83 28.96C29.04 29.13 29.32 29.35 29.67 29.62C30.02 29.89 30.38 30.18 30.76 30.49C31.14 30.8 31.49 31.09 31.8 31.37C31.73 31.65 31.48 31.79 31.05 31.79L8.43 31.79ZM18.07 17.74L21.23 17.74L21.23 31.34L18.07 31.34ZM12.3 23.87C13.44 24.34 14.32 24.85 14.94 25.41C15.55 25.98 15.96 26.53 16.17 27.09C16.38 27.64 16.43 28.14 16.31 28.59C16.2 29.04 15.98 29.4 15.66 29.66C15.34 29.92 14.98 30.03 14.56 29.99C14.15 29.96 13.72 29.73 13.29 29.29C13.31 28.69 13.25 28.07 13.13 27.45C13.01 26.83 12.86 26.22 12.67 25.63C12.48 25.04 12.27 24.5 12.04 24M24.5 23.71L28.55 25.19C28.48 25.35 28.36 25.47 28.19 25.57C28.02 25.66 27.79 25.7 27.52 25.69C26.82 26.52 26.07 27.33 25.24 28.13C24.42 28.92 23.64 29.61 22.89 30.18L22.56 29.97C22.76 29.47 22.98 28.87 23.19 28.16C23.41 27.46 23.63 26.73 23.87 25.96C24.1 25.19 24.31 24.44 24.5 23.71M20.95 10.37C20.31 11.36 19.5 12.35 18.52 13.34C17.54 14.34 16.46 15.29 15.26 16.21C14.07 17.13 12.82 17.96 11.52 18.7C10.23 19.45 8.94 20.08 7.66 20.6L7.5 20.31C8.59 19.6 9.69 18.75 10.81 17.75C11.93 16.76 12.97 15.71 13.94 14.6C14.91 13.49 15.74 12.39 16.43 11.29C17.12 10.19 17.62 9.17 17.91 8.21L22.66 9.46C22.63 9.63 22.51 9.76 22.31 9.85C22.11 9.94 21.8 10 21.36 10.03C21.97 10.83 22.7 11.55 23.56 12.19C24.41 12.83 25.34 13.4 26.35 13.9C27.35 14.4 28.38 14.84 29.44 15.21C30.49 15.58 31.51 15.91 32.5 16.18L32.47 16.6C32.02 16.72 31.62 16.94 31.27 17.26C30.91 17.58 30.62 17.95 30.38 18.36C30.15 18.78 30 19.2 29.93 19.61C28.65 18.94 27.42 18.14 26.24 17.24C25.07 16.33 24.02 15.3 23.12 14.16C22.21 13.02 21.48 11.75 20.95 10.37" fill="#16140f"/></svg>금비<em>GOLD</em></a>
-      <nav><a href="./#goldbar">골드바</a><a href="gift.html" aria-current="page">순금선물</a><a href="./">홈으로</a></nav>
+      <nav><a href="./#goldbar">골드바</a><a href="./#accessory">악세사리</a><a href="gift.html" aria-current="page">순금선물</a><a href="./">홈으로</a><button class="icon-btn gift-cart" aria-label="장바구니" id="cartBtn"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="badge" id="cartCount">0</span></button></nav>
     </div>
   </header>
 
@@ -92,7 +34,7 @@
     <div class="wrap">
       <p class="crumb"><a href="./">홈</a> <span>›</span> 순금선물</p>
       <h1 class="gift-title">순금선물</h1>
-      <p class="gift-sub">돌반지 · 돌목걸이 · 돌팔찌 · 행운의 열쇠 · 기념 골드바 · 감사패. 순도 99.99% 순금에 원하는 문구를 새겨 고급 케이스에 담아 드려요.</p>
+      <p class="gift-sub">순금 기념품 · 돌반지 · 행운의 열쇠 · 기념 골드바 · 감사패. 순도 99.99% 순금 기념품과 선물. 오늘 시세 그대로, 고급 케이스에 담아 드려요.</p>
 
       <nav class="gift-cats" id="giftCats" role="tablist" aria-label="순금선물 분류"></nav>
 
@@ -110,24 +52,174 @@
       <section class="gift-guide" aria-labelledby="guideTitle">
         <h2 id="guideTitle">주문 안내</h2>
         <ol>
-          <li><b>01 상담</b><span>전화·문자로 상품과 각인 문구를 알려 주세요.</span></li>
-          <li><b>02 금액 확정</b><span>주문하는 날 시세로 금액을 확정해 안내해 드려요.</span></li>
+          <li><b>01 주문</b><span>바로 구매 또는 장바구니로 주문해 주세요. 각인 문구는 요청 사항에 적어 주세요.</span></li>
+          <li><b>02 금액 확정</b><span>주문하는 순간의 시세로 금액이 확정되고 입금 계좌가 안내돼요.</span></li>
           <li><b>03 입금 · 제작</b><span>입금이 확인되면 각인·포장을 시작해요.</span></li>
           <li><b>04 수령</b><span>종로 매장 방문 또는 보험 등기 택배로 받으세요.</span></li>
         </ol>
-        <p class="gift-note">* 판매가는 금 시세에 따라 매일 바뀌어요. 모든 상품에 보증서가 함께 나가요. 문의 010-5287-8002 (평일 10:00–19:00)</p>
+        <p class="gift-note">* 판매가는 실시간 금 시세에 따라 바뀌어요. 모든 상품에 보증서가 함께 나가요. 문의 010-5287-8002 (평일 10:00–19:00)</p>
       </section>
     </div>
   </main>
 
-  <!-- 상품 상세 · 상담 -->
-  <div class="modal" id="giftModal" hidden>
+
+  <!-- 구매 문의 -->
+  <div class="modal" id="orderModal" hidden>
     <div class="modal__backdrop" data-close></div>
-    <div class="modal__box modal__box--wide gm" role="dialog" aria-modal="true" aria-labelledby="giftModalTitle">
+    <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="orderTitle">
       <button class="modal__x" data-close aria-label="닫기">×</button>
-      <div class="gm__body" id="giftModalBody"></div>
+      <form class="auth-form" id="orderForm">
+        <h2 class="modal__title" id="orderTitle">구매 신청</h2>
+        <div class="order-item" id="orderItem"></div>
+        <details class="pinfo" id="orderInfo"><summary>상품정보 제공고시</summary><div id="orderInfoBody"></div></details>
+        <label>수량
+          <div class="qty"><button type="button" data-qty="-1" aria-label="수량 빼기">−</button><input type="number" name="qty" value="1" min="1" max="99" inputmode="numeric"><button type="button" data-qty="1" aria-label="수량 더하기">+</button></div>
+        </label>
+        <p class="order-total">현재 시세 금액 <strong id="orderTotal">-</strong></p>
+        <label>이름<input name="name" maxlength="40" autocomplete="name" required></label>
+        <label>휴대폰<input type="tel" name="phone" maxlength="20" placeholder="010-0000-0000" autocomplete="tel" required></label>
+        <fieldset class="seg-field"><legend>수령 방법</legend>
+          <label><input type="radio" name="receive" value="visit" checked> 매장 방문 수령</label>
+          <label><input type="radio" name="receive" value="delivery"> 안심 택배</label>
+        </fieldset>
+        <label data-when="delivery" hidden>배송 주소<input name="address" maxlength="200" autocomplete="street-address"></label>
+        <label>요청 사항 <small>선택</small><textarea name="note" rows="2" maxlength="500"></textarea></label>
+        <fieldset class="rc-field"><legend>현금영수증 · 세금계산서</legend>
+          <select name="rc_type" aria-label="발행 종류">
+            <option value="personal">현금영수증 · 소득공제용 (개인)</option>
+            <option value="business">현금영수증 · 지출증빙용 (사업자)</option>
+            <option value="invoice">세금계산서 (사업자)</option>
+            <option value="none">신청 안 함</option>
+          </select>
+          <label data-rc="personal">휴대폰 번호 <small>비워 두면 주문자 번호로 발행</small><input name="rc_phone" inputmode="numeric" maxlength="20" placeholder="010-0000-0000"></label>
+          <label data-rc="business invoice">사업자등록번호<input name="rc_biz" inputmode="numeric" maxlength="12" placeholder="000-00-00000"></label>
+          <div class="row2" data-rc="invoice"><label>상호<input name="rc_company" maxlength="50"></label><label>대표자<input name="rc_ceo" maxlength="30"></label></div>
+          <label data-rc="invoice">계산서 받을 이메일<input type="email" name="rc_email" maxlength="100"></label>
+          <p class="rc-note" data-rc="none">10만원 이상 현금 거래는 법에 따라 국세청 지정번호로 현금영수증이 자동 발행돼요.</p>
+          <p class="rc-note" data-rc="personal business invoice">입금이 확인되면 발행해 드려요.</p>
+        </fieldset>
+        <label class="check"><input type="checkbox" required> <span>[필수] 금·은 시세 상품은 <b>최종 금액 확정·입금 후 단순 변심에 의한 취소·반품이 불가</b>함을 확인했습니다 <a href="terms.html#a11" target="_blank" class="u">자세히</a></span></label>
+        <label class="check"><input type="checkbox" required> <span>[필수] <a href="privacy.html" target="_blank" class="u">개인정보 수집·이용</a>에 동의합니다</span></label>
+        <p class="consent-sum">수집 항목: 이름·연락처(택배 시 주소, 영수증·계산서 신청 시 휴대폰 또는 사업자번호·상호·대표자·이메일) · 목적: 주문 안내·상품 인도·현금영수증 및 세금계산서 발행 · 보관: 거래 시 5년(전자상거래법·국세기본법), 미거래 시 1년 · 동의하지 않으면 온라인 신청은 어렵고 전화(010-5287-8002)로 주문할 수 있어요</p>
+        <p class="form-note">신청하는 순간의 시세로 <b>금액이 확정</b>되고, 입금 계좌가 화면과 문자로 안내돼요. <b><span id="payMinutes">30</span>분 안에 입금</b>되지 않으면 주문은 자동 취소돼요. 택배는 보험 등기로 보내며 택배비 <span id="deliveryFee">3,000원</span>이 더해져요.</p>
+        <button class="btn btn--dark" type="submit">구매 신청하기</button>
+      </form>
+      <div class="done" id="orderDone" hidden></div>
     </div>
   </div>
+
+  <!-- 장바구니 -->
+  <div class="modal" id="cartModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__box modal__box--wide" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <h2 class="modal__title" id="cartTitle">장바구니</h2>
+      <div id="cartList" class="cart-list"></div>
+      <form class="auth-form" id="cartForm">
+        <div class="cart-sum">
+          <p><span>상품 합계</span><b id="cartGoods">-</b></p>
+          <p data-when="delivery" hidden><span>택배비</span><b id="cartFee">-</b></p>
+          <p class="cart-sum__total"><span>현재 시세 총액</span><strong id="cartTotal">-</strong></p>
+        </div>
+        <label>이름<input name="name" maxlength="40" autocomplete="name" required></label>
+        <label>휴대폰<input type="tel" name="phone" maxlength="20" placeholder="010-0000-0000" autocomplete="tel" required></label>
+        <fieldset class="seg-field"><legend>수령 방법</legend>
+          <label><input type="radio" name="receive" value="visit" checked> 매장 방문 수령</label>
+          <label><input type="radio" name="receive" value="delivery"> 안심 택배</label>
+        </fieldset>
+        <label data-when="delivery" hidden>배송 주소<input name="address" maxlength="200" autocomplete="street-address"></label>
+        <label>요청 사항 <small>선택</small><textarea name="note" rows="2" maxlength="500"></textarea></label>
+        <fieldset class="rc-field"><legend>현금영수증 · 세금계산서</legend>
+          <select name="rc_type" aria-label="발행 종류">
+            <option value="personal">현금영수증 · 소득공제용 (개인)</option>
+            <option value="business">현금영수증 · 지출증빙용 (사업자)</option>
+            <option value="invoice">세금계산서 (사업자)</option>
+            <option value="none">신청 안 함</option>
+          </select>
+          <label data-rc="personal">휴대폰 번호 <small>비워 두면 주문자 번호로 발행</small><input name="rc_phone" inputmode="numeric" maxlength="20" placeholder="010-0000-0000"></label>
+          <label data-rc="business invoice">사업자등록번호<input name="rc_biz" inputmode="numeric" maxlength="12" placeholder="000-00-00000"></label>
+          <div class="row2" data-rc="invoice"><label>상호<input name="rc_company" maxlength="50"></label><label>대표자<input name="rc_ceo" maxlength="30"></label></div>
+          <label data-rc="invoice">계산서 받을 이메일<input type="email" name="rc_email" maxlength="100"></label>
+          <p class="rc-note" data-rc="none">10만원 이상 현금 거래는 법에 따라 국세청 지정번호로 현금영수증이 자동 발행돼요.</p>
+          <p class="rc-note" data-rc="personal business invoice">입금이 확인되면 발행해 드려요.</p>
+        </fieldset>
+        <label class="check"><input type="checkbox" required> <span>[필수] 금·은 시세 상품은 <b>최종 금액 확정·입금 후 단순 변심에 의한 취소·반품이 불가</b>함을 확인했습니다 <a href="terms.html#a11" target="_blank" class="u">자세히</a></span></label>
+        <label class="check"><input type="checkbox" required> <span>[필수] <a href="privacy.html" target="_blank" class="u">개인정보 수집·이용</a>에 동의합니다</span></label>
+        <p class="consent-sum">수집 항목: 이름·연락처(택배 시 주소, 영수증·계산서 신청 시 휴대폰 또는 사업자번호·상호·대표자·이메일) · 목적: 주문 안내·상품 인도·현금영수증 및 세금계산서 발행 · 보관: 거래 시 5년(전자상거래법·국세기본법), 미거래 시 1년 · 동의하지 않으면 온라인 신청은 어렵고 전화(010-5287-8002)로 주문할 수 있어요</p>
+        <p class="form-note">주문하는 순간의 시세로 <b>금액이 확정</b>되고, 입금 계좌가 화면과 문자로 안내돼요. 기한 안에 입금되지 않으면 자동 취소돼요.</p>
+        <button class="btn btn--dark" type="submit" id="cartSubmit">주문하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 금 매입 신청 -->
+  <div class="modal" id="sellModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="sellTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <form class="auth-form" id="sellForm">
+        <h2 class="modal__title" id="sellTitle">금 매입 신청</h2>
+        <label>품목<input name="items" maxlength="100" placeholder="예) 18K 목걸이 1개, 14K 반지 2개" required></label>
+        <div class="row2">
+          <label>함량<select name="karat"><option value="unknown">잘 모름</option><option value="24K">순금 24K</option><option value="18K">18K</option><option value="14K">14K</option></select></label>
+          <label>대략 중량(g) <small>선택</small><input type="number" name="weight" min="0" step="0.01" inputmode="decimal"></label>
+        </div>
+        <fieldset class="seg-field"><legend>접수 방법</legend>
+          <label><input type="radio" name="method" value="visit" checked> 매장 방문</label>
+          <label><input type="radio" name="method" value="delivery"> 안심 택배</label>
+        </fieldset>
+        <label data-when="visit">방문 희망일 <small>선택</small><input type="date" name="visit_date"></label>
+        <label>이름<input name="name" maxlength="40" autocomplete="name" required></label>
+        <label>휴대폰<input type="tel" name="phone" maxlength="20" placeholder="010-0000-0000" autocomplete="tel" required></label>
+        <label>메모 <small>선택</small><textarea name="note" rows="2" maxlength="500"></textarea></label>
+        <label class="check"><input type="checkbox" required> <span>[필수] <a href="privacy.html" target="_blank" class="u">개인정보 수집·이용</a>에 동의합니다</span></label>
+        <p class="consent-sum">수집 항목: 이름·연락처·품목 정보 · 목적: 매입 상담·감정 결과 안내·대금 지급 · 보관: 거래 시 5년, 미거래 시 1년 · 동의하지 않으면 온라인 신청은 어렵고 전화로 상담할 수 있어요</p>
+        <p class="form-note">최종 매입가는 매장에서 순도·중량을 측정한 뒤 확정됩니다.</p>
+        <button class="btn btn--dark" type="submit">매입 신청하기</button>
+      </form>
+      <div class="done" id="sellDone" hidden></div>
+    </div>
+  </div>
+
+  <!-- 접수 조회 -->
+  <div class="modal" id="lookupModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="lookupTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <form class="auth-form" id="lookupForm">
+        <h2 class="modal__title" id="lookupTitle">접수 조회</h2>
+        <p class="form-note">구매·매입 신청 후 받은 접수번호와 연락처를 입력하세요.</p>
+        <label>접수번호<input name="code" maxlength="20" placeholder="예) O261030-7A2F9" autocapitalize="characters" required></label>
+        <label>휴대폰<input type="tel" name="phone" maxlength="20" autocomplete="tel" required></label>
+        <button class="btn btn--dark" type="submit">조회하기</button>
+      </form>
+      <div class="lookup-result" id="lookupResult" hidden></div>
+    </div>
+  </div>
+
+  <!-- 공지 보기 -->
+  <div class="modal" id="noticeModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <article class="modal__box modal__box--wide" role="dialog" aria-modal="true" aria-labelledby="noticeTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <p class="notice__meta" id="noticeMeta"></p>
+      <h2 class="modal__title" id="noticeTitle"></h2>
+      <div class="notice__body" id="noticeBody"></div>
+    </article>
+  </div>
+
+  <!-- 상품정보 제공고시 -->
+  <div class="modal" id="infoModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <article class="modal__box modal__box--wide" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <p class="notice__meta">상품정보 제공고시</p>
+      <h2 class="modal__title" id="infoTitle"></h2>
+      <div id="infoBody"></div>
+    </article>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <footer class="legal-foot">
     <div class="wrap">상호 금비 · 대표 김신애 · 사업자등록번호 101-12-25419 · 통신판매업신고 제2021-서울종로-1219호<br>서울특별시 종로구 율곡로10길 105 디아망 빌딩 2층 · 고객센터 010-5287-8002 · 평일 10:00–19:00</div>
@@ -137,5 +229,6 @@
   <script src="config.js"></script>
   <script src="common.js?v=20261103i"></script>
   <script src="gift.js?v=20261103i"></script>
+  <script src="shop.js?v=20261103i"></script>
 </body>
 </html>
