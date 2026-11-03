@@ -1,15 +1,16 @@
 /* 주문내역: 회원은 본인 주문·매입 목록, 비회원은 접수번호 + 휴대폰으로 조회 */
 (function () {
-  const { sb, esc, won, fmtDate, ORDER_STATUS, SELL_STATUS } = window.YAMOO;
+  const { sb, esc, won, fmtDate, ORDER_STATUS, SELL_STATUS, trackUrl } = window.YAMOO;
   const $ = s => document.querySelector(s);
   const PHONE = "010-5287-8002";
   const p2 = n => String(n).padStart(2, "0");
   const hm = d => { const x = new Date(d); return `${p2(x.getMonth() + 1)}/${p2(x.getDate())} ${p2(x.getHours())}:${p2(x.getMinutes())}`; };
   const SHORT = { ...ORDER_STATUS, confirmed: "입금 대기" };
+  const DELIVERY_SHORT = { ...SHORT, ready: "발송 완료" };
 
   function card(r) {
     const isO = r.kind === "order";
-    const st = (isO ? SHORT : SELL_STATUS)[r.status] || r.status;
+    const st = (isO ? (r.method === "delivery" ? DELIVERY_SHORT : SHORT) : SELL_STATUS)[r.status] || r.status;
     const waiting = isO && r.status === "confirmed" && r.deadline && new Date(r.deadline) > new Date();
     const cls = r.status === "canceled" ? "is-off" : r.status === "done" ? "is-done" : waiting ? "is-wait" : "";
     return `
@@ -25,6 +26,7 @@
           <span class="mo__amt">${r.amount ? won(r.amount) : isO ? "금액 확정 전" : "감정 전"}</span>
         </div>
         ${waiting ? `<div class="mo__wait"><span><b data-deadline="${esc(r.deadline)}">--:--</b> 안에 입금해 주세요 (${hm(r.deadline)}까지)</span><a class="btn btn--dark" href="order-done.html?code=${encodeURIComponent(r.code)}">입금 정보 보기</a></div>` : ""}
+        ${isO && r.tracking_no ? `<div class="mo__ship"><span>${esc(r.courier || "택배")} <b>${esc(r.tracking_no)}</b></span><a class="btn btn--line" href="${esc(trackUrl(r.courier, r.tracking_no))}" target="_blank" rel="noopener">배송 조회</a></div>` : ""}
         ${isO && r.status === "canceled" ? `<p class="mo__note">입금 기한이 지났거나 취소된 주문이에요.</p>` : ""}
       </article>`;
   }
@@ -62,6 +64,7 @@
     const { data, error } = await sb.rpc("lookup_request", { p_code: code, p_phone: f.phone.value });
     btn.disabled = false;
     const box = $("#found");
+    if (error && /[가-힣]/.test(error.message || "")) { box.innerHTML = `<p class="mo__empty">${esc(error.message)}</p>`; return; }
     if (error || !data || !data.length) { box.innerHTML = `<p class="mo__empty">일치하는 접수가 없어요. 접수번호와 휴대폰 번호를 확인해 주세요.</p>`; return; }
     box.innerHTML = data.map(r => card({ ...r, code })).join("");
   });
