@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /order-done.html
+Disallow: /my-orders.html
+Disallow: /test/
+
+Sitemap: https://keumbi.netlify.app/sitemap.xml
