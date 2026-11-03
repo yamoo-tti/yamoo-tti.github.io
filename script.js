@@ -265,7 +265,7 @@ function renderProducts(filter = "all") {
         <div class="product__img">
           <img src="${esc(imgSrc(p))}" alt="${esc(p.name)}" loading="lazy">
           ${p.sold_out ? `<span class="product__tag product__tag--out">품절</span>` : p.tag ? `<span class="product__tag">${esc(p.tag)}</span>` : ""}
-          ${p.sold_out ? "" : `<button class="add-cart" ${orderAttr(p)}>구매 문의</button>`}
+          ${p.sold_out ? "" : `<div class="add-cart"><button class="p-cart" ${cartAttr(p)}>장바구니</button><button class="p-buy" ${orderAttr(p)}>바로 구매</button></div>`}
         </div>
         <div class="product__info">
           <p class="product__spec"><span class="karat">${esc(p.karat)}</span><span>·</span><span>${Number(p.weight_g)}g</span></p>
@@ -370,8 +370,8 @@ function searchRow(p) {
         <p class="sres__price">${price ? won(price) : "시세 확인 중"}</p>
       </div>
       <div class="sres__btns">
-        ${p.kind === "accessory" ? "" : `<button class="sres__cart" ${cartAttr(p)} ${off}>담기</button>`}
-        <button class="sres__buy" ${orderAttr(p)} ${off}>${p.sold_out ? "품절" : p.kind === "accessory" ? "구매 문의" : "구매"}</button>
+        <button class="sres__cart" ${cartAttr(p)} ${off}>담기</button>
+        <button class="sres__buy" ${orderAttr(p)} ${off}>${p.sold_out ? "품절" : "구매"}</button>
       </div>
     </article>`;
 }
