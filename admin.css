@@ -237,3 +237,21 @@ button.kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -12px rgb
 
 .items-list { margin: 0; padding-left: 1.1em; list-style: disc; }
 .items-list li { margin: 2px 0; }
+
+/* 영수증 · 송장 · 매출 정리 */
+.st-rc { background: #fdeee6; color: var(--warn); margin-top: 4px; }
+.kpi--warn { border-color: #f6cdb7; background: #fff7f2; }
+.kpi--warn strong { color: var(--warn); }
+button.kpi { text-align: left; cursor: pointer; font: inherit; }
+fieldset.box { border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px 14px; margin: 0; display: grid; gap: 10px; min-width: 0; }
+fieldset.box legend { font-size: 13px; font-weight: 700; padding: 0 6px; }
+fieldset.box .muted { font-size: 12px; line-height: 1.6; }
+fieldset.box .muted a { color: var(--blue); }
+fieldset.box .row2 { align-items: end; }
+.meta--tight { padding: 10px 12px; grid-template-columns: 64px 1fr; }
+.meta .link { margin-left: 6px; }
+.head-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.range-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.range-btns .btn { height: 36px; padding: 0 12px; font-size: 13px; }
+#salesForm input[type=date] { width: auto; }
+#salesForm { align-items: center; }
