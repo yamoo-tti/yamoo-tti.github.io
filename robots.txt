@@ -5,4 +5,4 @@ Disallow: /order-done.html
 Disallow: /my-orders.html
 Disallow: /test/
 
-Sitemap: https://keumbi.netlify.app/sitemap.xml
+Sitemap: https://keumbi.wnsdn9203.workers.dev/sitemap.xml
