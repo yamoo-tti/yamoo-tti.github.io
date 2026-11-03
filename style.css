@@ -701,3 +701,7 @@ ul, ol { padding: 0; list-style: none; }
 .pinfo__tbl td { color: var(--ink); word-break: keep-all; overflow-wrap: anywhere; }
 #infoBody .pinfo__tbl { border: 1px solid var(--line); }
 @media (max-width: 640px) { .zodiac__price .info-link { margin-left: 0; } }
+
+/* 악세사리 더보기 */
+.products__more { margin-top: 36px; text-align: center; }
+.products__more .btn { min-width: 240px; }
