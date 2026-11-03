@@ -37,9 +37,38 @@
     return sync;
   }
 
+  // 현금영수증 · 세금계산서: 고른 종류에 맞는 칸만 보이기
+  function bindReceipt(form) {
+    const sync = () => {
+      const v = form.rc_type.value;
+      form.querySelectorAll("[data-rc]").forEach(el => {
+        const on = el.dataset.rc.split(" ").includes(v);
+        el.hidden = !on;
+        el.querySelectorAll("input").forEach(i => { i.required = on && i.name !== "rc_phone"; });
+      });
+    };
+    form.rc_type.addEventListener("change", sync);
+    sync();
+    return sync;
+  }
+  // 서버로 보낼 영수증 정보 (형식이 틀리면 안내 문구를 던짐)
+  function receiptOf(form) {
+    const type = form.rc_type.value, digits = v => String(v || "").replace(/\D/g, "");
+    if (type === "none") return { type };
+    if (type === "personal") {
+      const no = digits(form.rc_phone.value) || digits(form.phone.value);
+      if (no.length < 10 || no.length > 18) throw "현금영수증 휴대폰 번호를 확인해 주세요";
+      return { type, no };
+    }
+    const no = digits(form.rc_biz.value);
+    if (no.length !== 10) throw "사업자등록번호 10자리를 확인해 주세요";
+    if (type === "business") return { type, no };
+    return { type, no, company: form.rc_company.value.trim(), ceo: form.rc_ceo.value.trim(), email: form.rc_email.value.trim() };
+  }
+
   // 입금 계좌 · 입금 기한 (관리자 페이지 > 시세 설정에서 수정)
   let shopInfo = { bank_name: "", bank_account: "", bank_holder: "", pay_minutes: 30, delivery_fee: 3000 };
-  if (sb) sb.from("shop_info").select("*").eq("id", 1).maybeSingle()
+  if (sb) sb.from("shop_info").select("bank_name,bank_account,bank_holder,pay_minutes,delivery_fee").eq("id", 1).maybeSingle()
     .then(({ data }) => {
       if (!data) return;
       shopInfo = { ...shopInfo, ...data };
@@ -79,6 +108,7 @@
   /* ---------- 구매 신청 ---------- */
   const orderModal = $("#orderModal"), orderForm = $("#orderForm");
   const syncReceive = bindWhen(orderForm, "receive");
+  const syncOrderReceipt = bindReceipt(orderForm);
   let current = null;
 
   function updateTotal() {
@@ -100,6 +130,7 @@
       <div><b>${esc(name)}</b><span>${unit ? won(unit) + " / 개 · 현재 시세 기준" : "가격 매장 문의"}</span></div>`;
     orderForm.reset();
     syncReceive();
+    syncOrderReceipt();
     orderForm.hidden = false;
     $("#orderDone").hidden = true;
     updateTotal();
@@ -118,10 +149,13 @@
     e.preventDefault();
     const f = orderForm, btn = f.querySelector("[type=submit]");
     const qty = Math.min(99, Math.max(1, parseInt(f.qty.value, 10) || 1));
+    let receipt;
+    try { receipt = receiptOf(f); } catch (msg) { toast(msg); return; }
     btn.disabled = true;
     const { data, error } = await sb.rpc("submit_order", {
       p_product_id: current.id, p_qty: qty, p_name: f.name.value, p_phone: f.phone.value,
       p_receive: f.receive.value, p_address: f.address.value, p_note: f.note.value, p_quoted: updateTotal(),
+      p_receipt: receipt,
     });
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }
@@ -151,6 +185,7 @@
   const CART_KEY = "keumbi_cart_v1";
   const cartModal = $("#cartModal"), cartForm = $("#cartForm");
   const syncCartReceive = bindWhen(cartForm, "receive");
+  bindReceipt(cartForm);
   let cartItems = [];
   try { cartItems = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch { cartItems = []; }
   const saveCart = () => { try { localStorage.setItem(CART_KEY, JSON.stringify(cartItems)); } catch {} updateCartBadge(); };
@@ -242,10 +277,12 @@
     const f = cartForm, btn = $("#cartSubmit");
     const items = cartItems.filter(i => window.SHOP.find(i.id)).map(i => ({ id: i.id, qty: i.qty }));
     if (!items.length) { renderCart(); return; }
+    let receipt;
+    try { receipt = receiptOf(f); } catch (msg) { toast(msg); return; }
     btn.disabled = true;
     const { data, error } = await sb.rpc("submit_cart", {
       p_items: items, p_name: f.name.value, p_phone: f.phone.value,
-      p_receive: f.receive.value, p_address: f.address.value, p_note: f.note.value,
+      p_receive: f.receive.value, p_address: f.address.value, p_note: f.note.value, p_receipt: receipt,
     });
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }
@@ -315,7 +352,7 @@
     btn.disabled = false;
     const box = $("#lookupResult");
     box.hidden = false;
-    if (error) { box.innerHTML = `<p class="form-note">조회 중 문제가 생겼어요. ${PHONE}로 문의해 주세요.</p>`; return; }
+    if (error) { box.innerHTML = `<p class="form-note">${/[가-힣]/.test(error.message || "") ? esc(error.message) : `조회 중 문제가 생겼어요. ${PHONE}로 문의해 주세요.`}</p>`; return; }
     if (!data || !data.length) { box.innerHTML = `<p class="form-note">일치하는 접수가 없어요. 접수번호와 연락처를 다시 확인해 주세요.</p>`; return; }
     box.innerHTML = data.map(r => {
       const steps = r.kind === "order" ? ORDER_STATUS : SELL_STATUS;
@@ -330,6 +367,7 @@
             : `<ol class="track__steps">${keys.map((k, i) => `<li class="${i < at ? "is-past" : i === at ? "is-now" : ""}">${steps[k]}</li>`).join("")}</ol>`}
           ${r.kind === "order" && r.status === "confirmed" && r.amount && r.deadline ? payBox(r.amount, r.deadline, shopInfo) : ""}
           ${r.kind === "order" && r.amount && r.status !== "confirmed" && r.status !== "canceled" ? `<p class="track__time">확정 금액 ${won(r.amount)}</p>` : ""}
+          ${r.tracking_no ? `<p class="track__time">${esc(r.courier || "택배")} ${esc(r.tracking_no)} · <a class="u" href="${esc(window.YAMOO.trackUrl(r.courier, r.tracking_no))}" target="_blank" rel="noopener">배송 조회</a></p>` : ""}
           <p class="track__time">최근 업데이트 ${fmtDate(r.updated_at)}</p>
         </div>`;
     }).join("");
