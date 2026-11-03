@@ -23,7 +23,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261103d">
+  <link rel="stylesheet" href="style.css?v=20261103e">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -201,7 +201,7 @@
               <h3>십이지신 카드형 1g 골드바</h3>
               <p class="zodiac__desc">띠별 그림이 담긴 카드형 골드바. 돌·생일·새해 선물로 좋아요.</p>
             </div>
-            <p class="zodiac__price"><span>1g · 디자인별 가격</span><strong id="zodiacPrice">-</strong></p>
+            <p class="zodiac__price"><span>1g · 디자인별 가격</span><strong id="zodiacPrice">-</strong><button type="button" class="info-link" id="zodiacInfo">상품정보 제공고시</button></p>
           </div>
           <div class="zodiac__grid" id="zodiacGrid"></div>
         </div>
@@ -371,6 +371,7 @@
       <form class="auth-form" id="orderForm">
         <h2 class="modal__title" id="orderTitle">구매 신청</h2>
         <div class="order-item" id="orderItem"></div>
+        <details class="pinfo" id="orderInfo"><summary>상품정보 제공고시</summary><div id="orderInfoBody"></div></details>
         <label>수량
           <div class="qty"><button type="button" data-qty="-1" aria-label="수량 빼기">−</button><input type="number" name="qty" value="1" min="1" max="99" inputmode="numeric"><button type="button" data-qty="1" aria-label="수량 더하기">+</button></div>
         </label>
@@ -507,12 +508,23 @@
     </article>
   </div>
 
+  <!-- 상품정보 제공고시 -->
+  <div class="modal" id="infoModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <article class="modal__box modal__box--wide" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <p class="notice__meta">상품정보 제공고시</p>
+      <h2 class="modal__title" id="infoTitle"></h2>
+      <div id="infoBody"></div>
+    </article>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261103d"></script>
-  <script src="script.js?v=20261103d"></script>
-  <script src="auth.js?v=20261103d"></script>
-  <script src="shop.js?v=20261103d"></script>
+  <script src="common.js?v=20261103e"></script>
+  <script src="script.js?v=20261103e"></script>
+  <script src="auth.js?v=20261103e"></script>
+  <script src="shop.js?v=20261103e"></script>
 </body>
 </html>
