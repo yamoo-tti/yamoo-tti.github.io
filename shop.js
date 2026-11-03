@@ -14,6 +14,7 @@
   function closeModal(el) { el.hidden = true; document.body.style.overflow = ""; }
   ["#orderModal", "#sellModal", "#lookupModal", "#noticeModal", "#cartModal", "#infoModal"].forEach(id => {
     const el = $(id);
+    if (!el) return;
     el.addEventListener("click", e => { if (e.target.closest("[data-close]")) closeModal(el); });
   });
   document.addEventListener("keydown", e => {
@@ -231,7 +232,7 @@
     if (gone.length) { cartItems = cartItems.filter(i => window.SHOP.find(i.id)); saveCart(); }
     const live = rows.filter(r => r.p);
     if (!live.length) {
-      $("#cartList").innerHTML = `<div class="cart-empty"><p>장바구니가 비어 있어요.</p><a href="#goldbar" class="btn btn--dark" data-close>골드바 보러 가기</a></div>`;
+      $("#cartList").innerHTML = `<div class="cart-empty"><p>장바구니가 비어 있어요.</p><a href="./#goldbar" class="btn btn--dark" data-close>골드바 보러 가기</a></div>`;
       cartForm.hidden = true;
       return;
     }
@@ -388,7 +389,7 @@
   const CAT = { notice: "공지", event: "이벤트", market: "시황" };
   let notices = [];
   async function loadNotices() {
-    if (!sb) return; // DB 연결 전에는 기존 예시 글 유지
+    if (!sb || !$("#boardMarket")) return; // DB 연결 전에는 기존 예시 글 유지 · 게시판 없는 페이지는 건너뜀
     const { data, error } = await sb.from("notices").select("id,category,title,body,pinned,created_at")
       .eq("visible", true).order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(30);
     if (error) return;
