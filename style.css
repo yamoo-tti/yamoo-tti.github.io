@@ -678,3 +678,19 @@ ul, ol { padding: 0; list-style: none; }
 .rc-field { grid-template-columns: minmax(0, 1fr); }
 .rc-field select, .rc-field input { width: 100%; min-width: 0; box-sizing: border-box; }
 .rc-field .row2 > label { min-width: 0; }
+
+/* 상품정보 제공고시 */
+.info-link { display: inline-block; margin-top: 10px; padding: 0; background: none; border: 0; font: inherit; font-size: 12px; color: inherit; opacity: .6; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.info-link:hover, .info-link:focus-visible { opacity: 1; }
+.zodiac__price .info-link { display: block; margin: 6px 0 0 auto; color: #a69d8d; }
+.pinfo { margin: 4px 0 2px; border: 1px solid var(--line); border-radius: 4px; font-size: 13px; }
+.pinfo summary { padding: 10px 12px; cursor: pointer; color: var(--ink-2); font-weight: 500; }
+.pinfo[open] summary { border-bottom: 1px solid var(--line); }
+.pinfo > div { max-height: 260px; overflow-y: auto; }
+.pinfo__tbl { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.55; }
+.pinfo__tbl th, .pinfo__tbl td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.pinfo__tbl tr:last-child th, .pinfo__tbl tr:last-child td { border-bottom: 0; }
+.pinfo__tbl th { width: 34%; background: var(--tint); color: var(--ink-2); font-weight: 500; word-break: keep-all; }
+.pinfo__tbl td { color: var(--ink); word-break: keep-all; overflow-wrap: anywhere; }
+#infoBody .pinfo__tbl { border: 1px solid var(--line); }
+@media (max-width: 640px) { .zodiac__price .info-link { margin-left: 0; } }
