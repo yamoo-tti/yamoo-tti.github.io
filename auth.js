@@ -40,11 +40,11 @@
 
   function renderNav(profile) {
     if (!profile) {
-      nav.innerHTML = `<button type="button" data-open="login">로그인</button><button type="button" data-open="signup">회원가입</button><a href="my-orders.html">주문내역</a><a href="tel:010-5287-8002">고객센터</a>`;
+      nav.innerHTML = `<button type="button" data-open="login">로그인</button><button type="button" data-open="signup">회원가입</button><a href="my-orders.html">주문내역</a><a href="faq.html">고객센터</a>`;
       return;
     }
     const admin = profile.role === "admin" ? `<a href="admin.html" class="util__admin">관리자</a>` : "";
-    nav.innerHTML = `<span class="util__me"><b>${esc(profile.name || profile.email)}</b>님</span>${admin}<button type="button" id="logoutBtn">로그아웃</button><a href="my-orders.html">주문내역</a><a href="tel:010-5287-8002">고객센터</a>`;
+    nav.innerHTML = `<span class="util__me"><b>${esc(profile.name || profile.email)}</b>님</span>${admin}<button type="button" id="logoutBtn">로그아웃</button><a href="my-orders.html">주문내역</a><a href="faq.html">고객센터</a>`;
   }
 
   async function loadProfile(user) {
