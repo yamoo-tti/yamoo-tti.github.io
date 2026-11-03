@@ -1,6 +1,6 @@
 /* 금비 GOLD 관리자 */
 (function () {
-  const { sb, esc, won, fmtDate, fetchLive, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, DEFAULT_SETTINGS } = window.YAMOO;
+  const { sb, esc, won, fmtDate, fetchLive, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, DEFAULT_SETTINGS } = window.YAMOO;
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
 
@@ -19,8 +19,12 @@
     premium_pct: "프리미엄%", labor: "공임", sold_out: "품절", visible: "노출", title: "제목", body: "내용",
     pinned: "필독", sort: "순서", weight_g: "중량", img: "이미지", tag: "태그", karat: "함량", category: "분류",
     kind: "종류", qty: "수량", address: "주소", note: "요청사항",
+    courier: "택배사", tracking_no: "송장번호", receipt_issued_at: "영수증 발행", receipt_ref: "승인번호", paid_at: "입금 확인일", shipped_at: "발송일", pay_deadline: "입금 기한",
   };
   const ORDER_FLOW = ["new", "confirmed", "paid", "ready", "done"];
+  // 입금 확인 이후인데 현금영수증·계산서를 아직 발행하지 않은 주문 (미신청이라도 10만원 이상이면 자진발급 대상)
+  const rcType = r => (r.receipt && r.receipt.type) || "none";
+  const needsReceipt = r => ["paid", "ready", "done"].includes(r.status) && !r.receipt_issued_at && (rcType(r) !== "none" || Number(r.final_price) >= 100000);
   const SELL_FLOW = ["new", "scheduled", "received", "done"];
   const IMAGES = [
     "gbk/bar-1g.webp", "gbk/bar-1_875g.webp", "gbk/bar-3_75g.webp", "gbk/bar-7_5g.webp", "gbk/bar-10g.webp", "gbk/bar-11_25g.webp", "gbk/bar-18_75g.webp", "gbk/bar-37_5g.webp", "gbk/bar-100g.webp",
@@ -114,7 +118,7 @@
   }
 
   /* ---------- 화면 전환 ---------- */
-  const loaders = { dash: loadDash, orders: () => loadRequests("orders"), sells: () => loadRequests("sells"), products: loadProducts, notices: loadNotices, members: loadMembers, price: loadPrice, logs: loadLogs };
+  const loaders = { dash: loadDash, sales: loadSales, orders: () => loadRequests("orders"), sells: () => loadRequests("sells"), products: loadProducts, notices: loadNotices, members: loadMembers, price: loadPrice, logs: loadLogs };
   let current = "dash";
   function show(view) {
     current = view;
@@ -194,13 +198,14 @@
 
   function renderRequests(kind) {
     const c = REQ[kind], all = cache[kind];
-    const cnt = k => k === "all" ? all.length : k === "open" ? all.filter(r => !["done", "canceled"].includes(r.status)).length : all.filter(r => r.status === k).length;
-    const tabs = [["open", "진행 중"], ...Object.entries(c.status), ["all", "전체"]];
+    const pick = k => k === "all" ? all : k === "open" ? all.filter(r => !["done", "canceled"].includes(r.status)) : k === "receipt" ? all.filter(needsReceipt) : all.filter(r => r.status === k);
+    const cnt = k => pick(k).length;
+    const tabs = [["open", "진행 중"], ...Object.entries(c.status), ...(kind === "orders" ? [["receipt", "영수증 발행 필요"]] : []), ["all", "전체"]];
     $(c.tabs).innerHTML = tabs.map(([k, v]) => `<button data-tab="${kind}:${k}" class="${reqTab[kind] === k ? "is-on" : ""}">${v} <span>${cnt(k)}</span></button>`).join("");
     const t = reqTab[kind];
-    let list = t === "all" ? all : t === "open" ? all.filter(r => !["done", "canceled"].includes(r.status)) : all.filter(r => r.status === t);
+    let list = pick(t);
     const q = reqQ[kind].toLowerCase().replace(/-/g, "");
-    if (q) list = list.filter(r => [r.code, r.name, r.phone, r.product_name, r.items].some(v => String(v || "").toLowerCase().replace(/-/g, "").includes(q)));
+    if (q) list = list.filter(r => [r.code, r.name, r.phone, r.product_name, r.tracking_no, typeof r.items === "string" ? r.items : ""].some(v => String(v || "").toLowerCase().replace(/-/g, "").includes(q)));
     $(c.list).innerHTML = requestTable(kind, list, false);
   }
 
@@ -220,10 +225,12 @@
       const due = isO && r.status === "confirmed" && r.pay_deadline
         ? `<br><span class="${new Date(r.pay_deadline) < new Date() ? "danger-text" : "muted"}">입금기한 ${fmtDate(r.pay_deadline).slice(11)}</span>` : "";
       const money = isO ? (r.final_price ? `<b>${won(r.final_price)}</b>${due}` : r.quoted_price ? `<span class="muted">예상 ${won(r.quoted_price)}</span>` : "-") : (r.final_amount ? `<b>${won(r.final_amount)}</b>` : "-");
-      const how = isO ? RECEIVE[r.receive] : `${RECEIVE[r.method]}${r.visit_date ? " · " + r.visit_date.slice(5).replace("-", ".") : ""}`;
+      const ship = isO && r.tracking_no ? `<br><span class="muted">${esc(r.courier || "")} ${esc(r.tracking_no)}</span>` : "";
+      const rcPill = isO && needsReceipt(r) ? `<br><span class="pill st-rc">${rcType(r) === "none" ? "자진발급 필요" : rcType(r) === "invoice" ? "계산서 발행 필요" : "영수증 발행 필요"}</span>` : "";
+      const how = isO ? RECEIVE[r.receive] + ship :`${RECEIVE[r.method]}${r.visit_date ? " · " + r.visit_date.slice(5).replace("-", ".") : ""}`;
       return `<tr class="clickable" data-rec="${kind}:${r.id}">
         <td class="code">${esc(r.code)}</td><td>${fmtDate(r.created_at)}</td><td class="ellipsis">${what}</td>
-        <td class="who">${who}</td><td>${how}</td><td>${money}</td><td>${st}</td>
+        <td class="who">${who}</td><td>${how}</td><td>${money}${rcPill}</td><td>${st}</td>
         <td><div class="row-actions">
           ${next ? `<button data-next="${kind}:${r.id}:${next}">→ ${esc(c.status[next])}</button>` : ""}
           <select class="st-pick" data-setstatus="${kind}:${r.id}" aria-label="상태 바꾸기">
@@ -252,6 +259,10 @@
     const c = REQ[kind];
     const row = (cache[kind] || []).find(x => x.id === id) || {};
     const patch = { status };
+    if (kind === "orders" && status === "ready" && row.receive === "delivery" && !row.tracking_no) {
+      toast("택배사와 송장번호를 입력하고 저장해 주세요");
+      return openRequest(kind, row, "ready");
+    }
     if (status === "canceled" && !confirm(`${row.code || "이 접수"}을(를) 취소할까요?`)) return;
     // 입금 대기로 되돌릴 때 기한이 이미 지났으면, 바로 자동 취소되지 않게 기한을 30분 연장
     if (kind === "orders" && status === "confirmed" && row.pay_deadline && new Date(row.pay_deadline) < new Date()) {
@@ -295,13 +306,51 @@
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#editDrawer").hidden) closeEdit(); });
   const must = r => { if (r.error) throw r.error; return r; };
 
-  function openRequest(kind, r) {
+  // 현금영수증 · 계산서 정보 (관리자 상세)
+  function receiptBlock(r) {
+    const rc = r.receipt || { type: "none" }, t = rc.type || "none";
+    const copy = v => `<button type="button" class="link" data-copytext="${esc(v)}">복사</button>`;
+    const lines = t === "none"
+      ? `<p class="muted">손님이 신청하지 않았어요.${Number(r.final_price) >= 100000 ? " <b>10만원 이상 현금 거래라 국세청 지정번호(010-000-1234)로 자진발급</b>해야 해요." : ""}</p>`
+      : `<dl class="meta meta--tight">
+          <dt>번호</dt><dd><b>${esc(t === "personal" ? fmtPhone(rc.no) : fmtBiz(rc.no))}</b> ${copy(rc.no)}</dd>
+          ${t === "invoice" ? `<dt>상호</dt><dd>${esc(rc.company)}</dd><dt>대표자</dt><dd>${esc(rc.ceo)}</dd><dt>이메일</dt><dd>${esc(rc.email)} ${copy(rc.email)}</dd>` : ""}
+          <dt>발행 금액</dt><dd>${r.final_price ? won(r.final_price) : "-"}</dd>
+        </dl>`;
+    return `
+      <fieldset class="box"><legend>현금영수증·계산서 · ${esc(RECEIPT[t] || t)}</legend>
+        ${lines}
+        <div class="row2">
+          <label class="inline"><input type="checkbox" name="rc_done" ${r.receipt_issued_at ? "checked" : ""}> 발행 완료${r.receipt_issued_at ? ` <small>${fmtDate(r.receipt_issued_at)}</small>` : ""}</label>
+          <label>승인번호 <small>선택</small><input name="receipt_ref" maxlength="40" value="${esc(r.receipt_ref || "")}"></label>
+        </div>
+      </fieldset>`;
+  }
+  function shipBlock(r) {
+    if (r.receive !== "delivery") return "";
+    return `
+      <fieldset class="box" id="shipBox"><legend>택배 발송</legend>
+        <div class="row2">
+          <label>택배사<select name="courier">${COURIERS.map(x => `<option ${x === (r.courier || "우체국택배") ? "selected" : ""}>${x}</option>`).join("")}</select></label>
+          <label>송장번호<input name="tracking_no" maxlength="30" inputmode="numeric" value="${esc(r.tracking_no || "")}"></label>
+        </div>
+        <p class="muted">송장번호를 넣고 상태를 '${ORDER_STATUS.ready}'로 저장하면 손님에게 발송 문자가 가고, 주문내역에 배송 조회 버튼이 생겨요.${r.tracking_no ? ` <a href="${esc(trackUrl(r.courier, r.tracking_no))}" target="_blank" rel="noopener">배송 조회 ↗</a>` : ""}</p>
+      </fieldset>`;
+  }
+  document.addEventListener("click", async e => {
+    const b = e.target.closest("[data-copytext]");
+    if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.copytext); toast("복사했어요"); } catch { toast(b.dataset.copytext); }
+  });
+
+  function openRequest(kind, r, preset) {
     const c = REQ[kind], isO = kind === "orders";
     const tel = `<a href="tel:${esc(r.phone)}">${esc(fmtPhone(r.phone))}</a>`;
     const meta = isO
       ? `<dt>접수번호</dt><dd><b>${esc(r.code)}</b></dd><dt>접수일시</dt><dd>${fmtDate(r.created_at)}</dd>
          <dt>상품</dt><dd>${Array.isArray(r.items) && r.items.length ? `<ul class="items-list">${r.items.map(i => `<li>${esc(i.name)} × ${i.qty}${i.subtotal ? ` <span class="muted">${won(i.subtotal)}</span>` : ""}</li>`).join("")}</ul>` : `${esc(r.product_name)} × ${r.qty}`}</dd><dt>확정 금액</dt><dd>${r.final_price ? `<b>${won(r.final_price)}</b>${Number(r.shipping_fee) ? ` <span class="muted">택배비 ${won(r.shipping_fee)} 포함</span>` : ""}${r.price_locked_at ? ` <span class="muted">(${fmtDate(r.price_locked_at)} 시세 자동 확정)</span>` : ""}` : "-"}</dd>
          ${r.pay_deadline ? `<dt>입금 기한</dt><dd>${fmtDate(r.pay_deadline)}${r.status === "confirmed" ? " · 지나면 자동 취소" : ""}</dd>` : ""}
+         ${r.paid_at ? `<dt>입금 확인</dt><dd>${fmtDate(r.paid_at)}</dd>` : ""}${r.shipped_at ? `<dt>발송</dt><dd>${fmtDate(r.shipped_at)}</dd>` : ""}
          <dt>화면 표시 금액</dt><dd>${r.quoted_price ? won(r.quoted_price) : "-"}</dd>
          <dt>고객</dt><dd>${esc(r.name)} · ${tel}${r.user_id ? ' <span class="pill r-admin">회원</span>' : ""}</dd>
          <dt>수령</dt><dd>${RECEIVE[r.receive]}</dd>${r.address ? `<dt>주소</dt><dd>${esc(r.address)}</dd>` : ""}
@@ -314,17 +363,28 @@
     const html = `
       <dl class="meta">${meta}</dl>
       ${r.status === "canceled" ? '<p class="warn">취소된 접수입니다.</p>' : `<ol class="flow">${flow}</ol>`}
-      <label>진행 상태<select name="status">${opts(c.status, r.status)}</select></label>
+      <label>진행 상태<select name="status">${opts(c.status, preset || r.status)}</select></label>
       ${isO
-        ? `<label>확정 금액 (원) <small>고객에게 안내한 최종 금액</small><input type="number" name="final_price" min="0" step="100" value="${r.final_price ?? ""}"></label>`
+        ? `<label>확정 금액 (원) <small>고객에게 안내한 최종 금액</small><input type="number" name="final_price" min="0" step="100" value="${r.final_price ?? ""}"></label>
+           ${shipBlock(r)}${receiptBlock(r)}`
         : `<div class="row2"><label>방문일<input type="date" name="visit_date" value="${r.visit_date ?? ""}"></label>
            <label>매입가 (원)<input type="number" name="final_amount" min="0" step="100" value="${r.final_amount ?? ""}"></label></div>`}
       <label>관리 메모 <small>고객에게 보이지 않습니다</small><textarea name="admin_memo" rows="4" maxlength="1000">${esc(r.admin_memo || "")}</textarea></label>
       <p class="muted">최종 수정 ${fmtDate(r.updated_at)}</p>`;
     openEdit(`${isO ? "구매" : "매입"} 신청 · ${r.code}`, html, {
+      after: f => { if (preset === "ready" && f.tracking_no) f.tracking_no.focus(); },
       save: async f => {
         const patch = { status: f.status.value, admin_memo: f.admin_memo.value.trim() || null };
-        if (isO) patch.final_price = num(f.final_price.value);
+        if (isO) {
+          patch.final_price = num(f.final_price.value);
+          patch.receipt_issued_at = f.rc_done.checked ? (r.receipt_issued_at || new Date().toISOString()) : null;
+          patch.receipt_ref = f.receipt_ref.value.trim() || null;
+          if (f.tracking_no) {
+            patch.courier = f.courier.value;
+            patch.tracking_no = f.tracking_no.value.replace(/\s/g, "") || null;
+            if (["ready", "done"].includes(patch.status) && !patch.tracking_no && !confirm("송장번호 없이 저장할까요?\n(손님에게 발송 문자와 배송 조회가 안내되지 않아요)")) return false;
+          }
+        }
         else { patch.final_amount = num(f.final_amount.value); patch.visit_date = f.visit_date.value || null; }
         if (patch.status === "canceled" && r.status !== "canceled" && !confirm("이 접수를 취소 처리할까요?")) return false;
         if (isO && patch.status === "confirmed" && r.pay_deadline && new Date(r.pay_deadline) < new Date()) {
@@ -336,6 +396,124 @@
       },
     });
   }
+
+  /* ---------- 매출 정리 ---------- */
+  // 엑셀에서 한글이 깨지지 않는 CSV 내려받기
+  function downloadCsv(name, head, rows) {
+    const cell = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const text = "﻿" + [head, ...rows].map(r => r.map(cell).join(",")).join("\r\n");
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" })), download: name });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  const ymd = d => { const x = new Date(d); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 10); };
+  const PAID = ["paid", "ready", "done"];
+  const paidDay = r => ymd(r.paid_at || r.created_at);
+  let sales = { orders: [], sells: [], from: "", to: "" };
+
+  function setRange(kind) {
+    const f = $("#salesForm"), now = new Date();
+    let a = new Date(now.getFullYear(), now.getMonth(), 1), b = now;
+    if (kind === "today") a = now;
+    if (kind === "week") { a = new Date(now); a.setDate(now.getDate() - 6); }
+    if (kind === "last") { a = new Date(now.getFullYear(), now.getMonth() - 1, 1); b = new Date(now.getFullYear(), now.getMonth(), 0); }
+    if (kind === "year") a = new Date(now.getFullYear(), 0, 1);
+    f.from.value = ymd(a); f.to.value = ymd(b);
+  }
+
+  async function loadSales() {
+    const f = $("#salesForm");
+    if (!f.from.value) setRange("month");
+    const from = f.from.value, to = f.to.value;
+    if (from > to) return toast("시작일이 종료일보다 늦어요", true);
+    // 입금 확인일 기준: 주문일이 조금 앞설 수 있어 넉넉히 불러온 뒤 거름
+    const start = new Date(from + "T00:00:00"); start.setDate(start.getDate() - 14);
+    const end = new Date(to + "T00:00:00"); end.setDate(end.getDate() + 1);
+    const [o, s] = await Promise.all([
+      sb.from("orders").select("*").in("status", PAID).gte("created_at", start.toISOString()).lt("created_at", end.toISOString()).order("created_at").limit(5000),
+      sb.from("sell_requests").select("*").eq("status", "done").gte("updated_at", new Date(from + "T00:00:00").toISOString()).lt("updated_at", end.toISOString()).order("updated_at").limit(5000),
+    ]);
+    if (o.error) return fail(o.error);
+    if (s.error) return fail(s.error);
+    sales = { orders: o.data.filter(r => paidDay(r) >= from && paidDay(r) <= to), sells: s.data, from, to };
+    renderSales();
+  }
+
+  // 주문 1건 → 상품별 줄 (장바구니 주문은 여러 줄)
+  const orderLines = r => Array.isArray(r.items) && r.items.length
+    ? r.items.map(i => ({ name: i.name, qty: i.qty, amount: Number(i.subtotal) || 0 }))
+    : [{ name: r.product_name, qty: r.qty, amount: (Number(r.final_price) || 0) - (Number(r.shipping_fee) || 0) }];
+
+  function renderSales() {
+    const { orders, sells } = sales;
+    const sum = (a, f) => a.reduce((s, x) => s + (Number(f(x)) || 0), 0);
+    const total = sum(orders, r => r.final_price), fee = sum(orders, r => r.shipping_fee);
+    const rcTodo = orders.filter(needsReceipt).length, payout = sum(sells, r => r.final_amount);
+    $("#salesKpis").innerHTML = `
+      <div class="kpi kpi--gold"><p>입금 확인 매출</p><strong>${won(total)}</strong><small>${orders.length}건 · 택배비 포함</small></div>
+      <div class="kpi"><p>상품 매출</p><strong>${won(total - fee)}</strong><small>택배비 ${won(fee)} 별도</small></div>
+      <button class="kpi${rcTodo ? " kpi--warn" : ""}" data-go="orders" data-rctab><p>영수증·계산서 발행 필요</p><strong>${rcTodo}</strong><small>누르면 목록으로</small></button>
+      <div class="kpi"><p>매입 지급</p><strong>${won(payout)}</strong><small>${sells.length}건 · 지급 완료</small></div>`;
+
+    const days = {};
+    orders.forEach(r => { const d = paidDay(r); days[d] = days[d] || { n: 0, amt: 0, buy: 0 }; days[d].n++; days[d].amt += Number(r.final_price) || 0; });
+    sells.forEach(r => { const d = ymd(r.updated_at); days[d] = days[d] || { n: 0, amt: 0, buy: 0 }; days[d].buy += Number(r.final_amount) || 0; });
+    const dk = Object.keys(days).sort().reverse();
+    $("#salesDaily").innerHTML = `<thead><tr><th>날짜</th><th>주문</th><th>매출</th><th>매입 지급</th></tr></thead><tbody>` +
+      (dk.length ? dk.map(d => `<tr><td>${d.slice(5).replace("-", ".")}</td><td>${days[d].n}건</td><td><b>${won(days[d].amt)}</b></td><td>${days[d].buy ? won(days[d].buy) : "-"}</td></tr>`).join("")
+        : `<tr><td class="empty" colspan="4">이 기간에 입금 확인된 주문이 없어요</td></tr>`) + "</tbody>";
+
+    const items = {};
+    orders.forEach(r => orderLines(r).forEach(l => { items[l.name] = items[l.name] || { qty: 0, amt: 0 }; items[l.name].qty += Number(l.qty) || 0; items[l.name].amt += l.amount; }));
+    const ik = Object.keys(items).sort((a, b) => items[b].amt - items[a].amt);
+    $("#salesItems").innerHTML = `<thead><tr><th>상품</th><th>수량</th><th>금액</th></tr></thead><tbody>` +
+      (ik.length ? ik.map(k => `<tr><td class="ellipsis">${esc(k)}</td><td>${items[k].qty}개</td><td>${won(items[k].amt)}</td></tr>`).join("")
+        : `<tr><td class="empty" colspan="3">-</td></tr>`) + "</tbody>";
+
+    $("#salesTable").innerHTML = `<thead><tr><th>입금 확인</th><th>접수번호</th><th>상품</th><th>고객</th><th>금액</th><th>영수증</th><th>상태</th></tr></thead><tbody>` +
+      (orders.length ? [...orders].sort((a, b) => paidDay(b).localeCompare(paidDay(a))).map(r => `
+        <tr class="clickable" data-rec="orders:${r.id}">
+          <td>${fmtDate(r.paid_at || r.created_at)}</td><td class="code">${esc(r.code)}</td>
+          <td class="ellipsis">${esc(r.product_name)} <span class="muted">${r.qty}개</span></td>
+          <td class="who"><b>${esc(r.name)}</b><span>${esc(fmtPhone(r.phone))}</span></td>
+          <td><b>${won(r.final_price)}</b></td>
+          <td>${r.receipt_issued_at ? `<span class="pill st-done">발행 완료</span>` : needsReceipt(r) ? `<span class="pill st-rc">${rcType(r) === "none" ? "자진발급 필요" : "발행 필요"}</span>` : `<span class="muted">${esc(RECEIPT[rcType(r)])}</span>`}</td>
+          <td><span class="pill st-${esc(r.status)}">${esc(ORDER_STATUS[r.status])}</span></td>
+        </tr>`).join("") : `<tr><td class="empty" colspan="7">이 기간에 입금 확인된 주문이 없어요</td></tr>`) + "</tbody>";
+    cache.orders = orders; // 행을 누르면 상세가 열리게
+  }
+
+  $("#salesForm").addEventListener("submit", e => { e.preventDefault(); loadSales(); });
+  $("#salesForm").addEventListener("click", e => {
+    const b = e.target.closest("[data-range]");
+    if (b) { setRange(b.dataset.range); loadSales(); }
+  });
+  document.addEventListener("click", e => { if (e.target.closest("[data-rctab]")) reqTab.orders = "receipt"; }, true);
+
+  $("#salesCsv").addEventListener("click", () => {
+    const { orders, from, to } = sales;
+    if (!orders.length) return toast("내려받을 주문이 없어요", true);
+    const head = ["입금확인일시", "주문일시", "접수번호", "고객명", "연락처", "상품", "수량", "상품금액", "택배비", "결제금액", "수령방법", "상태",
+      "영수증종류", "발행번호", "상호", "대표자", "이메일", "발행여부", "발행일시", "승인번호", "택배사", "송장번호", "발송일시", "배송주소"];
+    const rows = orders.map(r => {
+      const rc = r.receipt || {};
+      return [fmtDate(r.paid_at || r.created_at), fmtDate(r.created_at), r.code, r.name, fmtPhone(r.phone),
+        orderLines(r).map(l => `${l.name} x${l.qty}`).join(" / "), r.qty, (Number(r.final_price) || 0) - (Number(r.shipping_fee) || 0), Number(r.shipping_fee) || 0, Number(r.final_price) || 0,
+        RECEIVE[r.receive], ORDER_STATUS[r.status], RECEIPT[rcType(r)], rc.no ? (rc.type === "personal" ? fmtPhone(rc.no) : fmtBiz(rc.no)) : "",
+        rc.company, rc.ceo, rc.email, r.receipt_issued_at ? "발행" : needsReceipt(r) ? "미발행" : "-", r.receipt_issued_at ? fmtDate(r.receipt_issued_at) : "", r.receipt_ref,
+        r.courier, r.tracking_no, r.shipped_at ? fmtDate(r.shipped_at) : "", r.address];
+    });
+    downloadCsv(`금비_매출_${from}_${to}.csv`, head, rows);
+    toast(`주문 ${rows.length}건 내려받기 완료`);
+  });
+  $("#sellCsv").addEventListener("click", () => {
+    const { sells, from, to } = sales;
+    if (!sells.length) return toast("내려받을 매입 지급 건이 없어요", true);
+    const head = ["지급완료 처리일시", "접수일시", "접수번호", "고객명", "연락처", "품목", "함량", "신고중량(g)", "매입가", "접수방법", "관리메모"];
+    const rows = sells.map(r => [fmtDate(r.updated_at), fmtDate(r.created_at), r.code, r.name, fmtPhone(r.phone), r.items, KARAT[r.karat], r.weight_g, Number(r.final_amount) || 0, RECEIVE[r.method], r.admin_memo]);
+    downloadCsv(`금비_매입_${from}_${to}.csv`, head, rows);
+    toast(`매입 ${rows.length}건 내려받기 완료`);
+  });
 
   /* ---------- 상품 관리 ---------- */
   let products = [], productTab = "bar";
