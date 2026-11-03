@@ -530,6 +530,8 @@
     const { data, error } = await sb.from("products").select("*").order("kind").order("sort").order("created_at");
     if (error) return fail(error);
     products = data;
+    const st = await window.YAMOO.loadStats();
+    products.forEach(p => { p._views = (st[p.id] || {}).views || 0; p._sold = (st[p.id] || {}).sold || 0; });
     let d = null;
     try { d = await domestic(); } catch { d = null; }
     products.forEach(p => { p._price = d ? productPrice(p, d) : null; });
@@ -543,7 +545,7 @@
       + (subs.length ? `<span class="ptabs-sep" aria-hidden="true">›</span>` + [["all", "전체"], ...subs.map(c => [c, CATEGORY[c]])].map(([k, v]) =>
         `<button data-tab="psub:${k}" class="sub${productSub === k ? " is-on" : ""}">${v} <span>${k === "all" ? inTab.length : inTab.filter(p => p.category === k).length}</span></button>`).join("") : "");
     const list = productSub === "all" || !subs.length ? inTab : inTab.filter(p => p.category === productSub);
-    const head = `<thead><tr><th></th><th>상품명</th><th>종류</th><th>중량 · 함량</th><th>가격 조정</th><th>현재 판매가</th><th>노출</th><th>품절</th><th>순서</th></tr></thead>`;
+    const head = `<thead><tr><th></th><th>상품명</th><th>종류</th><th>중량 · 함량</th><th>가격 조정</th><th>현재 판매가</th><th>조회 · 판매</th><th>노출</th><th>품절</th><th>순서</th></tr></thead>`;
     $("#productTable").innerHTML = head + "<tbody>" + (list.length ? list.map(p => `
       <tr class="clickable${p.visible ? "" : " is-dim"}" data-product="${p.id}">
         <td><img class="thumb" src="${esc(imgUrl(p.img))}" alt=""></td>
@@ -552,10 +554,11 @@
         <td>${Number(p.weight_g)}g · ${p.kind === "silver" ? "은 999.9" : KARAT_KO[p.karat] || p.karat}</td>
         <td>${hasLabor(p.kind) ? "공임 " + won(p.labor) : "+" + Number(p.premium_pct) + "%"}</td>
         <td>${p._price ? won(p._price) : "-"}</td>
+        <td class="muted">${p._views} · <b>${p._sold}</b></td>
         <td><button class="switch ${p.visible ? "is-on" : ""}" data-toggle="${p.id}:visible" aria-label="노출">${p.visible ? "노출" : "숨김"}</button></td>
         <td><button class="switch switch--warn ${p.sold_out ? "is-on" : ""}" data-toggle="${p.id}:sold_out" aria-label="품절">${p.sold_out ? "품절" : "판매중"}</button></td>
         <td>${p.sort}</td>
-      </tr>`).join("") : `<tr><td class="empty" colspan="9">상품이 없습니다</td></tr>`) + "</tbody>";
+      </tr>`).join("") : `<tr><td class="empty" colspan="10">상품이 없습니다</td></tr>`) + "</tbody>";
   }
 
   function openProduct(p) {
@@ -850,6 +853,16 @@
     a.click();
     URL.revokeObjectURL(a.href);
     toast(`${data.length}명 내보내기 완료`);
+  });
+
+  // 마케팅 수신 동의 명단 (주문 때 동의 + 가입 때 동의). 광고 문자 첫머리에 (광고), 끝에 무료 수신거부 방법을 꼭 넣어야 해요
+  $("#mktBtn").addEventListener("click", async () => {
+    const { data, error } = await sb.rpc("marketing_list");
+    if (error) return fail(error);
+    downloadCsv(`금비_마케팅동의_${fmtDate(new Date(), false).replace(/\./g, "")}.csv`,
+      ["이름", "휴대폰", "동의 경로", "동의 일시"],
+      (data || []).map(r => [r.name, fmtPhone(r.phone), r.source, fmtDate(r.consented_at)]));
+    toast(`${(data || []).length}명 내보내기 완료`);
   });
 
   /* ---------- 시세 설정 ---------- */

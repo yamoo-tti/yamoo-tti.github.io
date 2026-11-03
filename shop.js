@@ -91,6 +91,12 @@
     catch { toast(b.dataset.copy); }
   });
 
+  // [선택] 마케팅 수신 동의에 체크한 손님만 명단에 저장 (실패해도 주문은 그대로)
+  async function saveMarketing(f) {
+    if (!f.mkt || !f.mkt.checked) return;
+    try { await sb.rpc("add_marketing_contact", { p_name: f.name.value, p_phone: f.phone.value }); } catch { /* 무시 */ }
+  }
+
   const rpcError = err => {
     const m = (err && err.message) || "";
     return /[가-힣]/.test(m) ? m : "접수 중 문제가 생겼어요. 잠시 후 다시 시도하거나 " + PHONE + "로 전화 주세요.";
@@ -110,6 +116,7 @@
   const infoTable = p => `<table class="pinfo__tbl"><tbody>${window.YAMOO.productInfo(p)
     .map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join("")}</tbody></table>`;
   window.openInfo = function (p) {
+    window.YAMOO.trackView(p.id);
     $("#infoTitle").textContent = p.name;
     $("#infoBody").innerHTML = infoTable(p);
     openModal($("#infoModal"));
@@ -132,6 +139,7 @@
 
   window.openOrder = function (p) {
     if (!sb || !p.id) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
+    window.YAMOO.trackView(p.id);
     current = p;
     const unit = window.SHOP.price(p);
     const name = p.kind === "zodiac" ? `GBK 카드형 골드바 1g (${p.name})` : p.name;
@@ -171,6 +179,7 @@
     });
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }
+    await saveMarketing(f);
     const r = typeof data === "string" ? { code: data } : (data || {});
     // 주문 완료 페이지로 이동 (정보는 이 브라우저 탭에만 잠시 보관)
     if (r.code) {
@@ -215,6 +224,7 @@
   window.addToCart = function (p) {
     if (!sb || !p.id) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
     if (p.sold_out) { toast("품절된 상품이에요"); return; }
+    window.YAMOO.trackView(p.id);
     const it = cartItems.find(i => i.id === p.id);
     if (it) it.qty = Math.min(99, it.qty + 1); else cartItems.push({ id: p.id, qty: 1 });
     if (cartItems.length > 20) { cartItems.pop(); toast("장바구니에는 20종류까지 담을 수 있어요"); return; }
@@ -298,6 +308,7 @@
     });
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }
+    await saveMarketing(f);
     const r = data || {};
     const names = items.map(i => displayName(window.SHOP.find(i.id)));
     try {

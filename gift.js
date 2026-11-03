@@ -6,7 +6,7 @@
   const CATS = { all: "전체", goods: "순금 기념품", dol: "돌선물", key: "행운의 열쇠", memo: "기념 골드바", plaque: "감사패" };
   const ALIAS = { bar: "memo" }; // 예전 주소(gift.html#bar) 호환
 
-  let products = [], domestic = null, cat = "all", sort = "rec";
+  let products = [], stats = {}, domestic = null, cat = "all", sort = "rec";
   const imgSrc = p => /^https?:\/\//.test(p.img || "") ? p.img : `images/${p.img || "bar-close.jpg"}`;
   const priceOf = p => domestic ? Y.productPrice(p, domestic) : null;
   const wText = w => `${w}g` + (w >= 1.875 ? ` (${Math.round(w / Y.DON * 100) / 100}돈)` : "");
@@ -26,7 +26,9 @@
     </li>`;
 
   function render() {
-    let list = products.filter(p => p.kind === "gift" && (cat === "all" || p.category === cat));
+    const ranked = Y.rankProducts(products.filter(p => p.kind === "gift"), stats);
+    const tagOf = p => p.tag || (ranked.best.has(p.id) ? "BEST" : "");
+    let list = ranked.list.filter(p => cat === "all" || p.category === cat);
     if (sort !== "rec") {
       const v = p => priceOf(p) ?? 0;
       list = list.slice().sort((a, b) => sort === "low" ? v(a) - v(b) : v(b) - v(a));
@@ -39,7 +41,7 @@
         <li class="gcard${p.sold_out ? " is-soldout" : ""}">
           <div class="gcard__img">
             <img src="${Y.esc(imgSrc(p))}" alt="${Y.esc(p.name)}" loading="lazy">
-            ${p.sold_out ? '<em class="gcard__badge gcard__badge--out">품절</em>' : p.tag ? `<em class="gcard__badge">${Y.esc(p.tag)}</em>` : ""}
+            ${p.sold_out ? '<em class="gcard__badge gcard__badge--out">품절</em>' : tagOf(p) ? `<em class="gcard__badge">${Y.esc(tagOf(p))}</em>` : ""}
           </div>
           <p class="gcard__name">${Y.esc(p.name)}</p>
           <p class="gcard__w">순금 24K · ${wText(Number(p.weight_g))}</p>
@@ -88,7 +90,7 @@
   async function loadProducts() {
     if (!Y.sb) return;
     const { data, error } = await Y.sb.from("products").select("*").eq("visible", true).order("sort").order("created_at");
-    if (!error && data) { products = data; render(); }
+    if (!error && data) { products = data; stats = await Y.loadStats(); render(); }
   }
   setCat(location.hash.slice(1));
   loadProducts();

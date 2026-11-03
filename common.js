@@ -138,5 +138,30 @@
     ]);
   }
 
-  window.YAMOO = { sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
+  // 인기순: 판매 1개 = 조회 30번으로 쳐서 점수가 높은 상품이 앞으로. 많이 팔린 상위 상품은 BEST
+  async function loadStats() {
+    if (!sb) return {};
+    const { data, error } = await sb.from("product_stats").select("product_id,views,sold");
+    if (error || !data) return {};
+    const m = {};
+    data.forEach(r => { m[r.product_id] = r; });
+    return m;
+  }
+  const popScore = (p, st) => { const s = st[p.id]; return s ? s.sold * 30 + s.views : 0; };
+  function rankProducts(list, st, bestN = 3) {
+    st = st || {};
+    const ranked = list.map((p, i) => ({ p, i, s: popScore(p, st) })).sort((a, b) => b.s - a.s || a.i - b.i).map(x => x.p);
+    const best = new Set(list.filter(p => st[p.id] && st[p.id].sold > 0)
+      .sort((a, b) => st[b.id].sold - st[a.id].sold).slice(0, bestN).map(p => p.id));
+    return { list: ranked, best };
+  }
+  // 조회 1번 기록 (같은 상품은 이 브라우저에서 하루 1번만)
+  function trackView(id) {
+    if (!sb || !id || String(id).startsWith("idx:")) return;
+    const k = "keumbi_v_" + id, today = new Date().toDateString();
+    try { if (localStorage.getItem(k) === today) return; localStorage.setItem(k, today); } catch { /* 저장이 막혀 있으면 그냥 기록 */ }
+    sb.rpc("bump_view", { p_id: id }).then(() => {}, () => {});
+  }
+
+  window.YAMOO = { loadStats, rankProducts, trackView, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
 })();

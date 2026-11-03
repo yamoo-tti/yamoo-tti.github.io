@@ -37,6 +37,8 @@
     const nameEl = card && card.querySelector(".product__name, .bar__name, .gcard__name, h4");
     let name = nameEl ? nameEl.textContent.trim() : t.alt;
     if (t.closest(".zcard__img")) name = "GBK 카드형 골드바 1g · " + name;
+    const idEl = card && card.querySelector("[data-order], [data-gbuy]");
+    if (idEl && window.YAMOO) window.YAMOO.trackView(idEl.dataset.order || idEl.dataset.gbuy);
     open(t.currentSrc || t.src, name);
   });
   box.addEventListener("click", e => { if (e.target === box || e.target.closest(".lightbox__x") || e.target.closest(".lightbox__fig")) close(); });

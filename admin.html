@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261103j">
+  <link rel="stylesheet" href="admin.css?v=20261103k">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -146,7 +146,7 @@
       <section class="view" data-view="members" hidden>
         <header class="view__head">
           <h1>회원 관리 <small id="memberTotal"></small></h1>
-          <button class="btn btn--line" id="csvBtn">CSV 내보내기</button>
+          <div class="head-btns"><button class="btn btn--line" id="mktBtn">마케팅 동의 명단 (CSV)</button><button class="btn btn--line" id="csvBtn">CSV 내보내기</button></div>
         </header>
         <form class="filters" id="filterForm">
           <input type="search" name="q" placeholder="이름 · 이메일 · 연락처 검색">
@@ -268,7 +268,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261103j"></script>
-  <script src="admin.js?v=20261103j"></script>
+  <script src="common.js?v=20261103k"></script>
+  <script src="admin.js?v=20261103k"></script>
 </body>
 </html>

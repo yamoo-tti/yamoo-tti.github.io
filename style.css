@@ -715,3 +715,4 @@ ul, ol { padding: 0; list-style: none; }
 .lightbox__fig figcaption { color: #eee6d6; font-size: 15px; text-align: center; max-width: 90vw; }
 .lightbox__x { position: absolute; top: 12px; right: 16px; width: 44px; height: 44px; font-size: 34px; line-height: 1; color: #fff; background: none; border: 0; cursor: pointer; }
 @keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
+.mkt-note { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }

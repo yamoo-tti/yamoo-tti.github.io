@@ -45,6 +45,7 @@ async function loadProducts() {
   const { data, error } = await sb.from("products").select("*").eq("visible", true).order("sort").order("created_at");
   if (error || !data || !data.length) return; // 실패하면 기본 목록 유지
   state.products = data;
+  state.stats = await window.YAMOO.loadStats();
   if (state.domestic) { renderBars(); renderProducts(currentFilter); }
 }
 
@@ -251,7 +252,9 @@ function renderProducts(filter = "all") {
   if (!state.domestic) return;
   if (filter !== currentFilter) shown = PAGE;
   currentFilter = filter;
-  const all = ofKind("accessory");
+  const ranked = window.YAMOO.rankProducts(ofKind("accessory"), state.stats);
+  const all = ranked.list;
+  const tagOf = p => p.tag || (ranked.best.has(p.id) ? "BEST" : "");
   const full = filter === "all" ? all : all.filter(p => p.category === filter);
   const list = full.slice(0, shown);
   const more = $("#productsMore");
@@ -265,7 +268,7 @@ function renderProducts(filter = "all") {
       <article class="product${p.sold_out ? " is-soldout" : ""}" style="animation-delay:${(i % PAGE) * 50}ms">
         <div class="product__img">
           <img src="${esc(imgSrc(p))}" alt="${esc(p.name)}" loading="lazy">
-          ${p.sold_out ? `<span class="product__tag product__tag--out">품절</span>` : p.tag ? `<span class="product__tag">${esc(p.tag)}</span>` : ""}
+          ${p.sold_out ? `<span class="product__tag product__tag--out">품절</span>` : tagOf(p) ? `<span class="product__tag">${esc(tagOf(p))}</span>` : ""}
           ${p.sold_out ? "" : `<div class="add-cart"><button class="p-cart" ${cartAttr(p)}>장바구니</button><button class="p-buy" ${orderAttr(p)}>바로 구매</button></div>`}
         </div>
         <div class="product__info">
