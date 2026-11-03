@@ -16,18 +16,68 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261103h">
-  <link rel="stylesheet" href="legal.css?v=20261103h">
-  <link rel="stylesheet" href="gift.css?v=20261103h">
+  <link rel="stylesheet" href="style.css?v=20261103i">
+  <link rel="stylesheet" href="legal.css?v=20261103i">
+  <link rel="stylesheet" href="gift.css?v=20261103i">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
-  <!-- 금색 그라데이션 (그림 공용) -->
+  <!-- 상품 그림 (카드·상세 공용) -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
       <linearGradient id="gG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e2a6"/><stop offset=".45" stop-color="#d4ad57"/><stop offset="1" stop-color="#94701f"/></linearGradient>
       <linearGradient id="gG2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#8a6719"/><stop offset=".5" stop-color="#e3c375"/><stop offset="1" stop-color="#b38a33"/></linearGradient>
       <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a3a22"/><stop offset="1" stop-color="#3a2414"/></linearGradient>
+      <symbol id="art-ring" viewBox="0 0 200 200">
+        <ellipse cx="100" cy="168" rx="58" ry="8" fill="#000" opacity=".25"/>
+        <circle cx="100" cy="108" r="52" fill="none" stroke="url(#gG)" stroke-width="16"/>
+        <circle cx="100" cy="108" r="44" fill="none" stroke="#7a5a17" stroke-width="1.5" opacity=".6"/>
+        <rect x="78" y="40" width="44" height="26" rx="5" fill="url(#gG2)" stroke="#f6e2a6" stroke-width="1"/>
+        <text x="100" y="59" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="15" font-weight="600" fill="#5a4210">福</text>
+      </symbol>
+      <symbol id="art-necklace" viewBox="0 0 200 200">
+        <path d="M40 30 C40 110, 80 128, 100 128 C120 128, 160 110, 160 30" fill="none" stroke="url(#gG)" stroke-width="3" stroke-dasharray="5 3"/>
+        <circle cx="100" cy="131" r="4" fill="none" stroke="url(#gG)" stroke-width="2.5"/>
+        <circle cx="100" cy="160" r="26" fill="url(#gG)"/>
+        <circle cx="100" cy="160" r="20" fill="none" stroke="#7a5a17" stroke-width="1.2" opacity=".6"/>
+        <text x="100" y="166" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="16" font-weight="600" fill="#5a4210">壽</text>
+      </symbol>
+      <symbol id="art-bracelet" viewBox="0 0 200 200">
+        <ellipse cx="100" cy="164" rx="62" ry="8" fill="#000" opacity=".25"/>
+        <ellipse cx="100" cy="104" rx="62" ry="40" fill="none" stroke="url(#gG)" stroke-width="8" stroke-dasharray="10 3"/>
+        <ellipse cx="100" cy="104" rx="62" ry="40" fill="none" stroke="#7a5a17" stroke-width="1" opacity=".35"/>
+        <rect x="86" y="132" width="28" height="16" rx="4" fill="url(#gG2)" stroke="#f6e2a6" stroke-width="1"/>
+        <text x="100" y="144" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="10" font-weight="600" fill="#5a4210">福</text>
+      </symbol>
+      <symbol id="art-key" viewBox="0 0 200 200">
+        <g transform="rotate(-35 100 100)">
+          <circle cx="100" cy="52" r="30" fill="url(#gG)"/>
+          <circle cx="100" cy="52" r="13" fill="#f3efe7"/>
+          <circle cx="100" cy="52" r="24" fill="none" stroke="#7a5a17" stroke-width="1.2" opacity=".6"/>
+          <rect x="93" y="80" width="14" height="92" rx="3" fill="url(#gG2)"/>
+          <rect x="107" y="140" width="20" height="10" rx="2" fill="url(#gG2)"/>
+          <rect x="107" y="157" width="14" height="10" rx="2" fill="url(#gG2)"/>
+        </g>
+      </symbol>
+      <symbol id="art-bar" viewBox="0 0 200 200">
+        <ellipse cx="100" cy="160" rx="66" ry="8" fill="#000" opacity=".25"/>
+        <path d="M44 150 L58 54 H142 L156 150 Z" fill="url(#gG)"/>
+        <path d="M58 54 H142 L136 64 H64 Z" fill="#f8e7b4" opacity=".7"/>
+        <rect x="68" y="72" width="64" height="66" rx="3" fill="none" stroke="#7a5a17" stroke-width="1.2" opacity=".7"/>
+        <text x="100" y="94" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="11" letter-spacing="2" fill="#5a4210">FINE GOLD</text>
+        <text x="100" y="110" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="13" font-weight="600" fill="#5a4210">999.9</text>
+        <text x="100" y="128" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="10" fill="#5a4210">축 승진</text>
+      </symbol>
+      <symbol id="art-plaque" viewBox="0 0 200 200">
+        <ellipse cx="100" cy="174" rx="60" ry="7" fill="#000" opacity=".25"/>
+        <rect x="46" y="26" width="108" height="144" rx="4" fill="url(#wood)" stroke="#2a190d" stroke-width="2"/>
+        <rect x="56" y="36" width="88" height="124" rx="2" fill="#efe6d2"/>
+        <circle cx="100" cy="66" r="18" fill="url(#gG)"/>
+        <text x="100" y="71" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="13" font-weight="600" fill="#5a4210">感</text>
+        <text x="100" y="100" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="12" font-weight="600" fill="#3a2a10">감 사 패</text>
+        <rect x="68" y="110" width="64" height="2" fill="#c9b994"/><rect x="68" y="118" width="56" height="2" fill="#c9b994"/><rect x="68" y="126" width="60" height="2" fill="#c9b994"/>
+        <rect x="80" y="140" width="40" height="8" rx="1" fill="url(#gG2)"/>
+      </symbol>
     </defs>
   </svg>
 
@@ -38,178 +88,46 @@
     </div>
   </header>
 
-  <main>
-    <section class="gift-hero">
-      <div class="wrap">
-        <p class="eyebrow eyebrow--light">Pure Gold Gift</p>
-        <h1>마음을 오래 남기는 순금 선물</h1>
-        <p class="lead">돌반지, 기념 골드바, 행운의 열쇠, 감사패. 순도 99.99% 순금에 원하는 문구를 새기고 고급 케이스에 담아 보내드립니다.</p>
-        <p class="gift-hero__rate">오늘 순금 1돈(3.75g) 살 때 <strong id="rateDon">불러오는 중…</strong> <span id="rateTime"></span></p>
+  <main class="gift-page">
+    <div class="wrap">
+      <p class="crumb"><a href="./">홈</a> <span>›</span> 순금선물</p>
+      <h1 class="gift-title">순금선물</h1>
+      <p class="gift-sub">돌반지 · 돌목걸이 · 돌팔찌 · 행운의 열쇠 · 기념 골드바 · 감사패. 순도 99.99% 순금에 원하는 문구를 새겨 고급 케이스에 담아 드려요.</p>
+
+      <nav class="gift-cats" id="giftCats" role="tablist" aria-label="순금선물 분류"></nav>
+
+      <div class="gift-bar">
+        <p id="giftCount" aria-live="polite"></p>
+        <select id="giftSort" aria-label="정렬">
+          <option value="rec">추천순</option>
+          <option value="low">낮은 가격순</option>
+          <option value="high">높은 가격순</option>
+        </select>
       </div>
-    </section>
 
-    <nav class="gift-tabs" aria-label="순금선물 분류">
-      <div class="wrap"><a href="#dol" class="is-on">돌반지</a><a href="#bar">기념 골드바</a><a href="#key">행운의 열쇠</a><a href="#plaque">감사패</a><a href="#howto">주문 방법</a></div>
-    </nav>
+      <ul class="gift-grid" id="giftGrid"></ul>
 
-    <!-- 돌반지 -->
-    <section class="gift-sec" id="dol">
-      <div class="wrap gift-sec__grid">
-        <div class="gift-art" role="img" aria-label="순금 돌반지 그림">
-          <svg viewBox="0 0 200 200">
-            <ellipse cx="100" cy="168" rx="58" ry="8" fill="#000" opacity=".35"/>
-            <circle cx="100" cy="108" r="52" fill="none" stroke="url(#gG)" stroke-width="16"/>
-            <circle cx="100" cy="108" r="44" fill="none" stroke="#7a5a17" stroke-width="1.5" opacity=".6"/>
-            <rect x="78" y="40" width="44" height="26" rx="5" fill="url(#gG2)" stroke="#f6e2a6" stroke-width="1"/>
-            <text x="100" y="59" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="15" font-weight="600" fill="#5a4210">福</text>
-          </svg>
-        </div>
-        <div>
-          <p class="eyebrow">First Birthday Ring</p>
-          <h2>돌반지</h2>
-          <p class="desc">아이의 첫 생일을 축하하는 가장 전통적인 선물이에요. 복(福)·수(壽) 글자나 십이지 띠 모양으로 만들고, 안쪽에 아이 이름과 날짜를 새길 수 있어요.</p>
-          <ul class="gift-points"><li>순금 99.99%</li><li>이름·날짜 각인</li><li>복·수·띠 디자인</li><li>보증서 · 선물 케이스</li></ul>
-          <table class="gift-opts">
-            <caption>중량별 오늘 금값</caption>
-            <thead><tr><th scope="col">중량</th><th scope="col">오늘 금값</th></tr></thead>
-            <tbody>
-              <tr><td><b>반돈</b><small>1.875g</small></td><td class="price" data-w="1.875">-</td></tr>
-              <tr><td><b>1돈</b><small>3.75g · 가장 많이 찾으세요</small></td><td class="price" data-w="3.75">-</td></tr>
-              <tr><td><b>2돈</b><small>7.5g</small></td><td class="price" data-w="7.5">-</td></tr>
-            </tbody>
-          </table>
-          <p class="gift-note">* 금값은 지금 순금 시세(부가세 포함)로 계산한 금액이에요. 디자인·각인·케이스에 따라 제작비가 더해질 수 있어 상담할 때 최종 금액을 안내해 드려요.</p>
-          <div class="gift-cta"><a class="btn btn--dark" href="tel:010-5287-8002">전화 상담</a><a class="btn btn--line" href="sms:010-5287-8002?body=%5B%EB%8F%8C%EB%B0%98%EC%A7%80%20%EB%AC%B8%EC%9D%98%5D%20">문자 문의</a></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 기념 골드바 -->
-    <section class="gift-sec" id="bar">
-      <div class="wrap gift-sec__grid">
-        <div class="gift-art" role="img" aria-label="문구가 새겨진 기념 골드바 그림">
-          <svg viewBox="0 0 200 200">
-            <ellipse cx="100" cy="160" rx="66" ry="8" fill="#000" opacity=".35"/>
-            <path d="M44 150 L58 54 H142 L156 150 Z" fill="url(#gG)"/>
-            <path d="M58 54 H142 L136 64 H64 Z" fill="#f8e7b4" opacity=".7"/>
-            <rect x="68" y="72" width="64" height="66" rx="3" fill="none" stroke="#7a5a17" stroke-width="1.2" opacity=".7"/>
-            <text x="100" y="94" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="11" letter-spacing="2" fill="#5a4210">FINE GOLD</text>
-            <text x="100" y="110" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="13" font-weight="600" fill="#5a4210">999.9</text>
-            <text x="100" y="128" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="10" fill="#5a4210">축 승진</text>
-          </svg>
-        </div>
-        <div>
-          <p class="eyebrow">Engraved Gold Bar</p>
-          <h2>기념 골드바</h2>
-          <p class="desc">승진·퇴임·결혼·환갑처럼 오래 기억하고 싶은 날에 어울려요. 골드바 앞면에 원하는 문구와 날짜를 새기고, 자산 가치도 그대로 남아요.</p>
-          <ul class="gift-points"><li>순금 99.99%</li><li>원하는 문구 각인</li><li>단체 주문 가능</li><li>보증서 · 고급 케이스</li></ul>
-          <table class="gift-opts">
-            <caption>중량별 오늘 금값</caption>
-            <thead><tr><th scope="col">중량</th><th scope="col">오늘 금값</th></tr></thead>
-            <tbody>
-              <tr><td><b>1돈</b><small>3.75g</small></td><td class="price" data-w="3.75">-</td></tr>
-              <tr><td><b>3돈</b><small>11.25g</small></td><td class="price" data-w="11.25">-</td></tr>
-              <tr><td><b>5돈</b><small>18.75g</small></td><td class="price" data-w="18.75">-</td></tr>
-              <tr><td><b>10돈</b><small>37.5g</small></td><td class="price" data-w="37.5">-</td></tr>
-            </tbody>
-          </table>
-          <p class="gift-note">* 금값은 지금 순금 시세(부가세 포함)로 계산한 금액이에요. 각인·케이스 제작비는 상담할 때 안내해 드려요. 각인 없는 일반 골드바는 <a class="u" href="./#goldbar">골드바</a>에서 바로 주문할 수 있어요.</p>
-          <div class="gift-cta"><a class="btn btn--dark" href="tel:010-5287-8002">전화 상담</a><a class="btn btn--line" href="sms:010-5287-8002?body=%5B%EA%B8%B0%EB%85%90%20%EA%B3%A8%EB%93%9C%EB%B0%94%20%EB%AC%B8%EC%9D%98%5D%20">문자 문의</a></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 행운의 열쇠 -->
-    <section class="gift-sec" id="key">
-      <div class="wrap gift-sec__grid">
-        <div class="gift-art" role="img" aria-label="순금 행운의 열쇠 그림">
-          <svg viewBox="0 0 200 200">
-            <g transform="rotate(-35 100 100)">
-              <circle cx="100" cy="52" r="30" fill="url(#gG)"/>
-              <circle cx="100" cy="52" r="13" fill="#1f1c16"/>
-              <circle cx="100" cy="52" r="24" fill="none" stroke="#7a5a17" stroke-width="1.2" opacity=".6"/>
-              <rect x="93" y="80" width="14" height="92" rx="3" fill="url(#gG2)"/>
-              <rect x="107" y="140" width="20" height="10" rx="2" fill="url(#gG2)"/>
-              <rect x="107" y="157" width="14" height="10" rx="2" fill="url(#gG2)"/>
-              <text x="100" y="118" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="9" fill="#5a4210" transform="rotate(90 100 118)">행운</text>
-            </g>
-          </svg>
-        </div>
-        <div>
-          <p class="eyebrow">Lucky Key</p>
-          <h2>행운의 열쇠</h2>
-          <p class="desc">“성공의 문을 여세요”라는 뜻을 담은 순금 열쇠예요. 개업·취업·이사·정년퇴임 선물로 많이 찾으시고, 액자나 케이스에 담아 오래 두고 볼 수 있어요.</p>
-          <ul class="gift-points"><li>순금 99.99%</li><li>문구·이름 각인</li><li>액자형 · 케이스형</li><li>보증서 동봉</li></ul>
-          <table class="gift-opts">
-            <caption>중량별 오늘 금값</caption>
-            <thead><tr><th scope="col">중량</th><th scope="col">오늘 금값</th></tr></thead>
-            <tbody>
-              <tr><td><b>1돈</b><small>3.75g</small></td><td class="price" data-w="3.75">-</td></tr>
-              <tr><td><b>2돈</b><small>7.5g</small></td><td class="price" data-w="7.5">-</td></tr>
-              <tr><td><b>3돈</b><small>11.25g</small></td><td class="price" data-w="11.25">-</td></tr>
-              <tr><td><b>5돈</b><small>18.75g</small></td><td class="price" data-w="18.75">-</td></tr>
-              <tr><td><b>10돈</b><small>37.5g</small></td><td class="price" data-w="37.5">-</td></tr>
-            </tbody>
-          </table>
-          <p class="gift-note">* 금값은 지금 순금 시세(부가세 포함)로 계산한 금액이에요. 액자·케이스와 각인 비용은 상담할 때 안내해 드려요.</p>
-          <div class="gift-cta"><a class="btn btn--dark" href="tel:010-5287-8002">전화 상담</a><a class="btn btn--line" href="sms:010-5287-8002?body=%5B%ED%96%89%EC%9A%B4%EC%9D%98%20%EC%97%B4%EC%87%A0%20%EB%AC%B8%EC%9D%98%5D%20">문자 문의</a></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 감사패 -->
-    <section class="gift-sec" id="plaque">
-      <div class="wrap gift-sec__grid">
-        <div class="gift-art" role="img" aria-label="순금 장식이 들어간 감사패 그림">
-          <svg viewBox="0 0 200 200">
-            <ellipse cx="100" cy="174" rx="60" ry="7" fill="#000" opacity=".35"/>
-            <rect x="46" y="26" width="108" height="144" rx="4" fill="url(#wood)" stroke="#2a190d" stroke-width="2"/>
-            <rect x="56" y="36" width="88" height="124" rx="2" fill="#efe6d2"/>
-            <circle cx="100" cy="66" r="18" fill="url(#gG)"/>
-            <circle cx="100" cy="66" r="13" fill="none" stroke="#7a5a17" stroke-width="1" opacity=".6"/>
-            <text x="100" y="71" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="13" font-weight="600" fill="#5a4210">感</text>
-            <text x="100" y="100" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="12" font-weight="600" fill="#3a2a10">감 사 패</text>
-            <rect x="68" y="110" width="64" height="2" fill="#c9b994"/><rect x="68" y="118" width="56" height="2" fill="#c9b994"/><rect x="68" y="126" width="60" height="2" fill="#c9b994"/>
-            <rect x="80" y="140" width="40" height="8" rx="1" fill="url(#gG2)"/>
-          </svg>
-        </div>
-        <div>
-          <p class="eyebrow">Gold Plaque</p>
-          <h2>감사패</h2>
-          <p class="desc">고마운 마음을 순금으로 전하는 감사패·공로패·재직기념패예요. 패에 순금 장식(메달·열쇠·골드바)을 붙이고 문구를 새겨, 받는 분께 의미와 가치를 함께 드려요.</p>
-          <ul class="gift-points"><li>순금 장식 99.99%</li><li>문안 작성 도움</li><li>원목 · 크리스탈 패</li><li>단체·기업 주문</li></ul>
-          <table class="gift-opts">
-            <caption>순금 장식 중량별 오늘 금값</caption>
-            <thead><tr><th scope="col">순금 장식</th><th scope="col">오늘 금값</th></tr></thead>
-            <tbody>
-              <tr><td><b>1돈</b><small>3.75g</small></td><td class="price" data-w="3.75">-</td></tr>
-              <tr><td><b>2돈</b><small>7.5g</small></td><td class="price" data-w="7.5">-</td></tr>
-              <tr><td><b>3돈</b><small>11.25g</small></td><td class="price" data-w="11.25">-</td></tr>
-              <tr><td><b>5돈</b><small>18.75g</small></td><td class="price" data-w="18.75">-</td></tr>
-              <tr><td><b>10돈</b><small>37.5g</small></td><td class="price" data-w="37.5">-</td></tr>
-            </tbody>
-          </table>
-          <p class="gift-note">* 금값은 순금 장식만의 금액이에요. 패 본체(원목·크리스탈)와 문안 각인 비용은 디자인에 따라 달라 상담할 때 안내해 드려요. 제작 기간은 보통 3~5영업일이에요.</p>
-          <div class="gift-cta"><a class="btn btn--dark" href="tel:010-5287-8002">전화 상담</a><a class="btn btn--line" href="sms:010-5287-8002?body=%5B%EA%B0%90%EC%82%AC%ED%8C%A8%20%EB%AC%B8%EC%9D%98%5D%20">문자 문의</a></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 주문 방법 -->
-    <section class="gift-howto" id="howto">
-      <div class="wrap">
-        <p class="eyebrow eyebrow--light">How to Order</p>
-        <h2>순금선물 주문 방법</h2>
+      <section class="gift-guide" aria-labelledby="guideTitle">
+        <h2 id="guideTitle">주문 안내</h2>
         <ol>
-          <li><span>01</span><strong>상담</strong><p>전화·문자로 원하는 상품, 중량, 문구를 알려 주세요.</p></li>
-          <li><span>02</span><strong>금액 확정</strong><p>그날 순금 시세에 제작비를 더해 최종 금액을 안내해 드려요.</p></li>
-          <li><span>03</span><strong>입금 · 제작</strong><p>입금이 확인되면 각인과 포장을 시작해요.</p></li>
-          <li><span>04</span><strong>수령</strong><p>종로 매장에서 받거나 보험 등기 택배로 받으세요.</p></li>
+          <li><b>01 상담</b><span>전화·문자로 상품과 각인 문구를 알려 주세요.</span></li>
+          <li><b>02 금액 확정</b><span>주문하는 날 시세로 금액을 확정해 안내해 드려요.</span></li>
+          <li><b>03 입금 · 제작</b><span>입금이 확인되면 각인·포장을 시작해요.</span></li>
+          <li><b>04 수령</b><span>종로 매장 방문 또는 보험 등기 택배로 받으세요.</span></li>
         </ol>
-        <div class="gift-cta"><a class="btn btn--gold" href="tel:010-5287-8002">010-5287-8002 전화하기</a><a class="btn btn--ghost" href="./#store">매장 위치 보기</a></div>
-      </div>
-    </section>
+        <p class="gift-note">* 판매가는 금 시세에 따라 매일 바뀌어요. 모든 상품에 보증서가 함께 나가요. 문의 010-5287-8002 (평일 10:00–19:00)</p>
+      </section>
+    </div>
   </main>
+
+  <!-- 상품 상세 · 상담 -->
+  <div class="modal" id="giftModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__box modal__box--wide gm" role="dialog" aria-modal="true" aria-labelledby="giftModalTitle">
+      <button class="modal__x" data-close aria-label="닫기">×</button>
+      <div class="gm__body" id="giftModalBody"></div>
+    </div>
+  </div>
 
   <footer class="legal-foot">
     <div class="wrap">상호 금비 · 대표 김신애 · 사업자등록번호 101-12-25419 · 통신판매업신고 제2021-서울종로-1219호<br>서울특별시 종로구 율곡로10길 105 디아망 빌딩 2층 · 고객센터 010-5287-8002 · 평일 10:00–19:00</div>
@@ -217,7 +135,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261103h"></script>
-  <script src="gift.js?v=20261103h"></script>
+  <script src="common.js?v=20261103i"></script>
+  <script src="gift.js?v=20261103i"></script>
 </body>
 </html>
