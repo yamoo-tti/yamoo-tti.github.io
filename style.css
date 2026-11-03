@@ -44,7 +44,7 @@ ul, ol { padding: 0; list-style: none; }
 .header { position: sticky; top: 0; z-index: 50; background: rgba(251, 249, 245, .92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
 .header__inner { display: flex; align-items: center; gap: 48px; height: 72px; }
 .logo { display: flex; align-items: center; gap: 10px; }
-.logo__mark { width: 34px; height: 28px; }
+.logo__mark { width: 32px; height: 32px; flex: none; }
 .logo span { font-family: var(--serif-en); font-weight: 600; font-size: 25px; letter-spacing: .14em; line-height: 1; }
 .logo em { font-style: normal; color: var(--gold-2); margin-left: .28em; }
 .nav { display: flex; gap: 36px; flex: 1; }
@@ -372,7 +372,7 @@ ul, ol { padding: 0; list-style: none; }
   .mobile-nav { display: flex; }
   .header__inner { height: 60px; gap: 8px; }
   .logo span { font-size: 21px; }
-  .logo__mark { width: 28px; height: 24px; }
+  .logo__mark { width: 28px; height: 28px; }
   .bars { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .products { grid-template-columns: repeat(2, 1fr); gap: 24px 12px; }
   .editorial { grid-template-columns: 1fr; }
