@@ -90,9 +90,16 @@
   };
 
   // 주문·매입 진행 단계 (홈페이지 조회 + 관리자 공용)
-  const ORDER_STATUS = { new: "접수", confirmed: "금액 확정·입금 대기", paid: "입금 확인", ready: "수령 준비 완료", done: "완료", canceled: "취소" };
+  const ORDER_STATUS = { new: "접수", confirmed: "금액 확정·입금 대기", paid: "입금 확인", ready: "수령 준비·발송", done: "완료", canceled: "취소" };
   const SELL_STATUS = { new: "접수", scheduled: "일정 확정", received: "입고·감정", done: "지급 완료", canceled: "취소" };
   const fmtPhone = p => String(p || "").replace(/^(02|0\d{2})(\d{3,4})(\d{4})$/, "$1-$2-$3");
+  const fmtBiz = n => String(n || "").replace(/^(\d{3})(\d{2})(\d{5})$/, "$1-$2-$3");
 
-  window.YAMOO = { sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, esc, won, fmtDate };
+  // 현금영수증 · 계산서 종류
+  const RECEIPT = { personal: "현금영수증 (소득공제)", business: "현금영수증 (지출증빙)", invoice: "세금계산서", none: "미신청" };
+  // 택배 배송 조회 (택배사 + 송장번호로 네이버 배송 조회)
+  const COURIERS = ["우체국택배", "CJ대한통운", "한진택배", "롯데택배", "로젠택배", "경동택배"];
+  const trackUrl = (courier, no) => "https://search.naver.com/search.naver?query=" + encodeURIComponent(`${courier || ""} ${no}`.trim());
+
+  window.YAMOO = { sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate };
 })();
