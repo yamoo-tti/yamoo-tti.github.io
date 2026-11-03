@@ -216,6 +216,7 @@ function barCard(b) {
           <p class="bar__spec">${barSpec(b)}</p>
           <p class="bar__price">${won(price)}</p>
           <p class="bar__unit">1g당 ${won(price / w)} · 실시간 시세 연동</p>
+          <button type="button" class="info-link" data-info="${orderKey(b)}">상품정보 제공고시</button>
           <div class="bar__btns">
             <button class="cart-btn" ${cartAttr(b)} ${b.sold_out ? "disabled" : ""}>장바구니</button>
             <button class="buy-btn" ${orderAttr(b)} ${b.sold_out ? "disabled" : ""}>${b.sold_out ? "품절" : "바로 구매"}</button>
@@ -270,6 +271,7 @@ function renderProducts(filter = "all") {
           <p class="product__spec"><span class="karat">${esc(p.karat)}</span><span>·</span><span>${Number(p.weight_g)}g</span></p>
           <h3 class="product__name">${esc(p.name)}</h3>
           <p class="product__price">${won(price)}<span class="product__labor">공임 ${won(p.labor)} 포함</span></p>
+          <button type="button" class="info-link" data-info="${orderKey(p)}">상품정보 제공고시</button>
         </div>
       </article>`;
   }).join("") || `<p class="products__empty">준비 중인 상품입니다.</p>`;
@@ -291,6 +293,18 @@ function toast(msg) {
 }
 window.toast = toast;
 document.addEventListener("click", e => {
+  const inf = e.target.closest("[data-info]");
+  if (inf) {
+    const key = inf.dataset.info;
+    const p = key.startsWith("idx:") ? state.products[+key.slice(4)] : window.SHOP.find(key);
+    if (p && window.openInfo) window.openInfo(p);
+    return;
+  }
+  if (e.target.closest("#zodiacInfo")) {
+    const z = ofKind("zodiac")[0];
+    if (z && window.openInfo) window.openInfo({ ...z, name: "GBK 십이지신 카드형 골드바 1g" });
+    return;
+  }
   const ord = e.target.closest("[data-order]");
   if (ord) {
     const key = ord.dataset.order;
