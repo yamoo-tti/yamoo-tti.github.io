@@ -727,3 +727,5 @@ ul, ol { padding: 0; list-style: none; }
 .wchips__label { white-space: nowrap; flex: none; }
 @media (max-width: 720px) { .wchips { gap: 6px 5px; } .wchip { height: 30px; padding: 0 11px; font-size: 12px; } .psort { order: 10; width: 100%; margin: 4px 0 0; } }
 .psort { margin-left: auto; height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 2px; background: #fff; font-size: 13px; color: var(--ink); flex: none; }
+
+#materialChips { margin-bottom: 10px; }

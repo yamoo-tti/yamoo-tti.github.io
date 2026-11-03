@@ -245,7 +245,8 @@ function renderBars() {
 }
 
 /* ---------- 악세사리 ---------- */
-let currentFilter = "all", shown = 12, currentWeight = "all", currentSort = "pop";
+let currentFilter = "all", shown = 12, currentWeight = "all", currentSort = "pop", currentMaterial = "all";
+const isMat = p => currentMaterial === "all" || (currentMaterial === "SV" ? p.karat === "SV" : p.karat !== "SV");
 const PAGE = 12;
 // 중량 구간 (돈): 아래쪽 포함 — 예) 3돈은 '3~5돈', 10돈은 '10돈 이상'
 const W_RANGE = { "0-3": [0, 3], "3-5": [3, 5], "5-10": [5, 10], "10-": [10, Infinity] };
@@ -256,21 +257,25 @@ function sortList(list) {
   const f = { low: (a, b) => price(a) - price(b), high: (a, b) => price(b) - price(a), light: (a, b) => w(a) - w(b) || price(a) - price(b), heavy: (a, b) => w(b) - w(a) || price(b) - price(a) }[currentSort];
   return f ? list.slice().sort(f) : list;
 }
-const karatLabel = k => k === "SV" ? "실버 925" : k === "24K" ? "순금 24K" : k;
+const karatLabel = k => k === "SV" ? "실버" : k === "24K" ? "순금 24K" : k;
 function renderProducts(filter = "all") {
   if (!state.domestic) return;
   if (filter !== currentFilter) shown = PAGE;
   currentFilter = filter;
   // 분류에 맞춰 중량 버튼마다 개수 표시
-  const byCat = ofKind("accessory").filter(p => filter === "all" || p.category === filter);
+  document.querySelectorAll("#materialChips .mchip").forEach(b => {
+    const m = b.dataset.m, n = ofKind("accessory").filter(p => (filter === "all" || p.category === filter) && (m === "all" || (m === "SV" ? p.karat === "SV" : p.karat !== "SV"))).length;
+    b.dataset.label = b.dataset.label || b.textContent.trim(); b.innerHTML = `${b.dataset.label}<span>${n}</span>`;
+  });
+  const byCat = ofKind("accessory").filter(p => (filter === "all" || p.category === filter) && isMat(p));
   document.querySelectorAll("#weightChips .wchip").forEach(b => {
     const n = b.dataset.w === "all" ? byCat.length : byCat.filter(p => inRange(p, b.dataset.w)).length;
-    b.innerHTML = `${b.textContent.replace(/\s*\d+$/, "")}<span>${n}</span>`;
+    b.dataset.label = b.dataset.label || b.textContent.trim(); b.innerHTML = `${b.dataset.label}<span>${n}</span>`;
   });
   const ranked = window.YAMOO.rankProducts(ofKind("accessory"), state.stats);
   const all = ranked.list;
   const tagOf = p => p.tag || (ranked.best.has(p.id) ? "BEST" : "");
-  const full = sortList(all.filter(p => (filter === "all" || p.category === filter) && inRange(p, currentWeight)));
+  const full = sortList(all.filter(p => (filter === "all" || p.category === filter) && isMat(p) && inRange(p, currentWeight)));
   const list = full.slice(0, shown);
   const more = $("#productsMore");
   if (more) {
@@ -304,6 +309,12 @@ const wchips = document.querySelectorAll("#weightChips .wchip");
 wchips.forEach(c => c.addEventListener("click", () => {
   wchips.forEach(x => { const on = x === c; x.classList.toggle("is-active", on); x.setAttribute("aria-selected", on); });
   currentWeight = c.dataset.w; shown = PAGE;
+  renderProducts(currentFilter);
+}));
+const mchips = document.querySelectorAll("#materialChips .mchip");
+mchips.forEach(c => c.addEventListener("click", () => {
+  mchips.forEach(x => { const on = x === c; x.classList.toggle("is-active", on); x.setAttribute("aria-selected", on); });
+  currentMaterial = c.dataset.m; shown = PAGE;
   renderProducts(currentFilter);
 }));
 const sortSel = $("#productSort");
