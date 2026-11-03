@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 260 260"><defs><linearGradient id="gG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e2a6"/><stop offset=".45" stop-color="#d4ad57"/><stop offset="1" stop-color="#94701f"/></linearGradient><linearGradient id="gG2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#8a6719"/><stop offset=".5" stop-color="#e3c375"/><stop offset="1" stop-color="#b38a33"/></linearGradient><linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a3a22"/><stop offset="1" stop-color="#3a2414"/></linearGradient></defs><rect x="-30" y="-30" width="260" height="260" fill="#f3efe7"/>
+        <ellipse cx="100" cy="174" rx="60" ry="7" fill="#000" opacity=".25"/>
+        <rect x="46" y="26" width="108" height="144" rx="4" fill="url(#wood)" stroke="#2a190d" stroke-width="2"/>
+        <rect x="56" y="36" width="88" height="124" rx="2" fill="#efe6d2"/>
+        <circle cx="100" cy="66" r="18" fill="url(#gG)"/>
+        <text x="100" y="71" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="13" font-weight="600" fill="#5a4210">感</text>
+        <text x="100" y="100" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="12" font-weight="600" fill="#3a2a10">감 사 패</text>
+        <rect x="68" y="110" width="64" height="2" fill="#c9b994"/><rect x="68" y="118" width="56" height="2" fill="#c9b994"/><rect x="68" y="126" width="60" height="2" fill="#c9b994"/>
+        <rect x="80" y="140" width="40" height="8" rx="1" fill="url(#gG2)"/>
+      </svg>
