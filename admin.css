@@ -260,3 +260,8 @@ fieldset.box .row2 { align-items: end; }
 .pinfo-edit legend small { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; }
 .pinfo-edit input::placeholder, .pinfo-edit textarea::placeholder { color: #b3ab9e; }
 .row2 > label > input, .row2 > label > select { width: 100%; }
+
+/* 상품 관리 소분류 탭 */
+.tabs .ptabs-sep { align-self: center; color: var(--muted); margin: 0 2px 0 6px; }
+.tabs button.sub { height: 30px; font-size: 12px; background: var(--tint, #f4efe6); }
+.tabs button.sub.is-on { background: var(--gold-2, #9c7629); border-color: var(--gold-2, #9c7629); }
