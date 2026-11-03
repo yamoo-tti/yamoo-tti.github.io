@@ -255,3 +255,8 @@ fieldset.box .row2 { align-items: end; }
 .range-btns .btn { height: 36px; padding: 0 12px; font-size: 13px; }
 #salesForm input[type=date] { width: auto; }
 #salesForm { align-items: center; }
+/* 상품정보 제공고시 입력 */
+.pinfo-edit label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.pinfo-edit legend small { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; }
+.pinfo-edit input::placeholder, .pinfo-edit textarea::placeholder { color: #b3ab9e; }
+.row2 > label > input, .row2 > label > select { width: 100%; }
