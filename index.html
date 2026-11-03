@@ -23,7 +23,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261103c">
+  <link rel="stylesheet" href="style.css?v=20261103d">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -134,8 +134,6 @@
           <p class="price__time"><span class="live-dot" id="liveDot"></span>실시간 <strong id="priceTime">불러오는 중…</strong> <button class="refresh" id="refreshBtn" aria-label="시세 새로고침">↻</button></p>
         </div>
 
-        <div class="intl" id="intl" aria-label="국제 시세"></div>
-
         <div class="price__grid">
           <div class="card price__table-card">
             <table class="price-table">
@@ -145,7 +143,7 @@
               </thead>
               <tbody id="priceBody"></tbody>
             </table>
-            <p class="note">* 국제 시세를 실시간 원/달러 환율로 1돈(3.75g) 환산해 1분마다 자동 갱신합니다. 살 때 가격과 국제 시세는 부가세(10%) 포함 금액입니다. 18K·14K 구매가는 제품별 시세가 적용되며, 팔 때 시세는 제품 상태·성분 분석 결과에 따라 달라질 수 있습니다.</p>
+            <p class="note">* 시세는 1분마다 자동 갱신됩니다. 살 때 가격은 부가세(10%) 포함 금액입니다. 18K·14K 구매가는 제품별 시세가 적용되며, 팔 때 시세는 제품 상태·성분 분석 결과에 따라 달라질 수 있습니다.</p>
           </div>
 
           <div class="card chart-card">
@@ -157,9 +155,7 @@
               <div class="seg" role="tablist" aria-label="종목">
                 <button class="is-on" data-symbol="OANDA:XAUUSD" data-title="금 XAU/USD" role="tab" aria-selected="true">금</button>
                 <button data-symbol="OANDA:XAGUSD" data-title="은 XAG/USD" role="tab" aria-selected="false">은</button>
-                <button data-symbol="OANDA:XPTUSD" data-title="백금 XPT/USD" role="tab" aria-selected="false">백금</button>
-                <button data-symbol="FX_IDC:USDKRW" data-title="원/달러 USD/KRW" role="tab" aria-selected="false">환율</button>
-              </div>
+                <button data-symbol="OANDA:XPTUSD" data-title="백금 XPT/USD" role="tab" aria-selected="false">백금</button>              </div>
             </div>
             <div class="tv-chart" id="tvChart"></div>
           </div>
@@ -514,9 +510,9 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261103c"></script>
-  <script src="script.js?v=20261103c"></script>
-  <script src="auth.js?v=20261103c"></script>
-  <script src="shop.js?v=20261103c"></script>
+  <script src="common.js?v=20261103d"></script>
+  <script src="script.js?v=20261103d"></script>
+  <script src="auth.js?v=20261103d"></script>
+  <script src="shop.js?v=20261103d"></script>
 </body>
 </html>
