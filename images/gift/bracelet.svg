@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 260 260"><defs><linearGradient id="gG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e2a6"/><stop offset=".45" stop-color="#d4ad57"/><stop offset="1" stop-color="#94701f"/></linearGradient><linearGradient id="gG2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#8a6719"/><stop offset=".5" stop-color="#e3c375"/><stop offset="1" stop-color="#b38a33"/></linearGradient><linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a3a22"/><stop offset="1" stop-color="#3a2414"/></linearGradient></defs><rect x="-30" y="-30" width="260" height="260" fill="#f3efe7"/>
+        <ellipse cx="100" cy="164" rx="62" ry="8" fill="#000" opacity=".25"/>
+        <ellipse cx="100" cy="104" rx="62" ry="40" fill="none" stroke="url(#gG)" stroke-width="8" stroke-dasharray="10 3"/>
+        <ellipse cx="100" cy="104" rx="62" ry="40" fill="none" stroke="#7a5a17" stroke-width="1" opacity=".35"/>
+        <rect x="86" y="132" width="28" height="16" rx="4" fill="url(#gG2)" stroke="#f6e2a6" stroke-width="1"/>
+        <text x="100" y="144" text-anchor="middle" font-family="Noto Serif KR, serif" font-size="10" font-weight="600" fill="#5a4210">福</text>
+      </svg>
