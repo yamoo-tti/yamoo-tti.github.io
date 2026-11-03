@@ -7,8 +7,11 @@
   const GRADE = { basic: "일반", silver: "실버", gold: "골드", vip: "VIP" };
   const STATUS = { active: "정상", suspended: "정지", withdrawn: "탈퇴" };
   const ROLE = { member: "회원", admin: "관리자" };
-  const KIND = { bar: "골드바", zodiac: "카드형 1g", silver: "실버", accessory: "악세사리" };
-  const CATEGORY = { necklace: "목걸이", ring: "반지", bracelet: "팔찌", earring: "귀걸이" };
+  const KIND = { bar: "골드바", zodiac: "카드형 1g", silver: "실버", accessory: "악세사리", gift: "순금선물" };
+  const CATEGORY = { necklace: "목걸이", ring: "반지", bracelet: "팔찌", earring: "귀걸이", goods: "순금 기념품", dol: "돌선물", key: "행운의 열쇠", memo: "기념 골드바" };
+  const CAT_OF = { accessory: ["necklace", "ring", "bracelet", "earring"], gift: ["goods", "dol", "key", "memo"] };
+  const KARAT_KO = { "24K": "순금 24K", "18K": "18K", "14K": "14K", SV: "실버 925" };
+  const hasLabor = k => k === "accessory" || k === "gift";
   const NCAT = { notice: "공지", event: "이벤트", market: "시황" };
   const RECEIVE = { visit: "매장 방문", delivery: "택배" };
   const KARAT = { "24K": "순금 24K", "18K": "18K", "14K": "14K", unknown: "모름" };
@@ -536,8 +539,8 @@
         <td><img class="thumb" src="${esc(imgUrl(p.img))}" alt=""></td>
         <td><b>${esc(p.name)}</b>${p.tag ? ` <span class="pill g-gold">${esc(p.tag)}</span>` : ""}</td>
         <td>${KIND[p.kind]}${p.category ? " · " + CATEGORY[p.category] : ""}</td>
-        <td>${Number(p.weight_g)}g · ${p.kind === "silver" ? "은 999.9" : p.karat}</td>
-        <td>${p.kind === "accessory" ? "공임 " + won(p.labor) : "+" + Number(p.premium_pct) + "%"}</td>
+        <td>${Number(p.weight_g)}g · ${p.kind === "silver" ? "은 999.9" : KARAT_KO[p.karat] || p.karat}</td>
+        <td>${hasLabor(p.kind) ? "공임 " + won(p.labor) : "+" + Number(p.premium_pct) + "%"}</td>
         <td>${p._price ? won(p._price) : "-"}</td>
         <td><button class="switch ${p.visible ? "is-on" : ""}" data-toggle="${p.id}:visible" aria-label="노출">${p.visible ? "노출" : "숨김"}</button></td>
         <td><button class="switch switch--warn ${p.sold_out ? "is-on" : ""}" data-toggle="${p.id}:sold_out" aria-label="품절">${p.sold_out ? "품절" : "판매중"}</button></td>
@@ -552,16 +555,16 @@
       <div class="pimg"><img id="pimgPreview" src="${esc(imgUrl(p.img))}" alt=""></div>
       <div class="row2">
         <label>종류<select name="kind">${opts(KIND, p.kind)}</select></label>
-        <label data-for="accessory">분류<select name="category"><option value="">-</option>${opts(CATEGORY, p.category)}</select></label>
+        <label data-for="accessory gift">분류<select name="category"><option value="">-</option>${opts(CATEGORY, p.category)}</select></label>
       </div>
       <label>상품명<input name="name" maxlength="80" required value="${esc(p.name)}" placeholder="예) GBK 순금 골드바 5g"></label>
       <div class="row2">
         <label>중량 (g)<input type="number" name="weight_g" min="0.001" step="0.001" required value="${p.weight_g}"></label>
-        <label data-for="bar zodiac accessory">함량<select name="karat">${opts({ "24K": "24K", "18K": "18K", "14K": "14K" }, p.karat)}</select></label>
+        <label data-for="bar zodiac accessory gift">함량<select name="karat">${opts(KARAT_KO, p.karat)}</select></label>
       </div>
       <div class="row2">
         <label data-for="bar zodiac silver">프리미엄 (%) <small>살 때 시세(금·은) 대비</small><input type="number" name="premium_pct" step="any" value="${p.premium_pct}"></label>
-        <label data-for="accessory">공임 (원)<input type="number" name="labor" min="0" step="1000" value="${p.labor}"></label>
+        <label data-for="accessory gift">공임 (원) <small>손님 화면엔 안 보여요</small><input type="number" name="labor" min="0" step="1000" value="${p.labor}"></label>
         <label>예상 판매가<output id="pricePreview" class="price-out">-</output></label>
       </div>
       <label>이미지 <small>목록에서 고르거나 이미지 주소(https://…) 입력</small><input name="img" list="imgList" value="${esc(p.img || "")}"><datalist id="imgList">${IMAGES.map(i => `<option value="${i}">`).join("")}</datalist></label>
@@ -583,6 +586,8 @@
         const sync = async () => {
           const k = f.kind.value;
           f.querySelectorAll("[data-for]").forEach(el => { el.hidden = !el.dataset.for.split(" ").includes(k); });
+          [...f.category.options].forEach(o => { o.hidden = !!o.value && !(CAT_OF[k] || []).includes(o.value); });
+          if (f.category.value && !(CAT_OF[k] || []).includes(f.category.value)) f.category.value = "";
           $("#pimgPreview").src = imgUrl(f.img.value.trim());
           const dflt = infoDefaults({ kind: k, weight_g: Number(f.weight_g.value) || 0, karat: f.karat.value });
           Object.keys(INFO_FIELDS).forEach(key => { f["info_" + key].placeholder = dflt[key]; });
@@ -598,9 +603,9 @@
       save: async f => {
         const row = {
           kind: f.kind.value, name: f.name.value.trim(), weight_g: Number(f.weight_g.value), karat: f.karat.value,
-          category: f.kind.value === "accessory" ? (f.category.value || null) : null,
-          premium_pct: f.kind.value === "accessory" ? 0 : Number(f.premium_pct.value) || 0,
-          labor: f.kind.value === "accessory" ? Number(f.labor.value) || 0 : 0,
+          category: hasLabor(f.kind.value) ? (f.category.value || null) : null,
+          premium_pct: hasLabor(f.kind.value) ? 0 : Number(f.premium_pct.value) || 0,
+          labor: hasLabor(f.kind.value) ? Number(f.labor.value) || 0 : 0,
           img: f.img.value.trim() || null, tag: f.tag.value.trim() || null, sort: parseInt(f.sort.value, 10) || 0,
           visible: f.visible.checked, sold_out: f.sold_out.checked,
           info: Object.fromEntries(Object.keys(INFO_FIELDS).map(k => [k, f["info_" + k].value.trim()]).filter(([, v]) => v)),
