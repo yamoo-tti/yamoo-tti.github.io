@@ -705,3 +705,13 @@ ul, ol { padding: 0; list-style: none; }
 /* 악세사리 더보기 */
 .products__more { margin-top: 36px; text-align: center; }
 .products__more .btn { min-width: 240px; }
+
+/* 상품 사진 크게 보기 */
+.product__img img, .bar__img img, .zcard__img img, .gcard__img img { cursor: zoom-in; }
+.lightbox { position: fixed; inset: 0; z-index: 200; background: rgba(12, 11, 9, .9); display: grid; place-items: center; padding: 56px 16px 24px; cursor: zoom-out; animation: lbIn .2s ease; }
+.lightbox[hidden] { display: none; }
+.lightbox__fig { margin: 0; display: grid; justify-items: center; gap: 14px; max-width: 100%; }
+.lightbox__fig img { max-width: min(92vw, 900px); max-height: calc(100vh - 140px); width: auto; height: auto; object-fit: contain; border-radius: 4px; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.lightbox__fig figcaption { color: #eee6d6; font-size: 15px; text-align: center; max-width: 90vw; }
+.lightbox__x { position: absolute; top: 12px; right: 16px; width: 44px; height: 44px; font-size: 34px; line-height: 1; color: #fff; background: none; border: 0; cursor: pointer; }
+@keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
