@@ -716,3 +716,14 @@ ul, ol { padding: 0; list-style: none; }
 .lightbox__x { position: absolute; top: 12px; right: 16px; width: 44px; height: 44px; font-size: 34px; line-height: 1; color: #fff; background: none; border: 0; cursor: pointer; }
 @keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
 .mkt-note { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* 악세사리 중량 필터 */
+.wchips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -8px 0 24px; }
+.wchips__label { font-size: 13px; color: var(--muted); margin-right: 4px; }
+.wchip { height: 32px; padding: 0 14px; border: 1px solid var(--line); border-radius: 16px; font-size: 13px; color: var(--ink-2); background: #fff; transition: all .2s; }
+.wchip:hover { border-color: var(--gold); color: var(--gold-2); }
+.wchip.is-active { background: var(--gold-2); border-color: var(--gold-2); color: #fff; }
+.wchip span { margin-left: 3px; font-size: 11px; opacity: .7; }
+.wchips__label { white-space: nowrap; flex: none; }
+@media (max-width: 720px) { .wchips { gap: 6px 5px; } .wchip { height: 30px; padding: 0 11px; font-size: 12px; } .psort { order: 10; width: 100%; margin: 4px 0 0; } }
+.psort { margin-left: auto; height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 2px; background: #fff; font-size: 13px; color: var(--ink); flex: none; }

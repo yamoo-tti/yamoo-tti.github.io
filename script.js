@@ -245,17 +245,32 @@ function renderBars() {
 }
 
 /* ---------- 악세사리 ---------- */
-let currentFilter = "all", shown = 12;
+let currentFilter = "all", shown = 12, currentWeight = "all", currentSort = "pop";
 const PAGE = 12;
+// 중량 구간 (돈): 아래쪽 포함 — 예) 3돈은 '3~5돈', 10돈은 '10돈 이상'
+const W_RANGE = { "0-3": [0, 3], "3-5": [3, 5], "5-10": [5, 10], "10-": [10, Infinity] };
+const inRange = (p, key) => { const r = W_RANGE[key]; if (!r) return true; const d = Number(p.weight_g) / DON; return d >= r[0] - 1e-9 && d < r[1] - 1e-9; };
+function sortList(list) {
+  if (currentSort === "pop") return list;
+  const price = p => priceOf(p) || 0, w = p => Number(p.weight_g) || 0;
+  const f = { low: (a, b) => price(a) - price(b), high: (a, b) => price(b) - price(a), light: (a, b) => w(a) - w(b) || price(a) - price(b), heavy: (a, b) => w(b) - w(a) || price(b) - price(a) }[currentSort];
+  return f ? list.slice().sort(f) : list;
+}
 const karatLabel = k => k === "SV" ? "실버 925" : k === "24K" ? "순금 24K" : k;
 function renderProducts(filter = "all") {
   if (!state.domestic) return;
   if (filter !== currentFilter) shown = PAGE;
   currentFilter = filter;
+  // 분류에 맞춰 중량 버튼마다 개수 표시
+  const byCat = ofKind("accessory").filter(p => filter === "all" || p.category === filter);
+  document.querySelectorAll("#weightChips .wchip").forEach(b => {
+    const n = b.dataset.w === "all" ? byCat.length : byCat.filter(p => inRange(p, b.dataset.w)).length;
+    b.innerHTML = `${b.textContent.replace(/\s*\d+$/, "")}<span>${n}</span>`;
+  });
   const ranked = window.YAMOO.rankProducts(ofKind("accessory"), state.stats);
   const all = ranked.list;
   const tagOf = p => p.tag || (ranked.best.has(p.id) ? "BEST" : "");
-  const full = filter === "all" ? all : all.filter(p => p.category === filter);
+  const full = sortList(all.filter(p => (filter === "all" || p.category === filter) && inRange(p, currentWeight)));
   const list = full.slice(0, shown);
   const more = $("#productsMore");
   if (more) {
@@ -285,6 +300,14 @@ chips.forEach(c => c.addEventListener("click", () => {
   chips.forEach(x => { const on = x === c; x.classList.toggle("is-active", on); x.setAttribute("aria-selected", on); });
   renderProducts(c.dataset.filter);
 }));
+const wchips = document.querySelectorAll("#weightChips .wchip");
+wchips.forEach(c => c.addEventListener("click", () => {
+  wchips.forEach(x => { const on = x === c; x.classList.toggle("is-active", on); x.setAttribute("aria-selected", on); });
+  currentWeight = c.dataset.w; shown = PAGE;
+  renderProducts(currentFilter);
+}));
+const sortSel = $("#productSort");
+if (sortSel) sortSel.addEventListener("change", () => { currentSort = sortSel.value; shown = PAGE; renderProducts(currentFilter); });
 const moreBtn = $("#productsMore");
 if (moreBtn) moreBtn.addEventListener("click", () => { shown += PAGE; renderProducts(currentFilter); });
 
