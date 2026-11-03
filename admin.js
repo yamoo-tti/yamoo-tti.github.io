@@ -556,7 +556,7 @@
       </div>
       <label>상품명<input name="name" maxlength="80" required value="${esc(p.name)}" placeholder="예) GBK 순금 골드바 5g"></label>
       <div class="row2">
-        <label>중량 (g)<input type="number" name="weight_g" min="0.01" step="0.01" required value="${p.weight_g}"></label>
+        <label>중량 (g)<input type="number" name="weight_g" min="0.001" step="0.001" required value="${p.weight_g}"></label>
         <label data-for="bar zodiac accessory">함량<select name="karat">${opts({ "24K": "24K", "18K": "18K", "14K": "14K" }, p.karat)}</select></label>
       </div>
       <div class="row2">
