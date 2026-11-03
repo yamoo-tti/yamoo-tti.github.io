@@ -12,7 +12,7 @@
     setTimeout(() => { const f = el.querySelector("input:not([type=hidden]):not([type=radio]):not([type=checkbox]), select"); f && f.focus(); }, 30);
   }
   function closeModal(el) { el.hidden = true; document.body.style.overflow = ""; }
-  ["#orderModal", "#sellModal", "#lookupModal", "#noticeModal", "#cartModal"].forEach(id => {
+  ["#orderModal", "#sellModal", "#lookupModal", "#noticeModal", "#cartModal", "#infoModal"].forEach(id => {
     const el = $(id);
     el.addEventListener("click", e => { if (e.target.closest("[data-close]")) closeModal(el); });
   });
@@ -105,6 +105,15 @@
       <button class="btn btn--dark" type="button" data-close>확인</button>`;
   }
 
+  /* ---------- 상품정보 제공고시 ---------- */
+  const infoTable = p => `<table class="pinfo__tbl"><tbody>${window.YAMOO.productInfo(p)
+    .map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join("")}</tbody></table>`;
+  window.openInfo = function (p) {
+    $("#infoTitle").textContent = p.name;
+    $("#infoBody").innerHTML = infoTable(p);
+    openModal($("#infoModal"));
+  };
+
   /* ---------- 구매 신청 ---------- */
   const orderModal = $("#orderModal"), orderForm = $("#orderForm");
   const syncReceive = bindWhen(orderForm, "receive");
@@ -128,6 +137,8 @@
     $("#orderItem").innerHTML = `
       <img src="${esc(/^https?:/.test(p.img || "") ? p.img : "images/" + (p.img || "bar-close.jpg"))}" alt="">
       <div><b>${esc(name)}</b><span>${unit ? won(unit) + " / 개 · 현재 시세 기준" : "가격 매장 문의"}</span></div>`;
+    $("#orderInfo").open = false;
+    $("#orderInfoBody").innerHTML = infoTable(p);
     orderForm.reset();
     syncReceive();
     syncOrderReceipt();
