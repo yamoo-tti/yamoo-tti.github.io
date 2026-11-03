@@ -215,7 +215,7 @@ function barCard(b) {
           <h3 class="bar__name">${esc(b.name)}</h3>
           <p class="bar__spec">${barSpec(b)}</p>
           <p class="bar__price">${won(price)}</p>
-          <p class="bar__unit">1g당 ${won(price / w)} · 실시간 시세 연동</p>
+          <p class="bar__unit">실시간 시세 연동</p>
           <button type="button" class="info-link" data-info="${orderKey(b)}">상품정보 제공고시</button>
           <div class="bar__btns">
             <button class="cart-btn" ${cartAttr(b)} ${b.sold_out ? "disabled" : ""}>장바구니</button>
