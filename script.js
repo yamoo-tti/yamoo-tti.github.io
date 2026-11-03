@@ -24,14 +24,6 @@ const FALLBACK_PRODUCTS = [
   P("silver", "실버바 500g", 500, "silver/bar-500g.jpg", { premium_pct: 3, tag: "BEST" }),
   P("silver", "은 그래뉼 100g", 100, "silver/granule-100g.jpg", { premium_pct: 6 }),
   P("silver", "은 그래뉼 1kg", 1000, "silver/granule-1kg.jpg", { premium_pct: 3 }),
-  P("accessory", "오벌 링 펜던트 목걸이", 3.2, "necklace-oval.jpg", { karat: "14K", category: "necklace", labor: 89000, tag: "NEW" }),
-  P("accessory", "웨이브 볼드 링", 5.1, "ring-mirror.jpg", { karat: "18K", category: "ring", labor: 120000, tag: "BEST" }),
-  P("accessory", "앵커 체인 팔찌", 6.8, "bracelet-chain.jpg", { karat: "14K", category: "bracelet", labor: 98000 }),
-  P("accessory", "트위스트 후프 귀걸이", 2.4, "earring-hoop.jpg", { karat: "14K", category: "earring", labor: 69000, tag: "BEST" }),
-  P("accessory", "바 펜던트 목걸이", 2.9, "pendant.jpg", { karat: "18K", category: "necklace", labor: 95000 }),
-  P("accessory", "미니 큐빅 반지 3종", 1.6, "ring-box.jpg", { karat: "14K", category: "ring", labor: 59000 }),
-  P("accessory", "참 체인 팔찌", 1.9, "bracelet-charm.jpg", { karat: "14K", category: "bracelet", labor: 64000, tag: "NEW" }),
-  P("accessory", "스네이크 체인 목걸이", 4.3, "necklace-blazer.jpg", { karat: "18K", category: "necklace", labor: 85000 }),
 ];
 
 const $ = s => document.querySelector(s);
@@ -252,25 +244,34 @@ function renderBars() {
 }
 
 /* ---------- 악세사리 ---------- */
-let currentFilter = "all";
+let currentFilter = "all", shown = 12;
+const PAGE = 12;
+const karatLabel = k => k === "SV" ? "실버 925" : k === "24K" ? "순금 24K" : k;
 function renderProducts(filter = "all") {
   if (!state.domestic) return;
+  if (filter !== currentFilter) shown = PAGE;
   currentFilter = filter;
   const all = ofKind("accessory");
-  const list = filter === "all" ? all : all.filter(p => p.category === filter);
+  const full = filter === "all" ? all : all.filter(p => p.category === filter);
+  const list = full.slice(0, shown);
+  const more = $("#productsMore");
+  if (more) {
+    more.hidden = full.length <= shown;
+    more.textContent = `더보기 (${full.length - list.length}개 더 있어요)`;
+  }
   $("#products").innerHTML = list.map((p, i) => {
     const price = priceOf(p);
     return `
-      <article class="product${p.sold_out ? " is-soldout" : ""}" style="animation-delay:${i * 50}ms">
+      <article class="product${p.sold_out ? " is-soldout" : ""}" style="animation-delay:${(i % PAGE) * 50}ms">
         <div class="product__img">
           <img src="${esc(imgSrc(p))}" alt="${esc(p.name)}" loading="lazy">
           ${p.sold_out ? `<span class="product__tag product__tag--out">품절</span>` : p.tag ? `<span class="product__tag">${esc(p.tag)}</span>` : ""}
           ${p.sold_out ? "" : `<div class="add-cart"><button class="p-cart" ${cartAttr(p)}>장바구니</button><button class="p-buy" ${orderAttr(p)}>바로 구매</button></div>`}
         </div>
         <div class="product__info">
-          <p class="product__spec"><span class="karat">${esc(p.karat)}</span><span>·</span><span>${Number(p.weight_g)}g</span></p>
+          <p class="product__spec"><span class="karat">${esc(karatLabel(p.karat))}</span><span>·</span><span>${Number(p.weight_g)}g</span></p>
           <h3 class="product__name">${esc(p.name)}</h3>
-          <p class="product__price">${won(price)}<span class="product__labor">공임 ${won(p.labor)} 포함</span></p>
+          <p class="product__price">${won(price)}</p>
           <button type="button" class="info-link" data-info="${orderKey(p)}">상품정보 제공고시</button>
         </div>
       </article>`;
@@ -281,6 +282,8 @@ chips.forEach(c => c.addEventListener("click", () => {
   chips.forEach(x => { const on = x === c; x.classList.toggle("is-active", on); x.setAttribute("aria-selected", on); });
   renderProducts(c.dataset.filter);
 }));
+const moreBtn = $("#productsMore");
+if (moreBtn) moreBtn.addEventListener("click", () => { shown += PAGE; renderProducts(currentFilter); });
 
 /* ---------- 장바구니 / 토스트 ---------- */
 let toastTimer;
@@ -339,7 +342,8 @@ function searchInfo(p) {
     bar: "골드바 금괴 순금 금 GBK 24K 999.9 보증서",
     zodiac: "카드형 골드바 십이지 십이지신 띠 순금 금 GBK 24K 선물 돌 백일 보증서",
     silver: `실버 순은 은 ${p.name.includes("그래뉼") ? "그래뉼 알갱이" : "실버바"} 보증서`,
-    accessory: `악세사리 액세서리 주얼리 쥬얼리 ${CAT_KO[p.category] || ""} ${p.karat || ""}`,
+    accessory: `악세사리 액세서리 주얼리 쥬얼리 ${CAT_KO[p.category] || ""} ${p.karat === "SV" ? "실버 은 925" : "순금 금 " + (p.karat || "")}`,
+    gift: `순금선물 선물 기념품 순금 금 24K ${CAT_KO[p.category] || ""}`,
   }[p.kind] || "";
   return { weights: [...weights].map(norm), hay: norm(`${p.name} ${p.tag || ""} ${words} ${[...weights].join(" ")}`) };
 }
@@ -353,12 +357,12 @@ function searchMatch(p, terms) {
   });
 }
 
-const KIND_ORDER = { bar: 0, zodiac: 1, silver: 2, accessory: 3 };
-const KIND_KO = { bar: "골드바", zodiac: "카드형 골드바", silver: "실버", accessory: "악세사리" };
+const KIND_ORDER = { bar: 0, zodiac: 1, silver: 2, gift: 3, accessory: 4 };
+const KIND_KO = { bar: "골드바", zodiac: "카드형 골드바", silver: "실버", gift: "순금선물", accessory: "악세사리" };
 function searchRow(p) {
   const price = state.domestic ? priceOf(p) : null, w = Number(p.weight_g);
   const name = p.kind === "zodiac" ? `카드형 골드바 1g · ${p.name}` : p.name;
-  const sub = p.kind === "accessory" ? `${p.karat} · ${w}g` : p.kind === "silver" ? `순은 · ${wLabel(w)}` : `순금 24K · ${wLabel(w)}${donLabel(w) ? " · " + donLabel(w) : ""}`;
+  const sub = p.kind === "accessory" ? `${karatLabel(p.karat)} · ${w}g` : p.kind === "silver" ? `순은 · ${wLabel(w)}` : `순금 24K · ${wLabel(w)}${donLabel(w) ? " · " + donLabel(w) : ""}`;
   const off = p.sold_out ? "disabled" : "";
   return `
     <article class="sres${p.sold_out ? " is-soldout" : ""}">
