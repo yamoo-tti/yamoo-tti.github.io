@@ -663,3 +663,18 @@ ul, ol { padding: 0; list-style: none; }
   .sres__btns { grid-area: btns; }
   .sres__btns button { flex: 1; }
 }
+/* 현금영수증 · 세금계산서 신청 */
+.rc-field { border: 1px solid var(--line); border-radius: 4px; padding: 10px 14px 14px; margin: 0; display: grid; gap: 10px; min-width: 0; }
+.rc-field legend { font-size: 13px; color: var(--ink-2); padding: 0 6px; }
+.rc-field select { height: 46px; padding: 0 12px; border: 1px solid var(--line); border-radius: 3px; background: #fff; font-size: 15px; color: var(--ink); width: 100%; font-family: inherit; }
+.rc-field .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rc-note { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.6; }
+.rc-field [hidden] { display: none !important; }
+/* 주문내역 배송 조회 */
+.mo__ship { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding: 10px 12px; background: var(--tint); border-radius: 4px; font-size: 13px; }
+.mo__ship .btn { height: 34px; padding: 0 14px; font-size: 13px; }
+.btn--line { border: 1px solid var(--line); background: #fff; color: var(--ink); }
+.btn--line:hover { border-color: var(--ink); }
+.rc-field { grid-template-columns: minmax(0, 1fr); }
+.rc-field select, .rc-field input { width: 100%; min-width: 0; box-sizing: border-box; }
+.rc-field .row2 > label { min-width: 0; }
