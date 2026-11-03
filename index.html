@@ -4,12 +4,27 @@
   <meta charset="utf-8">
   <script>/* 예전 주소(GitHub Pages)로 들어오면 대표 주소로 이동 */if(location.hostname==="yamoo-tti.github.io")location.replace("https://keumbi.netlify.app"+location.pathname+location.search+location.hash);</script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>금비 GOLD</title>
-  <meta name="description" content="금비 GOLD — 오늘의 금시세, 순도 99.99% 골드바, 골드 악세사리, 금 매입">
+  <title>금비 GOLD | 오늘의 금시세 · 순금 골드바 · 실버바 · 금 매입</title>
+  <meta name="description" content="서울 종로 금비 GOLD. 실시간 금시세 그대로 GBK 순도 99.99% 순금 골드바, 카드형 골드바, 실버바를 판매하고 금을 매입합니다. 주문 즉시 금액 확정, 보험 등기 택배·매장 수령.">
+  <link rel="canonical" href="https://keumbi.netlify.app/">
+  <meta name="theme-color" content="#16140f">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="금비 GOLD">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:url" content="https://keumbi.netlify.app/">
+  <meta property="og:title" content="금비 GOLD | 오늘 시세 그대로, 순금 골드바 · 실버바">
+  <meta property="og:description" content="실시간 금시세 · GBK 순도 99.99% 골드바 · 실버바 · 금 매입. 서울 종로 010-5287-8002">
+  <meta property="og:image" content="https://keumbi.netlify.app/images/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"JewelryStore","name":"금비 GOLD","url":"https://keumbi.netlify.app/","image":"https://keumbi.netlify.app/images/og-image.jpg","telephone":"+82-10-5287-8002","address":{"@type":"PostalAddress","streetAddress":"율곡로10길 105 디아망 빌딩 2층","addressLocality":"종로구","addressRegion":"서울특별시","addressCountry":"KR"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"10:00","closes":"19:00"}]}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261102m">
+  <link rel="stylesheet" href="style.css?v=20261103a">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M14 46 22 22h20l8 24z' fill='%23c9a14a'/%3E%3Cpath d='M22 22h20l-3 6H25z' fill='%23f2dc9b'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -42,7 +57,7 @@
         <a href="#store">매장안내</a>
       </nav>
       <div class="header__actions">
-        <button class="icon-btn" aria-label="검색"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+        <button class="icon-btn" aria-label="상품 검색" id="searchBtn" aria-expanded="false" aria-controls="searchPanel"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
         <button class="icon-btn" aria-label="장바구니" id="cartBtn"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span class="badge" id="cartCount">0</span></button>
       </div>
     </div>
@@ -50,6 +65,21 @@
       <a href="#price">금시세</a><a href="#goldbar">골드바</a><a href="#silverBlock">실버</a><a href="#accessory">악세사리</a><a href="#gift">순금선물</a><a href="#sell">금 매입</a><a href="#store">매장안내</a>
     </nav>
   </header>
+
+  <!-- 상품 검색 -->
+  <div class="search" id="searchPanel" hidden>
+    <div class="search__backdrop" data-sclose></div>
+    <div class="search__box" role="dialog" aria-modal="true" aria-label="상품 검색">
+      <form class="search__bar" id="searchForm" role="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input type="search" id="searchInput" placeholder="상품 검색 (예: 1돈, 반돈, 실버, 용띠)" autocomplete="off" enterkeyhint="search" aria-label="검색어">
+        <button type="button" class="search__x" data-sclose aria-label="검색 닫기">닫기</button>
+      </form>
+      <div class="search__keys" id="searchKeys"></div>
+      <p class="search__count" id="searchCount" aria-live="polite"></p>
+      <div class="search__list" id="searchList"></div>
+    </div>
+  </div>
 
   <!-- 시세 티커 -->
   <div class="ticker" aria-label="실시간 시세 (원/3.75g)">
@@ -457,9 +487,9 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261102m"></script>
-  <script src="script.js?v=20261102m"></script>
-  <script src="auth.js?v=20261102m"></script>
-  <script src="shop.js?v=20261102m"></script>
+  <script src="common.js?v=20261103a"></script>
+  <script src="script.js?v=20261103a"></script>
+  <script src="auth.js?v=20261103a"></script>
+  <script src="shop.js?v=20261103a"></script>
 </body>
 </html>
