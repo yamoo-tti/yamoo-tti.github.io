@@ -43,3 +43,22 @@
 @media print {
   .legal-top, .legal .toc, .legal .back { display: none; }
 }
+
+/* 자주 묻는 질문 */
+.faq-call { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; background: var(--tint); border-radius: 6px; padding: 16px 20px; margin: 18px 0 8px; }
+.faq-call div { display: grid; gap: 2px; }
+.faq-call b { font-size: 16px; }
+.faq-call span { font-size: 13px; color: var(--muted); }
+.faq-call .btn { height: 42px; padding: 0 20px; }
+.faq-nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 0 6px; }
+.faq-nav a { font-size: 13px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 16px; background: #fff; color: var(--ink-2); }
+.faq-nav a:hover { border-color: var(--gold); color: var(--gold-2); }
+.faq section { scroll-margin-top: 20px; }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq summary { list-style: none; cursor: pointer; padding: 16px 32px 16px 0; font-weight: 500; position: relative; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; position: absolute; right: 4px; top: 12px; font-size: 22px; color: var(--gold-2); font-weight: 300; transition: transform .2s; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq summary:hover { color: var(--gold-2); }
+.faq details p { margin: 0 0 16px; color: var(--ink-2); line-height: 1.8; }
+.faq details a { color: var(--gold-2); text-decoration: underline; }
