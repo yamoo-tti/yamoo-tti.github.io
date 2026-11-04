@@ -801,4 +801,10 @@ ul, ol { padding: 0; list-style: none; }
   .bean-opt em { font-size: 13px; }
   .bean-opt.is-on::after { width: 17px; height: 17px; top: 8px; right: 8px; font-size: 10px; }
   .bean__btns .btn { height: 52px; }
-}
+}.bean__nav { position: absolute; top: 50%; translate: 0 -50%; width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,.85); color: var(--ink); font-size: 26px; line-height: 1; display: grid; place-items: center; padding-bottom: 3px; box-shadow: 0 6px 16px -6px rgba(0,0,0,.3); opacity: 0; transition: opacity .25s, background .2s; z-index: 2; }
+.bean__nav--prev { left: 14px; } .bean__nav--next { right: 14px; }
+.bean__main:hover .bean__nav, .bean__nav:focus-visible { opacity: 1; }
+.bean__nav:hover { background: #fff; }
+.bean__count { position: absolute; right: 14px; bottom: 14px; padding: 3px 10px; border-radius: 12px; background: rgba(22,20,15,.6); color: #fff; font-size: 12px; font-variant-numeric: tabular-nums; letter-spacing: .04em; z-index: 2; }
+.bean__main img { transition: transform .9s var(--ease), opacity .25s; }
+@media (hover: none) { .bean__nav { opacity: .9; width: 36px; height: 36px; font-size: 22px; } }

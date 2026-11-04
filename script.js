@@ -238,6 +238,11 @@ function renderBean() {
   const main = gallery.includes(beanPhoto) ? beanPhoto : gallery[0];
   const img = $("#beanMain");
   if (main && img.getAttribute("src") !== photoSrc(main)) img.src = photoSrc(main);
+  beanGallery = gallery;
+  const many = gallery.length > 1;
+  document.querySelectorAll("[data-bnav]").forEach(b => { b.hidden = !many; });
+  $("#beanCount").hidden = !many;
+  $("#beanCount").textContent = `${gallery.indexOf(main) + 1} / ${gallery.length}`;
   $("#beanThumbs").innerHTML = gallery.length < 2 ? "" : gallery.map((s, i) =>
     `<button type="button" data-bphoto="${esc(s)}" class="${s === main ? "is-on" : ""}" aria-label="사진 ${i + 1}"><img src="${esc(photoSrc(s))}" alt="" loading="lazy"></button>`).join("");
   const sub = o => { const ow = Number(o.weight_g), l = Y.optLabel(o); return /g$/.test(l) ? `${Math.round(ow / DON * 100) / 100}돈` : `${ow}g`; };
@@ -258,8 +263,30 @@ document.addEventListener("click", e => {
   const o = e.target.closest("[data-bean]");
   if (o) { beanPick = o.dataset.bean; beanPhoto = null; renderBean(); return; }
   const ph = e.target.closest("[data-bphoto]");
-  if (ph) { beanPhoto = ph.dataset.bphoto; renderBean(); }
+  if (ph) { beanPhoto = ph.dataset.bphoto; renderBean(); return; }
+  const nv = e.target.closest("[data-bnav]");
+  if (nv) beanStep(+nv.dataset.bnav);
 });
+// 큰 사진 넘기기 (화살표 · 손가락으로 밀기)
+let beanGallery = [];
+function beanStep(d) {
+  if (beanGallery.length < 2) return;
+  const src = $("#beanMain").getAttribute("src");
+  const at = Math.max(0, beanGallery.findIndex(s => photoSrc(s) === src));
+  beanPhoto = beanGallery[(at + d + beanGallery.length) % beanGallery.length];
+  renderBean();
+}
+(() => {
+  const m = document.querySelector(".bean__main");
+  if (!m) return;
+  let x0 = null;
+  m.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+  m.addEventListener("touchend", e => {
+    if (x0 == null) return;
+    const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 40) beanStep(dx < 0 ? 1 : -1);
+  });
+})();
 
 function renderBars() {
   renderBean();

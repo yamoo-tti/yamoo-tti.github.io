@@ -23,7 +23,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261104k">
+  <link rel="stylesheet" href="style.css?v=20261104l">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -186,7 +186,8 @@
       <div class="wrap">
         <article class="bean__card">
           <div class="bean__gallery">
-            <div class="bean__main"><img id="beanMain" src="images/store/12553693981.jpg" alt="순금 콩알금"><span class="bean__badge">금비 추천</span></div>
+            <div class="bean__main"><img id="beanMain" src="images/store/12553693981.jpg" alt="순금 콩알금"><span class="bean__badge">금비 추천</span>
+              <button type="button" class="bean__nav bean__nav--prev" data-bnav="-1" aria-label="이전 사진" hidden>‹</button><button type="button" class="bean__nav bean__nav--next" data-bnav="1" aria-label="다음 사진" hidden>›</button><span class="bean__count" id="beanCount" hidden></span></div>
             <div class="bean__thumbs" id="beanThumbs"></div>
           </div>
           <div class="bean__info">
@@ -560,7 +561,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="common.js?v=20261104j"></script>
-  <script src="script.js?v=20261104k"></script>
+  <script src="script.js?v=20261104l"></script>
   <script src="auth.js?v=20261104a"></script>
   <script src="shop.js?v=20261104a"></script>
   <script src="lightbox.js?v=20261104k"></script>
