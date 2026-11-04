@@ -121,7 +121,7 @@
   }
 
   /* ---------- 화면 전환 ---------- */
-  const loaders = { dash: loadDash, sales: loadSales, orders: () => loadRequests("orders"), sells: () => loadRequests("sells"), products: loadProducts, notices: loadNotices, members: loadMembers, price: loadPrice, logs: loadLogs };
+  const loaders = { dash: loadDash, sales: loadSales, stats: () => loadAnalytics(), orders: () => loadRequests("orders"), sells: () => loadRequests("sells"), products: loadProducts, notices: loadNotices, members: loadMembers, price: loadPrice, logs: loadLogs };
   let current = "dash";
   function show(view) {
     current = view;
@@ -486,6 +486,222 @@
         </tr>`).join("") : `<tr><td class="empty" colspan="7">이 기간에 입금 확인된 주문이 없어요</td></tr>`) + "</tbody>";
     cache.orders = orders; // 행을 누르면 상세가 열리게
   }
+
+  /* ---------- 판매 분석 ---------- */
+  let anUnit = "day", an = null;
+  const SRC_KO = { naver: "네이버", google: "구글", daum: "다음", kakao: "카카오", instagram: "인스타그램", facebook: "페이스북", youtube: "유튜브", email: "주문 메일 링크", direct: "직접 방문·즐겨찾기", other: "기타 사이트" };
+  const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
+  const addDays = (s, n) => { const d = new Date(s + "T00:00:00"); d.setDate(d.getDate() + n); return ymd(d); };
+  const daysBetween = (a, b) => Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000) + 1;
+  const pct = (a, b) => b ? (a / b * 100) : 0;
+  const pctTxt = v => (Math.round(v * 10) / 10).toLocaleString("ko-KR") + "%";
+
+  function setARange(kind) {
+    const f = $("#anForm"), now = new Date();
+    let a = new Date(now.getFullYear(), now.getMonth(), 1), b = now;
+    if (kind === "today") a = now;
+    if (kind === "week") { a = new Date(now); a.setDate(now.getDate() - 6); }
+    if (kind === "d30") { a = new Date(now); a.setDate(now.getDate() - 29); }
+    if (kind === "last") { a = new Date(now.getFullYear(), now.getMonth() - 1, 1); b = new Date(now.getFullYear(), now.getMonth(), 0); }
+    if (kind === "year") a = new Date(now.getFullYear(), 0, 1);
+    f.from.value = ymd(a); f.to.value = ymd(b);
+  }
+
+  // 주문 1건 → 상품 줄 (상품 id 포함, 장바구니 주문은 여러 줄)
+  const linesOf = r => Array.isArray(r.items) && r.items.length
+    ? r.items.map(i => ({ id: i.product_id, name: i.name, qty: Number(i.qty) || 0, amount: Number(i.subtotal) || 0 }))
+    : [{ id: r.product_id, name: r.product_name, qty: Number(r.qty) || 0, amount: (Number(r.final_price) || 0) - (Number(r.shipping_fee) || 0) }];
+
+  async function loadAnalytics() {
+    const f = $("#anForm");
+    if (!f.from.value) setARange("d30");
+    const from = f.from.value, to = f.to.value;
+    if (from > to) return toast("시작일이 종료일보다 늦어요", true);
+    const len = daysBetween(from, to), pFrom = addDays(from, -len), pTo = addDays(from, -1);
+    const qStart = new Date(pFrom + "T00:00:00"); qStart.setDate(qStart.getDate() - 14);
+    const qEnd = new Date(addDays(to, 1) + "T00:00:00");
+    const [o, cur, prev, pr, mem, hist] = await Promise.all([
+      sb.from("orders").select("id,status,final_price,shipping_fee,items,product_id,product_name,qty,phone,created_at,paid_at,receive")
+        .gte("created_at", qStart.toISOString()).lt("created_at", qEnd.toISOString()).order("created_at").limit(5000),
+      sb.rpc("analytics_counts", { p_from: from, p_to: to }),
+      sb.rpc("analytics_counts", { p_from: pFrom, p_to: pTo }),
+      sb.from("products").select("id,name,kind,karat,category,weight_g,visible"),
+      sb.from("profiles").select("created_at").gte("created_at", new Date(pFrom + "T00:00:00").toISOString()).lt("created_at", qEnd.toISOString()).limit(5000),
+      sb.from("orders").select("phone").in("status", PAID).lt("created_at", new Date(from + "T00:00:00").toISOString()).limit(10000),
+    ]);
+    for (const r of [o, pr, mem, hist]) if (r.error) return fail(r.error);
+    if (cur.error || prev.error) { toast("판매 분석 SQL(analytics.sql)을 먼저 실행해 주세요", true); console.error(cur.error || prev.error); }
+    an = { from, to, pFrom, pTo, orders: o.data, cur: cur.data || {}, prev: prev.data || {}, products: pr.data, members: mem.data, oldPhones: new Set(hist.data.map(r => r.phone)) };
+    renderAnalytics();
+  }
+
+  // 세로 막대 차트 (막대에 마우스를 올리면 값)
+  function vchart(el, keys, vals, fmt, lab) {
+    const max = Math.max(0, ...vals);
+    if (!keys.length || max === 0) { el.innerHTML = `<p class="muted an-empty">이 기간 기록이 없어요</p>`; return; }
+    const every = Math.ceil(keys.length / 10);
+    el.innerHTML = `<div class="vchart__max">${fmt(max)}</div><div class="vchart__bars">${keys.map((k, i) => `
+      <div class="vbar" data-tip="${esc(lab(k))} · ${esc(fmt(vals[i]))}" tabindex="0" aria-label="${esc(lab(k))} ${esc(fmt(vals[i]))}">
+        <i style="height:${vals[i] ? Math.max(2, vals[i] / max * 100) : 0}%"></i>
+        <span>${i % every === 0 ? esc(lab(k)) : ""}</span>
+      </div>`).join("")}</div>`;
+  }
+  function hbars(el, rows, fmt) {
+    const max = Math.max(0, ...rows.map(r => r[1]));
+    el.innerHTML = rows.length && max ? rows.map(([k, v, extra]) => `
+      <div class="hbar"><span title="${esc(k)}">${esc(k)}</span><div class="hbar__track"><div class="hbar__fill" style="width:${v / max * 100}%"></div></div><span>${fmt(v)}${extra ? ` <small class="muted">${extra}</small>` : ""}</span></div>`).join("")
+      : `<p class="muted">이 기간 기록이 없어요</p>`;
+  }
+  const delta = (c, p) => {
+    if (!p) return c ? `<em class="dl up">새로 생김</em>` : "";
+    const d = (c - p) / p * 100;
+    if (Math.abs(d) < 0.05) return `<em class="dl">변화 없음</em>`;
+    return `<em class="dl ${d > 0 ? "up" : "down"}">${d > 0 ? "▲" : "▼"} ${pctTxt(Math.abs(d))}</em>`;
+  };
+
+  function analyticsData() {
+    const { from, to, pFrom, pTo, orders, cur, prev, products, members, oldPhones } = an;
+    const inR = (d, a, b) => d >= a && d <= b;
+    const paidIn = (a, b) => orders.filter(r => PAID.includes(r.status) && inR(paidDay(r), a, b));
+    const madeIn = (a, b) => orders.filter(r => inR(ymd(r.created_at), a, b));
+    const sum = (a, f) => a.reduce((s, x) => s + (Number(f(x)) || 0), 0);
+    const vis = c => Object.values(c.visits || {}).reduce((s, v) => s + Number(v), 0);
+    const P = paidIn(from, to), PP = paidIn(pFrom, pTo), M = madeIn(from, to), MP = madeIn(pFrom, pTo);
+    const k = {
+      rev: sum(P, r => r.final_price), revP: sum(PP, r => r.final_price),
+      n: P.length, nP: PP.length, made: M.length, madeP: MP.length,
+      cancel: M.filter(r => r.status === "canceled").length,
+      visits: vis(cur), visitsP: vis(prev),
+      mem: members.filter(m => inR(ymd(m.created_at), from, to)).length, memP: members.filter(m => inR(ymd(m.created_at), pFrom, pTo)).length,
+    };
+    k.aov = k.n ? k.rev / k.n : 0; k.aovP = k.nP ? k.revP / k.nP : 0;
+    k.cv = pct(k.n, k.visits); k.cvP = pct(k.nP, k.visitsP);
+    const buyers = new Set(P.map(r => r.phone));
+    const cnt = {}; P.forEach(r => { cnt[r.phone] = (cnt[r.phone] || 0) + 1; });
+    k.buyers = buyers.size;
+    k.repeat = [...buyers].filter(ph => oldPhones.has(ph) || cnt[ph] > 1).length;
+
+    // 상품별: 조회·검색(기록) + 판매(입금 주문)
+    const byId = Object.fromEntries(products.map(p => [p.id, p]));
+    const byName = Object.fromEntries(products.map(p => [p.name, p]));
+    const rows = {};
+    const row = id => (rows[id] = rows[id] || { id, v: 0, s: 0, qty: 0, amt: 0, n: 0 });
+    Object.entries(cur.products || {}).forEach(([id, x]) => { const r = row(id); r.v = Number(x.v) || 0; r.s = Number(x.s) || 0; });
+    P.forEach(o => {
+      const seen = new Set();
+      linesOf(o).forEach(l => {
+        const p = byId[l.id] || byName[l.name] || byName[String(l.name || "").replace(/^GBK 카드형 골드바 1g \((.*)\)$/, "$1")];
+        const id = p ? p.id : "name:" + l.name;
+        const r = row(id); r.name = r.name || l.name;
+        r.qty += l.qty; r.amt += l.amount;
+        if (!seen.has(id)) { r.n++; seen.add(id); }
+      });
+    });
+    const prow = Object.values(rows).map(r => {
+      const p = byId[r.id];
+      return { ...r, p, name: p ? (p.kind === "zodiac" ? `카드형 1g · ${p.name}` : p.name) : r.name, cv: r.v ? r.n / r.v * 100 : null };
+    });
+
+    // 묶음 (일별·월별)
+    const keys = [];
+    for (let d = from; d <= to; d = addDays(d, 1)) { const key = anUnit === "month" ? d.slice(0, 7) : d; if (keys[keys.length - 1] !== key) keys.push(key); }
+    const bk = d => anUnit === "month" ? d.slice(0, 7) : d;
+    const B = Object.fromEntries(keys.map(x => [x, { rev: 0, n: 0, made: 0, visits: 0 }]));
+    P.forEach(r => { const b = B[bk(paidDay(r))]; if (b) { b.rev += Number(r.final_price) || 0; b.n++; } });
+    M.forEach(r => { const b = B[bk(ymd(r.created_at))]; if (b) b.made++; });
+    Object.entries(cur.visits || {}).forEach(([d, v]) => { const b = B[bk(d)]; if (b) b.visits += Number(v); });
+    return { k, P, M, prow, keys, B };
+  }
+
+  function catOf(p) {
+    if (!p) return "기타";
+    if (p.kind === "accessory") return (p.karat === "SV" ? "실버 주얼리" : "24K 주얼리") + (p.category && CATEGORY[p.category] ? " · " + CATEGORY[p.category] : "");
+    if (p.kind === "gift") return "순금선물" + (p.category && CATEGORY[p.category] ? " · " + CATEGORY[p.category] : "");
+    return { bar: "골드바", zodiac: "카드형 골드바 1g", silver: "실버바" }[p.kind] || "기타";
+  }
+
+  function renderAnalytics() {
+    if (!an) return;
+    const { k, P, M, prow, keys, B } = analyticsData();
+    $$("#anUnit button").forEach(b => b.classList.toggle("is-on", b.dataset.unit === anUnit));
+    $("#anKpis").innerHTML = `
+      <div class="kpi kpi--gold"><p>매출 (입금 확인)</p><strong>${won(k.rev)}</strong><small>${delta(k.rev, k.revP)} 지난 기간 ${won(k.revP)}</small></div>
+      <div class="kpi"><p>결제 건수</p><strong>${k.n}건</strong><small>${delta(k.n, k.nP)} 주문 신청 ${k.made}건 · 자동취소 등 ${k.cancel}건</small></div>
+      <div class="kpi"><p>객단가</p><strong>${won(Math.round(k.aov))}</strong><small>${delta(k.aov, k.aovP)} 결제 1건 평균</small></div>
+      <div class="kpi"><p>방문자</p><strong>${k.visits.toLocaleString()}명</strong><small>${delta(k.visits, k.visitsP)} 하루 1번씩 셈</small></div>
+      <div class="kpi"><p>구매 전환율</p><strong>${pctTxt(k.cv)}</strong><small>${delta(k.cv, k.cvP)} 방문자 중 결제 비율</small></div>
+      <div class="kpi"><p>구매 고객 · 신규 회원</p><strong>${k.buyers}명 · ${k.mem}명</strong><small>재구매 고객 ${k.repeat}명 ${delta(k.mem, k.memP)}</small></div>`;
+
+    const lab = x => anUnit === "month" ? x.replace("-", ".") : x.slice(5).replace("-", ".");
+    vchart($("#anRevChart"), keys, keys.map(x => B[x].rev), won, lab);
+    vchart($("#anVisitChart"), keys, keys.map(x => B[x].visits), v => v.toLocaleString() + "명", lab);
+    $("#anRevSum").textContent = `합계 ${won(k.rev)}`;
+    $("#anVisitSum").textContent = `합계 ${k.visits.toLocaleString()}명`;
+
+    // 상품 성과
+    const sortBy = $("#anSort").value;
+    const list = prow.filter(r => r.v || r.s || r.qty).sort((a, b) => sortBy === "cv" ? ((b.cv ?? -1) - (a.cv ?? -1)) || b.v - a.v : (b[sortBy] - a[sortBy]) || (b.amt - a.amt) || (b.v - a.v));
+    an.list = list;
+    $("#anProducts").innerHTML = `<thead><tr><th>상품</th><th>종류</th><th>조회</th><th>검색으로 찾음</th><th>판매 수량</th><th>매출</th><th>구매 전환율 <small>(결제 주문 ÷ 조회)</small></th></tr></thead><tbody>` +
+      (list.length ? list.slice(0, 150).map(r => `<tr><td class="ellipsis"><b>${esc(r.name)}</b>${r.p && !r.p.visible ? ' <span class="muted">숨김</span>' : ""}</td><td class="muted">${esc(catOf(r.p))}</td><td>${r.v}</td><td>${r.s}</td><td>${r.qty ? `<b>${r.qty}개</b>` : "-"}</td><td>${r.amt ? won(r.amt) : "-"}</td><td>${r.cv == null ? "-" : pctTxt(r.cv)}</td></tr>`).join("")
+        : `<tr><td class="empty" colspan="7">이 기간 상품 기록이 없어요</td></tr>`) + "</tbody>";
+
+    // 종류별 매출
+    const cats = {};
+    prow.forEach(r => { if (r.amt) { const c = catOf(r.p); cats[c] = (cats[c] || 0) + r.amt; } });
+    const revSum = Object.values(cats).reduce((s, v) => s + v, 0);
+    hbars($("#anCats"), Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([c, v]) => [c, v, pctTxt(pct(v, revSum))]), won);
+
+    // 유입 경로 · 기기
+    const src = an.cur.sources || {}, srcSum = Object.values(src).reduce((s, v) => s + Number(v), 0);
+    hbars($("#anSources"), Object.entries(src).map(([s, v]) => [SRC_KO[s] || s, Number(v), pctTxt(pct(v, srcSum))]).sort((a, b) => b[1] - a[1]), v => v.toLocaleString() + "명");
+    const dv = an.cur.devices || {}, dvSum = (Number(dv.mobile) || 0) + (Number(dv.pc) || 0);
+    $("#anDevices").textContent = dvSum ? `기기: 휴대폰 ${pctTxt(pct(dv.mobile || 0, dvSum))} · 컴퓨터 ${pctTxt(pct(dv.pc || 0, dvSum))}` : "";
+
+    // 검색어
+    const terms = an.cur.terms || [];
+    $("#anTerms").innerHTML = terms.length ? terms.slice(0, 20).map(t => `<li><span>${esc(t.t)}</span><b>${t.n}회</b></li>`).join("") : `<p class="muted">이 기간 검색 기록이 없어요</p>`;
+    const zero = terms.filter(t => t.z > 0).sort((a, b) => b.z - a.z);
+    $("#anZero").innerHTML = zero.length ? zero.slice(0, 20).map(t => `<li><span>${esc(t.t)}</span><b>${t.z}회</b></li>`).join("") : `<p class="muted">결과가 없던 검색어가 없어요</p>`;
+
+    // 요일 · 시간대
+    const wk = Array(7).fill(0); P.forEach(r => { wk[new Date(r.paid_at || r.created_at).getDay()]++; });
+    vchart($("#anWeek"), WEEK, wk, v => v + "건", x => x);
+    const hr = Array(24).fill(0); M.forEach(r => { hr[new Date(r.created_at).getHours()]++; });
+    vchart($("#anHour"), [...Array(24).keys()], hr, v => v + "건", x => x + "시");
+
+    // 기간별 표
+    $("#anTable").innerHTML = `<thead><tr><th>${anUnit === "month" ? "월" : "날짜"}</th><th>방문자</th><th>주문 신청</th><th>입금 주문</th><th>매출</th><th>객단가</th><th>구매 전환율</th></tr></thead><tbody>` +
+      [...keys].reverse().map(x => { const b = B[x]; return `<tr><td>${anUnit === "month" ? x.replace("-", ".") : x.slice(5).replace("-", ".") + ` (${WEEK[new Date(x + "T00:00:00").getDay()]})`}</td><td>${b.visits || "-"}</td><td>${b.made || "-"}</td><td>${b.n || "-"}</td><td>${b.rev ? `<b>${won(b.rev)}</b>` : "-"}</td><td>${b.n ? won(Math.round(b.rev / b.n)) : "-"}</td><td>${b.visits ? pctTxt(pct(b.n, b.visits)) : "-"}</td></tr>`; }).join("") + "</tbody>";
+
+    // 이번 기간 체크 포인트
+    const tips = [];
+    const top = [...prow].filter(r => r.qty).sort((a, b) => b.amt - a.amt)[0];
+    if (top) tips.push(`<b>가장 많이 팔린 상품</b> ${esc(top.name)} — ${top.qty}개 · ${won(top.amt)}`);
+    const cold = prow.filter(r => r.v >= 5 && !r.qty).sort((a, b) => b.v - a.v).slice(0, 3);
+    if (cold.length) tips.push(`<b>보기만 하고 안 사는 상품</b> ${cold.map(r => `${esc(r.name)} (조회 ${r.v})`).join(", ")} — 가격·사진·설명을 점검해 보세요`);
+    if (zero.length) tips.push(`<b>찾는데 없는 상품</b> ‘${zero.slice(0, 3).map(t => esc(t.t)).join("’, ‘")}’ — 이런 상품을 찾는 손님이 있어요`);
+    if (k.made >= 3 && k.cancel / k.made >= 0.3) tips.push(`<b>입금 전 취소가 많아요</b> 주문 신청 ${k.made}건 중 ${k.cancel}건 취소 — 입금 기한이나 안내 문자를 점검해 보세요`);
+    if (k.buyers) tips.push(`<b>구매 고객 ${k.buyers}명</b> 중 재구매 ${k.repeat}명 (${pctTxt(pct(k.repeat, k.buyers))})`);
+    const topSrc = Object.entries(src).sort((a, b) => b[1] - a[1])[0];
+    if (topSrc) tips.push(`<b>가장 많이 들어온 곳</b> ${SRC_KO[topSrc[0]] || topSrc[0]} (${pctTxt(pct(topSrc[1], srcSum))})`);
+    $("#anTips").innerHTML = `<h2>이번 기간 체크 포인트</h2>` + (tips.length ? `<ul>${tips.map(t => `<li>${t}</li>`).join("")}</ul>` : `<p class="muted">아직 쌓인 기록이 적어요. 손님이 들어오고 주문이 생기면 여기에 할 일이 보여요.</p>`);
+  }
+
+  $("#anForm").addEventListener("submit", e => { e.preventDefault(); loadAnalytics(); });
+  $("#anForm").addEventListener("click", e => {
+    const b = e.target.closest("[data-arange]");
+    if (b) { setARange(b.dataset.arange); loadAnalytics(); return; }
+    const u = e.target.closest("[data-unit]");
+    if (u) { anUnit = u.dataset.unit; renderAnalytics(); }
+  });
+  $("#anSort").addEventListener("change", renderAnalytics);
+  $("#anCsv").addEventListener("click", () => {
+    if (!an || !an.list) return toast("먼저 조회해 주세요", true);
+    const head = ["상품", "종류", "조회", "검색으로 찾음", "판매 수량", "매출", "결제 주문 수", "구매 전환율(%)"];
+    const rows = an.list.map(r => [r.name, catOf(r.p), r.v, r.s, r.qty, r.amt, r.n, r.cv == null ? "" : Math.round(r.cv * 10) / 10]);
+    downloadCsv(`금비_상품성과_${an.from}_${an.to}.csv`, head, rows);
+  });
 
   $("#salesForm").addEventListener("submit", e => { e.preventDefault(); loadSales(); });
   $("#salesForm").addEventListener("click", e => {

@@ -166,5 +166,38 @@
     sb.rpc("bump_search", { p_id: id }).then(() => {}, () => {});
   }
 
-  window.YAMOO = { loadStats, rankProducts, trackView, trackSearch, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
+  // 검색어 기록 (같은 검색어는 이 창에서 1번만 · 결과 0개였는지도 함께)
+  const loggedTerms = new Set();
+  function trackTerm(term, results) {
+    const t = String(term || "").trim().toLowerCase().replace(/\s+/g, " ");
+    if (!sb || t.length < 1 || t.length > 30 || loggedTerms.has(t)) return;
+    loggedTerms.add(t);
+    sb.rpc("track_search_term", { p_term: t, p_results: results | 0 }).then(() => {}, () => {});
+  }
+
+  // 방문자 기록: 하루·유입경로·기기별 숫자만 (같은 브라우저는 하루 1번, 개인정보 없음)
+  function trackVisit() {
+    if (!sb || /admin/.test(location.pathname)) return;
+    const today = new Date().toDateString();
+    try { if (localStorage.getItem("keumbi_visit") === today) return; localStorage.setItem("keumbi_visit", today); } catch { return; }
+    const q = new URLSearchParams(location.search);
+    const ref = (() => { try { return document.referrer ? new URL(document.referrer).hostname : ""; } catch { return ""; } })();
+    const utm = (q.get("utm_source") || "").toLowerCase();
+    let src = "direct";
+    const has = s => utm.includes(s) || ref.includes(s);
+    if (q.get("t") && /order-done/.test(location.pathname)) src = "email";
+    else if (has("naver")) src = "naver";
+    else if (has("google")) src = "google";
+    else if (has("daum")) src = "daum";
+    else if (has("kakao")) src = "kakao";
+    else if (has("instagram")) src = "instagram";
+    else if (has("facebook") || ref === "l.facebook.com" || ref === "m.facebook.com") src = "facebook";
+    else if (has("youtube") || ref.includes("youtu.be")) src = "youtube";
+    else if (ref && ref !== location.hostname) src = "other";
+    const dev = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "mobile" : "pc";
+    sb.rpc("track_visit", { p_source: src, p_device: dev }).then(() => {}, () => {});
+  }
+  trackVisit();
+
+  window.YAMOO = { loadStats, rankProducts, trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
 })();

@@ -417,6 +417,9 @@ function searchRow(p) {
     </article>`;
 }
 
+// 검색어 기록: 엔터·추천어 누름·결과 누름·검색창 닫을 때 (입력 중인 글자는 기록 안 함)
+let lastSearch = { q: "", n: 0 };
+const logSearch = () => { if (lastSearch.q && window.YAMOO.trackTerm) window.YAMOO.trackTerm(lastSearch.q, lastSearch.n); };
 function refreshSearch() {
   if (!searchPanel || searchPanel.hidden) return;
   const q = searchInput.value.trim();
@@ -424,6 +427,7 @@ function refreshSearch() {
   const list = $("#searchList"), count = $("#searchCount");
   $("#searchKeys").innerHTML = (q ? "" : `<p>추천 검색어</p>`) + SEARCH_KEYS.map(k => `<button type="button" data-skey="${esc(k)}"${norm(k) === norm(q) ? ' class="is-on"' : ""}>${esc(k)}</button>`).join("");
   if (!terms.length) {
+    lastSearch = { q: "", n: 0 };
     const hot = state.products.filter(p => p.tag && !p.sold_out && p.kind !== "accessory").slice(0, 6);
     count.textContent = hot.length ? "인기 상품" : "";
     list.innerHTML = hot.map(searchRow).join("");
@@ -433,6 +437,7 @@ function refreshSearch() {
     const an = norm(a.name).includes(terms[0]) ? 0 : 1, bn = norm(b.name).includes(terms[0]) ? 0 : 1;
     return (a.sold_out - b.sold_out) || (an - bn) || ((KIND_ORDER[a.kind] ?? 9) - (KIND_ORDER[b.kind] ?? 9)) || (a.weight_g - b.weight_g);
   });
+  lastSearch = { q, n: hits.length };
   count.innerHTML = `<b>‘${esc(q)}’</b> 검색 결과 ${hits.length}개`;
   list.innerHTML = hits.map(searchRow).join("") || `
     <div class="search__empty">
@@ -449,6 +454,7 @@ function openSearch() {
   setTimeout(() => searchInput.focus(), 30);
 }
 function closeSearch() {
+  logSearch();
   searchPanel.hidden = true;
   searchBtn.setAttribute("aria-expanded", "false");
   document.body.style.overflow = "";
@@ -457,13 +463,14 @@ if (searchPanel) {
   searchBtn.addEventListener("click", openSearch);
   let st;
   searchInput.addEventListener("input", () => { clearTimeout(st); st = setTimeout(refreshSearch, 120); });
-  $("#searchForm").addEventListener("submit", e => { e.preventDefault(); refreshSearch(); searchInput.blur(); });
+  $("#searchForm").addEventListener("submit", e => { e.preventDefault(); refreshSearch(); logSearch(); searchInput.blur(); });
   searchPanel.addEventListener("click", e => {
     if (e.target.closest("[data-sclose]")) return closeSearch();
     const k = e.target.closest("[data-skey]");
-    if (k) { searchInput.value = k.dataset.skey; refreshSearch(); return; }
+    if (k) { searchInput.value = k.dataset.skey; refreshSearch(); logSearch(); return; }
     // 검색 결과에서 상품을 누르면 '검색으로 찾음' 1번 (인기순에 반영)
     const hit = e.target.closest(".sres");
+    if (hit) logSearch();
     const hid = hit && hit.querySelector("[data-order]");
     if (hid && window.YAMOO.trackSearch) window.YAMOO.trackSearch(hid.dataset.order);
     if (e.target.closest("[data-order]")) closeSearch(); // 구매 창으로 넘어감

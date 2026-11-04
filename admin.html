@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261104c">
+  <link rel="stylesheet" href="admin.css?v=20261104f">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -44,6 +44,7 @@
       <nav class="side__nav" aria-label="관리자 메뉴">
         <button data-view="dash" class="is-on"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 4v4h6V4z"/></svg>대시보드</button>
         <button data-view="sales"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>매출 정리</button>
+        <button data-view="stats"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 15l4-4 3 3 6-7"/></svg>판매 분석</button>
         <button data-view="orders"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7zM9 8V6a3 3 0 0 1 6 0v2"/></svg>구매 신청<b class="nav-badge" id="badgeOrders" hidden></b></button>
         <button data-view="sells"><svg viewBox="0 0 24 24"><path d="M4 16 10 6h4l6 10zM2 20h20"/></svg>매입 신청<b class="nav-badge" id="badgeSells" hidden></b></button>
         <button data-view="products"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="1.5"/><path d="M8 7V5h8v2"/></svg>상품 관리</button>
@@ -107,6 +108,44 @@
           <div class="panel panel--flush"><div class="panel__head panel__head--pad"><h2>상품별</h2></div><div class="table-wrap"><table class="table table--compact" id="salesItems"></table></div></div>
         </div>
         <div class="panel panel--flush"><div class="panel__head panel__head--pad"><h2>입금 확인된 주문</h2></div><div class="table-wrap"><table class="table" id="salesTable"></table></div></div>
+      </section>
+
+      <!-- 판매 분석 -->
+      <section class="view" data-view="stats" hidden>
+        <header class="view__head"><h1>판매 분석</h1>
+          <div class="head-btns"><button class="btn btn--line" id="anCsv" type="button">상품 성과 엑셀(CSV)</button></div>
+        </header>
+        <p class="desc">기간별 <b>매출·방문자·상품 반응·검색어</b>를 한눈에 봐요. 매출은 입금 확인된 주문을 <b>입금 확인일</b> 기준으로, 방문자는 같은 사람(같은 기기)을 하루 1번만 세요. 괄호 속 ▲▼는 바로 앞 같은 길이 기간과 비교한 값이에요. <b>방문자·날짜별 조회·검색어 기록은 2026년 11월 4일부터</b> 쌓여요.</p>
+        <form class="filters" id="anForm">
+          <input type="date" name="from" aria-label="시작일"><span class="muted">~</span><input type="date" name="to" aria-label="종료일">
+          <button class="btn btn--dark" type="submit">조회</button>
+          <span class="range-btns"><button type="button" class="btn btn--line" data-arange="today">오늘</button><button type="button" class="btn btn--line" data-arange="week">최근 7일</button><button type="button" class="btn btn--line" data-arange="d30">최근 30일</button><button type="button" class="btn btn--line" data-arange="month">이번 달</button><button type="button" class="btn btn--line" data-arange="last">지난달</button><button type="button" class="btn btn--line" data-arange="year">올해</button></span>
+          <span class="seg" id="anUnit" role="group" aria-label="묶는 단위"><button type="button" data-unit="day" class="is-on">일별</button><button type="button" data-unit="month">월별</button></span>
+        </form>
+        <div class="kpis kpis--6" id="anKpis"></div>
+        <div class="panel an-tips" id="anTips"></div>
+        <div class="grid2">
+          <div class="panel"><h2>매출 <small id="anRevSum"></small></h2><div class="vchart" id="anRevChart"></div></div>
+          <div class="panel"><h2>방문자 <small id="anVisitSum"></small></h2><div class="vchart" id="anVisitChart"></div></div>
+        </div>
+        <div class="panel panel--flush">
+          <div class="panel__head panel__head--pad"><h2>상품 성과 <small>조회 → 검색 → 판매</small></h2>
+            <select id="anSort" aria-label="정렬"><option value="amt">매출순</option><option value="qty">판매 수량순</option><option value="v">조회순</option><option value="s">검색순</option><option value="cv">구매 전환율순</option></select></div>
+          <div class="table-wrap an-scroll"><table class="table table--compact" id="anProducts"></table></div>
+        </div>
+        <div class="grid2">
+          <div class="panel"><h2>종류별 매출</h2><div class="hbars hbars--wide" id="anCats"></div></div>
+          <div class="panel"><h2>유입 경로 <small>방문자 기준</small></h2><div class="hbars hbars--wide" id="anSources"></div><p class="muted an-dev" id="anDevices"></p></div>
+        </div>
+        <div class="grid2">
+          <div class="panel"><h2>인기 검색어</h2><ol class="an-terms" id="anTerms"></ol></div>
+          <div class="panel"><h2>결과가 없던 검색어 <small>새 상품·상품명 아이디어</small></h2><ol class="an-terms" id="anZero"></ol></div>
+        </div>
+        <div class="grid2">
+          <div class="panel"><h2>요일별 입금 주문</h2><div class="vchart vchart--sm" id="anWeek"></div></div>
+          <div class="panel"><h2>시간대별 주문 신청</h2><div class="vchart vchart--sm" id="anHour"></div></div>
+        </div>
+        <div class="panel panel--flush"><div class="panel__head panel__head--pad"><h2>기간별 표</h2></div><div class="table-wrap"><table class="table table--compact" id="anTable"></table></div></div>
       </section>
 
       <!-- 구매 신청 -->
@@ -268,7 +307,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261104e"></script>
-  <script src="admin.js?v=20261104e"></script>
+  <script src="common.js?v=20261104f"></script>
+  <script src="admin.js?v=20261104f"></script>
 </body>
 </html>
