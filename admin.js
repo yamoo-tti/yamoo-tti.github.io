@@ -532,7 +532,7 @@
     if (error) return fail(error);
     products = data;
     const st = await window.YAMOO.loadStats();
-    products.forEach(p => { p._views = (st[p.id] || {}).views || 0; p._sold = (st[p.id] || {}).sold || 0; });
+    products.forEach(p => { const s = st[p.id] || {}; p._views = s.views || 0; p._searches = s.searches || 0; p._sold = s.sold || 0; });
     let d = null;
     try { d = await domestic(); } catch { d = null; }
     products.forEach(p => { p._price = d ? productPrice(p, d) : null; });
@@ -549,7 +549,7 @@
     shownProducts = list;
     [...picked].forEach(id => { if (!list.some(p => p.id === id)) picked.delete(id); });
     const allOn = list.length && list.every(p => picked.has(p.id));
-    const head = `<thead><tr><th class="pick"><input type="checkbox" data-pickall ${allOn ? "checked" : ""} aria-label="모두 선택"></th><th></th><th>상품명</th><th>종류</th><th>중량 · 함량</th><th>가격 조정</th><th>현재 판매가</th><th>조회 · 판매</th><th>노출</th><th>품절</th><th>순서</th></tr></thead>`;
+    const head = `<thead><tr><th class="pick"><input type="checkbox" data-pickall ${allOn ? "checked" : ""} aria-label="모두 선택"></th><th></th><th>상품명</th><th>종류</th><th>중량 · 함량</th><th>가격 조정</th><th>현재 판매가</th><th>조회 · 검색 · 판매</th><th>노출</th><th>품절</th><th>순서</th></tr></thead>`;
     $("#productTable").innerHTML = head + "<tbody>" + (list.length ? list.map(p => `
       <tr class="clickable${p.visible ? "" : " is-dim"}" data-product="${p.id}">
         <td class="pick"><input type="checkbox" data-pick="${p.id}" ${picked.has(p.id) ? "checked" : ""} aria-label="선택"></td>
@@ -559,7 +559,7 @@
         <td>${Number(p.weight_g)}g · ${p.kind === "silver" ? "은 999.9" : KARAT_KO[p.karat] || p.karat}</td>
         <td>${adjLabel(p)}</td>
         <td>${p._price ? won(p._price) : "-"}</td>
-        <td class="muted">${p._views} · <b>${p._sold}</b></td>
+        <td class="muted">${p._views} · ${p._searches} · <b>${p._sold}</b></td>
         <td><button class="switch ${p.visible ? "is-on" : ""}" data-toggle="${p.id}:visible" aria-label="노출">${p.visible ? "노출" : "숨김"}</button></td>
         <td><button class="switch switch--warn ${p.sold_out ? "is-on" : ""}" data-toggle="${p.id}:sold_out" aria-label="품절">${p.sold_out ? "품절" : "판매중"}</button></td>
         <td>${p.sort}</td>

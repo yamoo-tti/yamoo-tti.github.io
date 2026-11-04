@@ -462,6 +462,10 @@ if (searchPanel) {
     if (e.target.closest("[data-sclose]")) return closeSearch();
     const k = e.target.closest("[data-skey]");
     if (k) { searchInput.value = k.dataset.skey; refreshSearch(); return; }
+    // 검색 결과에서 상품을 누르면 '검색으로 찾음' 1번 (인기순에 반영)
+    const hit = e.target.closest(".sres");
+    const hid = hit && hit.querySelector("[data-order]");
+    if (hid && window.YAMOO.trackSearch) window.YAMOO.trackSearch(hid.dataset.order);
     if (e.target.closest("[data-order]")) closeSearch(); // 구매 창으로 넘어감
   });
   document.addEventListener("keydown", e => {
