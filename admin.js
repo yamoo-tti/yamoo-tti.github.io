@@ -941,7 +941,7 @@
           <label>사이즈 (cm) <small>쉼표로 구분 · 비우면 사이즈 선택 없음</small><input name="sizes" maxlength="200" value="${esc(p.sizes || "")}" placeholder="예) 15,15.5,16 …"></label>
           <label>기준 사이즈 (cm) <small>위 중량이 몇 cm 기준인지 · 사이즈만큼 중량·공임 비례</small><input type="number" name="base_size" min="0" step="0.5" value="${p.base_size == null ? "" : Number(p.base_size)}"></label>
         </div>
-        <p class="muted"><button type="button" class="btn btn--line btn--sm" data-sizes="15,15.5,16,16.5,17,17.5,18,18.5,19,19.5,20,20.5,21">팔찌 15~21 (0.5)</button> <button type="button" class="btn btn--line btn--sm" data-sizes="41,42,43,44,45,46">목걸이 41~46</button> <button type="button" class="btn btn--line btn--sm" data-sizes="">없음</button></p>
+        <p class="muted"><button type="button" class="btn btn--line btn--sm" data-sizes="15,15.5,16,16.5,17,17.5,18,18.5,19,19.5,20,20.5,21">팔찌 15~21 (0.5)</button> <button type="button" class="btn btn--line btn--sm" data-sizes="41,42,43,44,45,46">목걸이 41~46</button> <button type="button" class="btn btn--line btn--sm" data-sizes="9,10,11,12,13,14,15,16,17">반지 9~17호</button> <button type="button" class="btn btn--line btn--sm" data-sizes="">없음</button></p>
         <div class="row2">
           <label>추가 옵션 이름 <small>비우면 없음</small><input name="addon_name" maxlength="30" value="${esc(p.addon_name || "")}" placeholder="예) 18K 잠금장식"></label>
           <label>추가 금액 (원) <small id="addonAuto"></small><input type="number" name="addon_price" min="0" step="1000" value="${p.addon_price == null ? "" : Number(p.addon_price)}"></label>
@@ -999,7 +999,7 @@
         f.name.addEventListener("input", () => { f.name.dataset.touched = "1"; });
         f.querySelectorAll("[data-sizes]").forEach(b => b.addEventListener("click", () => {
           f.sizes.value = b.dataset.sizes;
-          if (!b.dataset.sizes) f.base_size.value = "";
+          if (!b.dataset.sizes || b.dataset.sizes.startsWith("9")) f.base_size.value = ""; // 반지는 사이즈로 중량 안 바뀜
           else if (!f.base_size.value) f.base_size.value = b.dataset.sizes.startsWith("15") ? 17 : 45;
         }));
         $("#addonCalc").addEventListener("click", () => {

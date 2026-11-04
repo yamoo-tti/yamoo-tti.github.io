@@ -373,7 +373,7 @@ function productCard(opts, i) {
         <div class="product__info">
           <p class="product__spec"><span class="karat">${esc(karatLabel(p.karat))}</span><span>·</span><span>${Number(p.weight_g)}g</span></p>
           <h3 class="product__name">${esc(title)}</h3>
-          ${(() => { const sz = Y.sizeList(p), t = [sz.length ? `사이즈 ${sz[0]}~${sz[sz.length - 1]}cm${Number(p.base_size) > 0 ? ` (중량 ${Number(p.base_size)}cm 기준)` : ""}` : "", Y.hasAddon(p) ? `${p.addon_name} 선택` : ""].filter(Boolean).join(" · "); return t ? `<p class="product__opt">${esc(t)}</p>` : ""; })()}
+          ${(() => { const sz = Y.sizeList(p), t = [sz.length ? `사이즈 ${sz[0]}~${sz[sz.length - 1]}${Y.sizeUnit(p)}${Number(p.base_size) > 0 ? ` (중량 ${Number(p.base_size)}cm 기준)` : ""}` : "", Y.hasAddon(p) ? `${p.addon_name} 선택` : ""].filter(Boolean).join(" · "); return t ? `<p class="product__opt">${esc(t)}</p>` : ""; })()}
           ${chipsHtml}
           <p class="product__price">${won(price)}</p>
           ${p.sold_out ? `<p class="product__out">품절</p>` : `<div class="add-cart"><button class="p-cart" ${cartAttr(p)}>장바구니</button><button class="p-buy" ${orderAttr(p)}>바로 구매</button></div>`}

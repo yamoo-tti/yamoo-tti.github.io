@@ -141,8 +141,9 @@
   const Y = window.YAMOO;
   const optsHtml = (p, pre = {}) => {
     const sz = Y.sizeList(p);
-    return (sz.length ? `<label>사이즈 (cm)<select name="opt_size" required><option value="">사이즈를 골라 주세요</option>${sz.map(s =>
-      `<option value="${esc(s)}"${pre.size === s ? " selected" : ""}>${esc(s)}cm</option>`).join("")}</select></label>${Number(p.base_size) > 0 ? `<p class="opt-w"></p>` : ""}` : "")
+    const un = Y.sizeUnit(p);
+    return (sz.length ? `<label>사이즈 (${un})<select name="opt_size" required><option value="">사이즈를 골라 주세요</option>${sz.map(s =>
+      `<option value="${esc(s)}"${pre.size === s ? " selected" : ""}>${esc(s)}${un}</option>`).join("")}</select></label>${Number(p.base_size) > 0 ? `<p class="opt-w"></p>` : ""}` : "")
       + (Y.hasAddon(p) ? `<label class="check opt-addon"><input type="checkbox" name="opt_addon"${pre.addon ? " checked" : ""}> <span>${esc(p.addon_name)} 추가 <b>+${won(Number(p.addon_price))}</b></span></label>` : "");
   };
   const pickOf = f => ({ size: f.opt_size ? f.opt_size.value : "", addon: !!(f.opt_addon && f.opt_addon.checked) });

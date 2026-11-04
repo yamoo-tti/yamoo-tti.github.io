@@ -166,6 +166,7 @@
     return out;
   }
   // 사이즈 · 추가 옵션(예: 18K 잠금장식) — 주문 상품명 뒤 '(사이즈 17cm · 18K 잠금장식)'은 서버 opt_check와 같은 글자
+  const sizeUnit = p => p.category === "ring" ? "호" : "cm"; // 반지는 호, 팔찌·목걸이는 cm (서버 opt_check와 같게)
   const sizeList = p => String(p.sizes || "").split(",").map(s => s.trim()).filter(Boolean);
   const hasAddon = p => !!String(p.addon_name || "").trim() && Number(p.addon_price) > 0;
   const needsPick = p => sizeList(p).length > 0 || hasAddon(p);
@@ -178,7 +179,7 @@
   };
   const pickLabel = (p, size, addon) => {
     const w = Number(sized(p, size).weight_g);
-    return [size ? `사이즈 ${size}cm` : "", addon && hasAddon(p) ? String(p.addon_name).trim() : "", w !== Number(p.weight_g) ? `${w}g` : ""].filter(Boolean).join(" · ");
+    return [size ? `사이즈 ${size}${sizeUnit(p)}` : "", addon && hasAddon(p) ? String(p.addon_name).trim() : "", w !== Number(p.weight_g) ? `${w}g` : ""].filter(Boolean).join(" · ");
   };
   const optLabel = p => {
     const t = String(p.opt_label || "").trim(), w = Number(p.weight_g), d = w / DON;
@@ -235,5 +236,5 @@
   }
   trackVisit();
 
-  window.YAMOO = { sizeList, hasAddon, needsPick, pickLabel, sized, loadStats, rankProducts, groupOptions, optLabel, optPick, optTitle,trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
+  window.YAMOO = { sizeUnit, sizeList, hasAddon, needsPick, pickLabel, sized, loadStats, rankProducts, groupOptions, optLabel, optPick, optTitle,trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
 })();
