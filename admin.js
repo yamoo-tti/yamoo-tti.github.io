@@ -799,7 +799,22 @@
         <td>${p.sort}</td>
       </tr>`).join("") : `<tr><td class="empty" colspan="11">상품이 없습니다</td></tr>`) + "</tbody>";
     $("#bulkPrice").textContent = picked.size ? `가격 일괄 변경 (${picked.size}개 선택)` : "가격 일괄 변경";
+    $("#bulkDelete").hidden = !picked.size;
+    $("#bulkDelete").textContent = `선택 삭제 (${picked.size}개)`;
   }
+
+  // 체크한 상품 삭제 (주문 기록은 상품명·금액이 따로 저장돼 그대로 남음)
+  $("#bulkDelete").addEventListener("click", async () => {
+    const targets = shownProducts.filter(p => picked.has(p.id));
+    if (!targets.length) return;
+    const names = targets.slice(0, 8).map(p => "· " + p.name).join("\n") + (targets.length > 8 ? `\n… 외 ${targets.length - 8}개` : "");
+    if (!confirm(`${targets.length}개 상품을 삭제할까요? 되돌릴 수 없어요.\n(잠시 내리기만 하려면 '노출'을 '숨김'으로 바꾸세요)\n\n${names}`)) return;
+    try {
+      must(await sb.from("products").delete().in("id", targets.map(p => p.id)));
+      targets.forEach(p => picked.delete(p.id));
+      toast(`${targets.length}개 삭제했습니다`); loaders.products();
+    } catch (err) { fail(err); }
+  });
 
   // 가격 조정 표시: 시세 대비 % · 1돈(3.75g)당 공임
   const perDonOf = p => Number(p.weight_g) > 0 ? Number(p.labor || 0) / Number(p.weight_g) * 3.75 : 0;

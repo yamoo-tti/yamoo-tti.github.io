@@ -289,12 +289,12 @@ function renderProducts(filter = "all") {
         <div class="product__img">
           <img src="${esc(imgSrc(p))}" alt="${esc(p.name)}" loading="lazy">
           ${p.sold_out ? `<span class="product__tag product__tag--out">품절</span>` : tagOf(p) ? `<span class="product__tag">${esc(tagOf(p))}</span>` : ""}
-          ${p.sold_out ? "" : `<div class="add-cart"><button class="p-cart" ${cartAttr(p)}>장바구니</button><button class="p-buy" ${orderAttr(p)}>바로 구매</button></div>`}
         </div>
         <div class="product__info">
           <p class="product__spec"><span class="karat">${esc(karatLabel(p.karat))}</span><span>·</span><span>${Number(p.weight_g)}g</span></p>
           <h3 class="product__name">${esc(p.name)}</h3>
           <p class="product__price">${won(price)}</p>
+          ${p.sold_out ? "" : `<div class="add-cart"><button class="p-cart" ${cartAttr(p)}>장바구니</button><button class="p-buy" ${orderAttr(p)}>바로 구매</button></div>`}
           <button type="button" class="info-link" data-info="${orderKey(p)}">상품정보 제공고시</button>
         </div>
       </article>`;
