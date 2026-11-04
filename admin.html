@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261104f">
+  <link rel="stylesheet" href="admin.css?v=20261104h">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -171,6 +171,7 @@
         <header class="view__head"><h1>상품 관리</h1><div class="head-btns"><button class="btn btn--line" id="bulkPrice" type="button">가격 일괄 변경</button><button class="btn btn--gold" id="addProduct">+ 상품 추가</button></div></header>
         <p class="desc">가격 = 실시간 시세 × 중량 × (1 + <b>시세 대비 %</b>) + <b>공임</b>. 여러 상품을 한 번에 바꾸려면 왼쪽 칸을 체크하고(안 하면 지금 보이는 목록 전체) <b>가격 일괄 변경</b>에서 <b>돈당 공임</b> 또는 <b>%</b>로 정하세요. '품절'은 상품을 보여주되 구매를 막고, '숨김'은 홈페이지에서 아예 뺍니다.</p>
         <div class="tabs" id="productTabs"></div>
+        <div class="ptools" id="productTools"></div>
         <div class="panel panel--flush"><div class="table-wrap"><table class="table" id="productTable"></table></div></div>
       </section>
 
@@ -308,6 +309,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="common.js?v=20261104g"></script>
-  <script src="admin.js?v=20261104f"></script>
+  <script src="admin.js?v=20261104h"></script>
 </body>
 </html>

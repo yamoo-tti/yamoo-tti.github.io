@@ -274,6 +274,15 @@ fieldset.box .row2 { align-items: end; }
 .tabs button.sub { height: 30px; font-size: 12px; background: var(--tint, #f4efe6); }
 .tabs button.sub.is-on { background: var(--gold-2, #9c7629); border-color: var(--gold-2, #9c7629); }
 
+/* 상품 관리: 돈 수 필터 · 정렬 */
+.ptools { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ptools__label { font-size: 12px; color: var(--muted); margin-right: 2px; }
+.ptools button { height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: 13px; color: var(--ink-2); }
+.ptools button span { color: var(--muted); font-size: 12px; margin-left: 2px; }
+.ptools button.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.ptools button.is-on span { color: var(--gold-hi); }
+.ptools select { height: 34px; margin-left: auto; }
+
 /* 판매 분석 */
 #anForm { align-items: center; }
 #anForm input[type=date] { width: auto; }

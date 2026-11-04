@@ -738,6 +738,17 @@
   /* ---------- 상품 관리 ---------- */
   let products = [], productTab = "bar", productSub = "all";
   let picked = new Set(), shownProducts = []; // 가격 일괄 변경용 체크
+  let productW = "all", productSort = "sort";
+  // 돈 수 구간 [이상, 미만, 이름] (1돈 = 3.75g)
+  const DON_RANGE = { all: [0, Infinity, "전체"], u1: [0, 1, "1돈 미만"], d1: [1, 3, "1~3돈"], d3: [3, 5, "3~5돈"], d5: [5, 10, "5~10돈"], d10: [10, Infinity, "10돈 이상"] };
+  const donTxt = w => { const d = Number(w) / 3.75; return (Math.round(d * 100) / 100).toLocaleString("ko-KR") + "돈"; };
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-pw]");
+    if (b) { productW = b.dataset.pw; renderProducts(); }
+  });
+  document.addEventListener("change", e => {
+    if (e.target.id === "productSort") { productSort = e.target.value; renderProducts(); }
+  });
   // 관리 화면 묶음: 악세사리는 24K(순금)와 실버(실버바와 함께)로 나눠 보여줌
   const PGROUP = { bar: "골드바", zodiac: "카드형 1g", gold24: "24K", silver: "실버", gift: "순금선물" };
   const PSUB = { gold24: ["necklace", "ring", "bracelet", "earring"], gift: ["goods", "dol", "key", "memo"] };
@@ -761,7 +772,14 @@
     $("#productTabs").innerHTML = tabs.map(([k, v]) => `<button data-tab="products:${k}" class="${productTab === k ? "is-on" : ""}">${v} <span>${k === "all" ? products.length : products.filter(p => groupOf(p) === k).length}</span></button>`).join("")
       + (subs.length ? `<span class="ptabs-sep" aria-hidden="true">›</span>` + [["all", "전체"], ...subs.map(c => [c, CATEGORY[c]])].map(([k, v]) =>
         `<button data-tab="psub:${k}" class="sub${productSub === k ? " is-on" : ""}">${v} <span>${k === "all" ? inTab.length : inTab.filter(p => p.category === k).length}</span></button>`).join("") : "");
-    const list = productSub === "all" || !subs.length ? inTab : inTab.filter(p => p.category === productSub);
+    const inSub = productSub === "all" || !subs.length ? inTab : inTab.filter(p => p.category === productSub);
+    // 돈 수 필터 · 정렬
+    const wr = DON_RANGE[productW] || DON_RANGE.all;
+    const list = inSub.filter(p => { const d = Number(p.weight_g) / 3.75; return d >= wr[0] && d < wr[1]; });
+    const SORTS = { w_asc: (a, b) => a.weight_g - b.weight_g, w_desc: (a, b) => b.weight_g - a.weight_g, p_asc: (a, b) => (a._price || 0) - (b._price || 0), p_desc: (a, b) => (b._price || 0) - (a._price || 0), pop: (a, b) => (b._sold * 30 + b._searches * 3 + b._views) - (a._sold * 30 + a._searches * 3 + a._views) };
+    if (SORTS[productSort]) list.sort((a, b) => SORTS[productSort](a, b) || a.sort - b.sort);
+    $("#productTools").innerHTML = `<span class="ptools__label">중량</span>${Object.entries(DON_RANGE).map(([k, r]) => `<button type="button" data-pw="${k}" class="${productW === k ? "is-on" : ""}">${r[2]} <span>${inSub.filter(p => { const d = Number(p.weight_g) / 3.75; return d >= r[0] && d < r[1]; }).length}</span></button>`).join("")}
+      <select id="productSort" aria-label="정렬">${Object.entries({ sort: "기본 순서", w_asc: "돈 수 적은 순", w_desc: "돈 수 많은 순", p_asc: "판매가 낮은 순", p_desc: "판매가 높은 순", pop: "인기순" }).map(([k, v]) => `<option value="${k}"${productSort === k ? " selected" : ""}>${v}</option>`).join("")}</select>`;
     shownProducts = list;
     [...picked].forEach(id => { if (!list.some(p => p.id === id)) picked.delete(id); });
     const allOn = list.length && list.every(p => picked.has(p.id));
@@ -772,7 +790,7 @@
         <td><img class="thumb" src="${esc(imgUrl(p.img))}" alt=""></td>
         <td><b>${esc(p.name)}</b>${p.tag ? ` <span class="pill g-gold">${esc(p.tag)}</span>` : ""}</td>
         <td>${kindLabel(p)}${p.category ? " · " + CATEGORY[p.category] : ""}</td>
-        <td>${Number(p.weight_g)}g · ${p.kind === "silver" ? "은 999.9" : KARAT_KO[p.karat] || p.karat}</td>
+        <td>${Number(p.weight_g)}g <span class="muted">(${donTxt(p.weight_g)})</span> · ${p.kind === "silver" ? "은 999.9" : KARAT_KO[p.karat] || p.karat}</td>
         <td>${adjLabel(p)}</td>
         <td>${p._price ? won(p._price) : "-"}</td>
         <td class="muted">${p._views} · ${p._searches} · <b>${p._sold}</b></td>
@@ -788,7 +806,7 @@
   function adjLabel(p) {
     const a = [];
     if (Number(p.premium_pct)) a.push("+" + Number(p.premium_pct) + "%");
-    if (Number(p.labor)) a.push("돈당 " + won(Math.round(perDonOf(p) / 100) * 100));
+    if (Number(p.labor)) a.push(Number(p.weight_g) < 3.75 ? "공임 " + won(Number(p.labor)) : "돈당 " + won(Math.round(perDonOf(p) / 100) * 100));
     return a.join(" · ") || "-";
   }
 
@@ -816,12 +834,17 @@
         <label class="inline"><input type="radio" name="mode" value="pct"> <span><b>%</b> — 금·은 시세 금액에 정한 비율을 더해요</span></label>
       </fieldset>
       <label data-m="don">1돈당 공임 (원) <small>참고: 순금 50,000 · 실버 25,000</small><input type="number" name="don" min="0" step="1000" value="${allSilver ? 25000 : 50000}"></label>
+      <div class="row2" data-m="don">
+        <label class="inline"><input type="checkbox" name="minOn" ${allSilver ? "" : "checked"}> <span>1돈(3.75g) 미만 상품은 공임 고정</span></label>
+        <label>고정 공임 (원)<input type="number" name="minFlat" min="0" step="1000" value="35000"></label>
+      </div>
       <label data-m="pct" hidden>시세 대비 더하기 (%) <small>예) 10 → 시세 금액의 10%를 더함 · 빼려면 −</small><input type="number" name="pct" step="0.1" value="10"></label>
       <p class="muted">고른 기준으로 바꾸면 다른 쪽 값은 0이 돼요. 공임·% 금액은 손님 화면에 보이지 않아요.</p>
       <div class="bulk-prev" id="bulkPrev"></div>`;
     const calc = (p, f) => f.mode.value === "pct"
       ? { premium_pct: Number(f.pct.value) || 0, labor: 0 }
-      : { premium_pct: 0, labor: Math.round((Number(f.don.value) || 0) * Number(p.weight_g) / 3.75 / 100) * 100 };
+      : { premium_pct: 0, labor: f.minOn.checked && Number(p.weight_g) < 3.75 ? Number(f.minFlat.value) || 0
+          : Math.round((Number(f.don.value) || 0) * Number(p.weight_g) / 3.75 / 100) * 100 };
     openEdit("가격 일괄 변경", html, {
       after: f => {
         const sync = () => {
