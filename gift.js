@@ -25,25 +25,22 @@
       <div class="gcard__btns"><a class="gbtn gbtn--buy" href="tel:${PHONE}">전화 상담</a></div>
     </li>`;
 
-  function render() {
-    const ranked = Y.rankProducts(products.filter(p => p.kind === "gift"), stats);
-    const tagOf = p => p.tag || (ranked.best.has(p.id) ? "BEST" : "");
-    let list = ranked.list.filter(p => cat === "all" || p.category === cat);
-    if (sort !== "rec") {
-      const v = p => priceOf(p) ?? 0;
-      list = list.slice().sort((a, b) => sort === "low" ? v(a) - v(b) : v(b) - v(a));
-    }
-    const showPlaque = cat === "all" || cat === "plaque";
-    $("#giftCount").innerHTML = `총 <b>${list.length + (showPlaque ? 1 : 0)}</b>개 상품`;
-    $("#giftGrid").innerHTML = list.map(p => {
-      const pr = priceOf(p), off = p.sold_out ? "disabled" : "";
-      return `
-        <li class="gcard${p.sold_out ? " is-soldout" : ""}">
+  // 옵션(1g · 1돈 · 2돈 …)이 있는 상품은 카드 하나에 옵션 버튼으로
+  let chosen = {}, shownGroups = [], tagOfNow = p => p.tag || "";
+  const optChips = (opts, p) => opts.length < 2 ? "" : `<div class="optchips" role="group" aria-label="옵션 선택">${opts.map(o =>
+    `<button type="button" data-opt="${o.id}" class="${o.id === p.id ? "is-on" : ""}${o.sold_out ? " is-out" : ""}" aria-pressed="${o.id === p.id}">${Y.esc(Y.optLabel(o))}</button>`).join("")}</div>`;
+  function cardHtml(opts) {
+    const p = Y.optPick(opts, chosen[opts[0].opt_group]), pr = priceOf(p), off = p.sold_out ? "disabled" : "";
+    const tag = opts.map(tagOfNow).find(Boolean);
+    const title = Y.optTitle(opts, p);
+    return `
+        <li class="gcard${p.sold_out ? " is-soldout" : ""}" data-gkey="${Y.esc(opts[0].id)}">
           <div class="gcard__img">
-            <img src="${Y.esc(imgSrc(p))}" alt="${Y.esc(p.name)}" loading="lazy">
-            ${p.sold_out ? '<em class="gcard__badge gcard__badge--out">품절</em>' : tagOf(p) ? `<em class="gcard__badge">${Y.esc(tagOf(p))}</em>` : ""}
+            <img src="${Y.esc(imgSrc(p))}" alt="${Y.esc(title)}" loading="lazy">
+            ${p.sold_out ? '<em class="gcard__badge gcard__badge--out">품절</em>' : tag ? `<em class="gcard__badge">${Y.esc(tag)}</em>` : ""}
           </div>
-          <p class="gcard__name">${Y.esc(p.name)}</p>
+          <p class="gcard__name">${Y.esc(title)}</p>
+          ${optChips(opts, p)}
           <p class="gcard__w">순금 24K · ${wText(Number(p.weight_g))}</p>
           <p class="gcard__price"><strong>${pr ? Y.won(pr) : "시세 확인 중"}</strong></p>
           <button type="button" class="info-link" data-ginfo="${p.id}">상품정보 제공고시</button>
@@ -52,7 +49,22 @@
             <button type="button" class="gbtn gbtn--buy" data-gbuy="${p.id}" ${off}>${p.sold_out ? "품절" : "바로 구매"}</button>
           </div>
         </li>`;
-    }).join("") + (showPlaque ? plaqueCard() : "");
+  }
+
+  function render() {
+    const ranked = Y.rankProducts(products.filter(p => p.kind === "gift"), stats);
+    const tagOf = p => p.tag || (ranked.best.has(p.id) ? "BEST" : "");
+    tagOfNow = tagOf;
+    let list = ranked.list.filter(p => cat === "all" || p.category === cat);
+    let groups = Y.groupOptions(list);
+    if (sort !== "rec") {
+      const v = o => priceOf(Y.optPick(o, chosen[o[0].opt_group])) ?? 0;
+      groups = groups.slice().sort((a, b) => sort === "low" ? v(a) - v(b) : v(b) - v(a));
+    }
+    shownGroups = groups;
+    const showPlaque = cat === "all" || cat === "plaque";
+    $("#giftCount").innerHTML = `총 <b>${groups.length + (showPlaque ? 1 : 0)}</b>개 상품`;
+    $("#giftGrid").innerHTML = groups.map(cardHtml).join("") + (showPlaque ? plaqueCard() : "");
     document.querySelectorAll("#giftCats button").forEach(b => {
       const on = b.dataset.cat === cat;
       b.classList.toggle("is-on", on);
@@ -75,6 +87,13 @@
   $("#giftGrid").addEventListener("click", e => {
     const find = attr => { const b = e.target.closest(`[${attr}]`); return b && products.find(p => p.id === b.getAttribute(attr)); };
     let p;
+    if ((p = find("data-opt"))) {
+      const card = e.target.closest("[data-gkey]"), opts = shownGroups.find(o => o[0].id === card.dataset.gkey);
+      if (!opts) return;
+      chosen[opts[0].opt_group] = p.id;
+      card.outerHTML = cardHtml(opts);
+      return;
+    }
     if ((p = find("data-ginfo"))) return window.openInfo && window.openInfo(p);
     if ((p = find("data-gcart"))) return window.addToCart && window.addToCart(p);
     if ((p = find("data-gbuy"))) return window.openOrder && window.openOrder(p);

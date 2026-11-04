@@ -733,3 +733,13 @@ ul, ol { padding: 0; list-style: none; }
 .psort { margin-left: auto; height: 34px; padding: 0 10px; border: 1px solid var(--line); border-radius: 2px; background: #fff; font-size: 13px; color: var(--ink); flex: none; }
 
 #materialChips { margin-bottom: 10px; }
+
+/* 옵션 선택 (1g · 1돈 · 2돈 …) */
+.optchips { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0 8px; }
+.optchips button { min-width: 44px; height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 2px; background: #fff; color: var(--ink-2); font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; transition: border-color .2s, color .2s; }
+.optchips button:hover { border-color: var(--ink); }
+.optchips button.is-on { border-color: var(--ink); background: var(--ink); color: #fff; }
+.optchips button.is-out { color: var(--muted); text-decoration: line-through; }
+.optchips button.is-out.is-on { color: #fff; }
+.product__out { margin: 10px 0 6px; height: 36px; display: grid; place-items: center; align-self: stretch; margin-top: auto; border: 1px solid var(--line); border-radius: 2px; color: var(--muted); font-size: 13px; }
+.gcard__w { margin-bottom: auto; }

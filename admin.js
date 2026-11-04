@@ -1,6 +1,6 @@
 /* 금비 GOLD 관리자 */
 (function () {
-  const { sb, esc, won, fmtDate, fetchLive, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, DEFAULT_SETTINGS, INFO_FIELDS, infoDefaults } = window.YAMOO;
+  const { sb, esc, won, fmtDate, fetchLive, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, DEFAULT_SETTINGS, INFO_FIELDS, infoDefaults, optLabel } = window.YAMOO;
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
 
@@ -788,7 +788,7 @@
       <tr class="clickable${p.visible ? "" : " is-dim"}" data-product="${p.id}">
         <td class="pick"><input type="checkbox" data-pick="${p.id}" ${picked.has(p.id) ? "checked" : ""} aria-label="선택"></td>
         <td><img class="thumb" src="${esc(imgUrl(p.img))}" alt=""></td>
-        <td><b>${esc(p.name)}</b>${p.tag ? ` <span class="pill g-gold">${esc(p.tag)}</span>` : ""}</td>
+        <td><b>${esc(p.name)}</b>${p.tag ? ` <span class="pill g-gold">${esc(p.tag)}</span>` : ""}${p.opt_group ? `<br><span class="muted">옵션 묶음 '${esc(p.opt_group)}' · ${esc(optLabel(p))}</span>` : ""}</td>
         <td>${kindLabel(p)}${p.category ? " · " + CATEGORY[p.category] : ""}</td>
         <td>${Number(p.weight_g)}g <span class="muted">(${donTxt(p.weight_g)})</span> · ${p.kind === "silver" ? "은 999.9" : KARAT_KO[p.karat] || p.karat}</td>
         <td>${adjLabel(p)}</td>
@@ -886,8 +886,11 @@
     });
   });
 
-  function openProduct(p) {
-    const isNew = !p;
+  // tpl: '옵션 추가'로 기존 상품을 복사해 새 옵션을 만들 때 ({ from: 원래 상품 })
+  function openProduct(p, tpl) {
+    const isNew = !p || !!tpl;
+    const src = tpl && tpl.from;
+    if (src) p = { ...src, id: undefined, weight_g: "", opt_label: "", name: "", opt_group: src.opt_group || src.name.replace(/\s*[\d.]+\s*(g|돈)\s*$/i, "").trim(), tag: "", sold_out: false, sort: (src.sort || 0) + 1 };
     const newKind = { all: "bar", gold24: "accessory" }[productTab] || productTab;
     p = p || { kind: newKind, name: "", weight_g: "", karat: "24K", category: PSUB[productTab] && productSub !== "all" ? productSub : null, premium_pct: 0, labor: 0, img: "", tag: "", sort: (products.length + 1) * 10, visible: true, sold_out: false };
     const html = `
@@ -911,6 +914,20 @@
         <label>표시 태그 <small>예) BEST, NEW</small><input name="tag" maxlength="12" value="${esc(p.tag || "")}"></label>
         <label>순서 <small>작을수록 앞</small><input type="number" name="sort" step="1" value="${p.sort}"></label>
       </div>
+      <fieldset class="box">
+        <legend>옵션 (1g · 1돈 · 2돈 …)</legend>
+        <p class="muted">묶음 이름이 같은 상품들은 홈페이지에서 카드 하나로 보이고, 손님이 옵션 버튼으로 골라요. 옵션마다 중량·공임·품절을 따로 정할 수 있어요.</p>
+        <div class="row2">
+          <label>묶음 이름 <small>예) 순금 콩알금 · 비우면 옵션 없음</small><input name="opt_group" maxlength="60" list="optGroups" value="${esc(p.opt_group || "")}"><datalist id="optGroups">${[...new Set(products.map(x => x.opt_group).filter(Boolean))].map(g => `<option value="${esc(g)}">`).join("")}</datalist></label>
+          <label>옵션 이름 <small id="optAuto">비우면 중량으로 자동</small><input name="opt_label" maxlength="20" value="${esc(p.opt_label || "")}"></label>
+        </div>
+        ${isNew ? "" : `<button type="button" class="btn btn--line" id="addOption">+ 이 상품으로 옵션 추가 (다른 중량)</button>`}
+        ${(() => {
+          const mem = p.opt_group ? products.filter(x => x.opt_group === p.opt_group).sort((a, b) => a.weight_g - b.weight_g) : [];
+          if (src && !mem.length) return `<p class="muted">저장하면 '${esc(src.name)}'도 같은 묶음으로 들어가요.</p>`;
+          return mem.length ? `<p class="muted">이 묶음의 옵션: ${mem.map(x => esc(optLabel(x)) + (x.sold_out ? "(품절)" : "")).join(" · ")}</p>` : "";
+        })()}
+      </fieldset>
       <label class="inline"><input type="checkbox" name="visible" ${p.visible ? "checked" : ""}> 홈페이지에 노출</label>
       <label class="inline"><input type="checkbox" name="sold_out" ${p.sold_out ? "checked" : ""}> 품절 (구매 버튼 막기)</label>
       <fieldset class="box pinfo-edit">
@@ -931,6 +948,10 @@
           $("#pimgPreview").src = imgUrl(f.img.value.trim());
           const dflt = infoDefaults({ kind: k, weight_g: Number(f.weight_g.value) || 0, karat: f.karat.value });
           Object.keys(INFO_FIELDS).forEach(key => { f["info_" + key].placeholder = dflt[key]; });
+          const auto = optLabel({ weight_g: Number(f.weight_g.value) || 0 });
+          $("#optAuto").textContent = Number(f.weight_g.value) > 0 ? `비우면 '${auto}'` : "비우면 중량으로 자동";
+          // 옵션 추가: 상품명을 '묶음 이름 + 옵션'으로 자동 (직접 고치면 그대로 둠)
+          if (src && !f.name.dataset.touched && f.opt_group.value.trim()) f.name.value = `${f.opt_group.value.trim()} ${f.opt_label.value.trim() || (Number(f.weight_g.value) > 0 ? auto : "")}`.trim();
           const lw = Number(f.weight_g.value), lb = Number(f.labor.value) || 0;
           $("#laborDon").textContent = lw > 0 && lb ? `1돈당 ${won(Math.round(lb / lw * 3.75 / 100) * 100)} · 손님 화면엔 안 보여요` : "손님 화면엔 안 보여요";
           try {
@@ -940,6 +961,9 @@
           } catch { $("#pricePreview").textContent = "시세 확인 불가"; }
         };
         f.addEventListener("input", sync);
+        f.name.addEventListener("input", () => { f.name.dataset.touched = "1"; });
+        const ao = $("#addOption");
+        if (ao) ao.addEventListener("click", () => openProduct(null, { from: p }));
         sync();
       },
       save: async f => {
@@ -950,10 +974,13 @@
           labor: Number(f.labor.value) || 0,
           img: f.img.value.trim() || null, tag: f.tag.value.trim() || null, sort: parseInt(f.sort.value, 10) || 0,
           visible: f.visible.checked, sold_out: f.sold_out.checked,
+          opt_group: f.opt_group.value.trim() || null, opt_label: f.opt_label.value.trim() || null,
           info: Object.fromEntries(Object.keys(INFO_FIELDS).map(k => [k, f["info_" + k].value.trim()]).filter(([, v]) => v)),
         };
         must(isNew ? await sb.from("products").insert(row) : await sb.from("products").update(row).eq("id", p.id));
-        toast(isNew ? "상품을 추가했습니다" : "저장했습니다 · 홈페이지에 바로 반영돼요");
+        // 원래 상품에 묶음 이름이 없었으면 같이 묶어 줌
+        if (src && row.opt_group && !src.opt_group) must(await sb.from("products").update({ opt_group: row.opt_group }).eq("id", src.id));
+        toast(isNew ? (src ? "옵션을 추가했습니다" : "상품을 추가했습니다") : "저장했습니다 · 홈페이지에 바로 반영돼요");
       },
       remove: isNew ? null : async () => must(await sb.from("products").delete().eq("id", p.id)),
     });

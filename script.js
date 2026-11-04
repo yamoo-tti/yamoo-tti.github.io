@@ -275,31 +275,48 @@ function renderProducts(filter = "all") {
   const ranked = window.YAMOO.rankProducts(ofKind("accessory"), state.stats);
   const all = ranked.list;
   const tagOf = p => p.tag || (ranked.best.has(p.id) ? "BEST" : "");
-  const full = sortList(all.filter(p => (filter === "all" || p.category === filter) && isMat(p) && inRange(p, currentWeight)));
+  prodTagOf = tagOf;
+  // 정렬은 상품 단위로 한 뒤 옵션 묶음(1g · 1돈 · 2돈 …)을 카드 하나로
+  const full = window.YAMOO.groupOptions(sortList(all.filter(p => (filter === "all" || p.category === filter) && isMat(p) && inRange(p, currentWeight))));
   const list = full.slice(0, shown);
+  shownGroups = list;
   const more = $("#productsMore");
   if (more) {
     more.hidden = full.length <= shown;
     more.textContent = `더보기 (${full.length - list.length}개 더 있어요)`;
   }
-  $("#products").innerHTML = list.map((p, i) => {
-    const price = priceOf(p);
-    return `
-      <article class="product${p.sold_out ? " is-soldout" : ""}" style="animation-delay:${(i % PAGE) * 50}ms">
+  $("#products").innerHTML = list.map(productCard).join("") || `<p class="products__empty">준비 중인 상품입니다.</p>`;
+}
+let shownGroups = [], optChosen = {}, prodTagOf = p => p.tag || "";
+function productCard(opts, i) {
+  const Y = window.YAMOO, p = Y.optPick(opts, optChosen[opts[0].opt_group]), price = priceOf(p);
+  const title = Y.optTitle(opts, p), tag = opts.map(prodTagOf).find(Boolean);
+  const chipsHtml = opts.length < 2 ? "" : `<div class="optchips" role="group" aria-label="옵션 선택">${opts.map(o =>
+    `<button type="button" data-popt="${esc(o.id)}" class="${o.id === p.id ? "is-on" : ""}${o.sold_out ? " is-out" : ""}" aria-pressed="${o.id === p.id}">${esc(Y.optLabel(o))}</button>`).join("")}</div>`;
+  return `
+      <article class="product${p.sold_out ? " is-soldout" : ""}" data-pkey="${esc(opts[0].id)}" style="${i < 0 ? "animation:none" : `animation-delay:${(i % PAGE) * 50}ms`}">
         <div class="product__img">
-          <img src="${esc(imgSrc(p))}" alt="${esc(p.name)}" loading="lazy">
-          ${p.sold_out ? `<span class="product__tag product__tag--out">품절</span>` : tagOf(p) ? `<span class="product__tag">${esc(tagOf(p))}</span>` : ""}
+          <img src="${esc(imgSrc(p))}" alt="${esc(title)}" loading="lazy">
+          ${p.sold_out ? `<span class="product__tag product__tag--out">품절</span>` : tag ? `<span class="product__tag">${esc(tag)}</span>` : ""}
         </div>
         <div class="product__info">
           <p class="product__spec"><span class="karat">${esc(karatLabel(p.karat))}</span><span>·</span><span>${Number(p.weight_g)}g</span></p>
-          <h3 class="product__name">${esc(p.name)}</h3>
+          <h3 class="product__name">${esc(title)}</h3>
+          ${chipsHtml}
           <p class="product__price">${won(price)}</p>
-          ${p.sold_out ? "" : `<div class="add-cart"><button class="p-cart" ${cartAttr(p)}>장바구니</button><button class="p-buy" ${orderAttr(p)}>바로 구매</button></div>`}
+          ${p.sold_out ? `<p class="product__out">품절</p>` : `<div class="add-cart"><button class="p-cart" ${cartAttr(p)}>장바구니</button><button class="p-buy" ${orderAttr(p)}>바로 구매</button></div>`}
           <button type="button" class="info-link" data-info="${orderKey(p)}">상품정보 제공고시</button>
         </div>
       </article>`;
-  }).join("") || `<p class="products__empty">준비 중인 상품입니다.</p>`;
 }
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-popt]");
+  if (!b) return;
+  const card = b.closest("[data-pkey]"), opts = card && shownGroups.find(o => o[0].id === card.dataset.pkey);
+  if (!opts) return;
+  optChosen[opts[0].opt_group] = b.dataset.popt;
+  card.outerHTML = productCard(opts, -1);
+});
 const chips = document.querySelectorAll(".chip");
 chips.forEach(c => c.addEventListener("click", () => {
   chips.forEach(x => { const on = x === c; x.classList.toggle("is-active", on); x.setAttribute("aria-selected", on); });

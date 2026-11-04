@@ -152,6 +152,25 @@
       .sort((a, b) => st[b.id].sold - st[a.id].sold).slice(0, bestN).map(p => p.id));
     return { list: ranked, best };
   }
+  // 옵션 묶음: opt_group이 같은 상품들을 카드 하나로 → [[상품], [옵션1, 옵션2, …], …]
+  // 목록 순서는 묶음에서 가장 먼저 나온 상품 자리, 묶음 안은 중량 순
+  function groupOptions(list) {
+    const out = [], at = {};
+    list.forEach(p => {
+      const g = String(p.opt_group || "").trim();
+      if (!g) return out.push([p]);
+      if (at[g] == null) { at[g] = out.length; out.push([]); }
+      out[at[g]].push(p);
+    });
+    out.forEach(o => o.length > 1 && o.sort((a, b) => Number(a.weight_g) - Number(b.weight_g) || (a.sort || 0) - (b.sort || 0)));
+    return out;
+  }
+  const optLabel = p => {
+    const t = String(p.opt_label || "").trim(), w = Number(p.weight_g), d = w / DON;
+    return t || (w >= DON / 2 && Math.abs(d * 2 - Math.round(d * 2)) < 1e-6 ? (d === 0.5 ? "반돈" : `${d}돈`) : `${w}g`);
+  };
+  const optPick = (opts, id) => opts.find(p => p.id === id) || opts.find(p => !p.sold_out) || opts[0];
+  const optTitle = (opts, p) => opts.length > 1 ? String(p.opt_group).trim() : p.name;
   // 조회 1번 기록 (같은 상품은 이 브라우저에서 하루 1번만)
   function trackView(id) {
     if (!sb || !id || String(id).startsWith("idx:")) return;
@@ -200,5 +219,5 @@
   }
   trackVisit();
 
-  window.YAMOO = { loadStats, rankProducts, trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
+  window.YAMOO = { loadStats, rankProducts, groupOptions, optLabel, optPick, optTitle,trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
 })();
