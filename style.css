@@ -707,7 +707,7 @@ ul, ol { padding: 0; list-style: none; }
 .products__more .btn { min-width: 240px; }
 
 /* 상품 사진 크게 보기 */
-.product__img img, .bar__img img, .zcard__img img, .gcard__img img { cursor: zoom-in; }
+.product__img img, .bar__img img, .zcard__img img, .gcard__img img, .sres img, .sres__body { cursor: zoom-in; }
 .lightbox { position: fixed; inset: 0; z-index: 200; background: rgba(12, 11, 9, .9); display: grid; place-items: center; padding: 56px 16px 24px; cursor: zoom-out; animation: lbIn .2s ease; }
 .lightbox[hidden] { display: none; }
 .lightbox__fig { margin: 0; display: grid; justify-items: center; gap: 14px; max-width: 100%; }
