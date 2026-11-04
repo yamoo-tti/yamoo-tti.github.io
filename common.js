@@ -210,6 +210,7 @@
     else if (has("google")) src = "google";
     else if (has("daum")) src = "daum";
     else if (has("kakao")) src = "kakao";
+    else if (has("threads")) src = "threads"; // threads.net · threads.com · 링크에 ?utm_source=threads
     else if (has("instagram")) src = "instagram";
     else if (has("facebook") || ref === "l.facebook.com" || ref === "m.facebook.com") src = "facebook";
     else if (has("youtube") || ref.includes("youtu.be")) src = "youtube";

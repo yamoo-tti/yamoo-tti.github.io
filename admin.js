@@ -489,7 +489,7 @@
 
   /* ---------- 판매 분석 ---------- */
   let anUnit = "day", an = null;
-  const SRC_KO = { naver: "네이버", google: "구글", daum: "다음", kakao: "카카오", instagram: "인스타그램", facebook: "페이스북", youtube: "유튜브", email: "주문 메일 링크", direct: "직접 방문·즐겨찾기", other: "기타 사이트" };
+  const SRC_KO = { naver: "네이버", google: "구글", daum: "다음", kakao: "카카오", threads: "쓰레드", instagram: "인스타그램", facebook: "페이스북", youtube: "유튜브", email: "주문 메일 링크", direct: "직접 방문·즐겨찾기", other: "기타 사이트" };
   const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
   const addDays = (s, n) => { const d = new Date(s + "T00:00:00"); d.setDate(d.getDate() + n); return ymd(d); };
   const daysBetween = (a, b) => Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000) + 1;
