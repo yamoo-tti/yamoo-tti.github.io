@@ -1,6 +1,6 @@
 /* 상품 사진을 누르면 크게 보기 (홈페이지 · 순금선물 공용) */
 (function () {
-  const SEL = ".product__img img, .bar__img img, .zcard__img img, .gcard__img img, .sres img, .sres__body";
+  const SEL = ".bean__main img, .product__img img, .bar__img img, .zcard__img img, .gcard__img img, .sres img, .sres__body";
   const box = document.createElement("div");
   box.className = "lightbox";
   box.hidden = true;
@@ -36,7 +36,7 @@
     const card = t.closest("article, li");
     if (t.tagName !== "IMG") t = card && card.querySelector("img"); // 검색 결과: 글자를 눌러도 사진 크게
     if (!t) return;
-    const nameEl = card && card.querySelector(".product__name, .bar__name, .gcard__name, .sres__name, h4");
+    const nameEl = card && card.querySelector(".bean__name, .product__name, .bar__name, .gcard__name, .sres__name, h4");
     let name = nameEl ? nameEl.textContent.trim() : t.alt;
     if (t.closest(".zcard__img")) name = "GBK 카드형 골드바 1g · " + name;
     const idEl = card && card.querySelector("[data-order], [data-gbuy]");

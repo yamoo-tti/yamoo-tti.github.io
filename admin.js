@@ -910,6 +910,7 @@
       </div>
       <label>예상 판매가<output id="pricePreview" class="price-out">-</output></label>
       <label>이미지 <small>목록에서 고르거나 이미지 주소(https://…) 입력</small><input name="img" list="imgList" value="${esc(p.img || "")}"><datalist id="imgList">${IMAGES.map(i => `<option value="${i}">`).join("")}</datalist></label>
+      <label>추가 사진 <small>한 줄에 하나 · 이미지 주소(https://…) 또는 images/ 아래 경로 · 지금은 메인 '순금 콩알금' 코너에서 사진 넘겨보기로 보여요</small><textarea name="photos" rows="3" placeholder="예) store/bean-2.jpg&#10;https://…/bean-3.jpg">${esc(p.photos || "")}</textarea></label>
       <div class="row2">
         <label>표시 태그 <small>예) BEST, NEW</small><input name="tag" maxlength="12" value="${esc(p.tag || "")}"></label>
         <label>순서 <small>작을수록 앞</small><input type="number" name="sort" step="1" value="${p.sort}"></label>
@@ -972,7 +973,9 @@
           category: hasLabor(f.kind.value) ? (f.category.value || null) : null,
           premium_pct: Number(f.premium_pct.value) || 0,
           labor: Number(f.labor.value) || 0,
-          img: f.img.value.trim() || null, tag: f.tag.value.trim() || null, sort: parseInt(f.sort.value, 10) || 0,
+          img: f.img.value.trim() || null,
+          photos: f.photos.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean).join("\n") || null,
+          tag: f.tag.value.trim() || null, sort: parseInt(f.sort.value, 10) || 0,
           visible: f.visible.checked, sold_out: f.sold_out.checked,
           opt_group: f.opt_group.value.trim() || null, opt_label: f.opt_label.value.trim() || null,
           info: Object.fromEntries(Object.keys(INFO_FIELDS).map(k => [k, f["info_" + k].value.trim()]).filter(([, v]) => v)),

@@ -32,6 +32,8 @@ const round100 = n => Math.round(n / 100) * 100;
 let state = { live: null, domestic: null, products: FALLBACK_PRODUCTS };
 const item = key => state.domestic.items.find(i => i.key === key);
 const ofKind = k => state.products.filter(p => p.kind === k);
+// 악세사리 칸: 주얼리 + 순금 콩알금(순금선물이지만 같이 보여줌)
+const accList = () => state.products.filter(p => p.kind === "accessory" || p.opt_group === "순금 콩알금");
 const priceOf = p => productPrice(p, state.domestic);
 const imgSrc = p => /^https?:\/\//.test(p.img || "") ? p.img : `images/${p.img || "bar-close.jpg"}`;
 const donLabel = g => { const d = g / DON; return Number.isInteger(Math.round(d * 1000) / 1000) && d >= 1 ? `${Math.round(d)}돈` : ""; };
@@ -218,7 +220,49 @@ function barCard(b) {
       </article>`;
 }
 
+/* ---------- 메인 상품: 순금 콩알금 (묶음 이름이 '순금 콩알금'인 상품들 = 옵션) ---------- */
+const BEAN = "순금 콩알금";
+let beanPick = null, beanPhoto = null;
+const beanOpts = () => state.products.filter(p => p.opt_group === BEAN).sort((a, b) => a.weight_g - b.weight_g);
+// 사진: 상품 사진 + 관리자 '추가 사진'(한 줄에 하나)
+const photosOf = p => [p.img, ...String(p.photos || "").split(/\r?\n/)].map(s => (s || "").trim()).filter(Boolean);
+const photoSrc = s => /^https?:\/\//.test(s) ? s : `images/${s}`;
+function renderBean() {
+  const box = $("#bean");
+  if (!box) return;
+  const opts = beanOpts();
+  box.hidden = !opts.length;
+  if (!opts.length || !state.domestic) return;
+  const Y = window.YAMOO, p = Y.optPick(opts, beanPick), price = priceOf(p), w = Number(p.weight_g);
+  const gallery = [...new Set([...photosOf(p), ...opts.flatMap(photosOf)])];
+  const main = gallery.includes(beanPhoto) ? beanPhoto : gallery[0];
+  const img = $("#beanMain");
+  if (main && img.getAttribute("src") !== photoSrc(main)) img.src = photoSrc(main);
+  $("#beanThumbs").innerHTML = gallery.length < 2 ? "" : gallery.map((s, i) =>
+    `<button type="button" data-bphoto="${esc(s)}" class="${s === main ? "is-on" : ""}" aria-label="사진 ${i + 1}"><img src="${esc(photoSrc(s))}" alt="" loading="lazy"></button>`).join("");
+  const sub = o => { const ow = Number(o.weight_g), l = Y.optLabel(o); return /g$/.test(l) ? `${Math.round(ow / DON * 100) / 100}돈` : `${ow}g`; };
+  $("#beanOpts").style.setProperty("--n", Math.min(opts.length, 4));
+  $("#beanOpts").innerHTML = opts.map(o => `
+    <button type="button" class="bean-opt${o.id === p.id ? " is-on" : ""}" data-bean="${esc(o.id)}" aria-pressed="${o.id === p.id}" ${o.sold_out ? "disabled" : ""}>
+      <b>${esc(Y.optLabel(o))}</b><span>${sub(o)}</span><em>${o.sold_out ? "품절" : won(priceOf(o))}</em>
+    </button>`).join("");
+  $("#beanSel").innerHTML = `<b>${esc(Y.optLabel(p))}</b> 선택 · ${/g$/.test(Y.optLabel(p)) ? sub(p) : `${w}g`}`;
+  $("#beanPrice").textContent = p.sold_out ? "품절" : won(price);
+  $("#beanPerG").textContent = p.sold_out || !price ? "" : `1g당 약 ${won(round100(price / w))}`;
+  const cart = $("#beanCart"), buy = $("#beanBuy");
+  cart.dataset.cart = orderKey(p); buy.dataset.order = orderKey(p); $("#beanInfo").dataset.info = orderKey(p);
+  cart.disabled = buy.disabled = !!p.sold_out;
+  buy.textContent = p.sold_out ? "품절" : "바로 구매";
+}
+document.addEventListener("click", e => {
+  const o = e.target.closest("[data-bean]");
+  if (o) { beanPick = o.dataset.bean; beanPhoto = null; renderBean(); return; }
+  const ph = e.target.closest("[data-bphoto]");
+  if (ph) { beanPhoto = ph.dataset.bphoto; renderBean(); }
+});
+
 function renderBars() {
+  renderBean();
   $("#bars").innerHTML = ofKind("bar").map(barCard).join("");
   const silver = ofKind("silver");
   $("#silverBlock").hidden = !silver.length;
@@ -264,15 +308,15 @@ function renderProducts(filter = "all") {
   currentFilter = filter;
   // 분류에 맞춰 중량 버튼마다 개수 표시
   document.querySelectorAll("#materialChips .mchip").forEach(b => {
-    const m = b.dataset.m, n = ofKind("accessory").filter(p => (filter === "all" || p.category === filter) && (m === "all" || (m === "SV" ? p.karat === "SV" : p.karat !== "SV"))).length;
+    const m = b.dataset.m, n = accList().filter(p => (filter === "all" || p.category === filter) && (m === "all" || (m === "SV" ? p.karat === "SV" : p.karat !== "SV"))).length;
     b.dataset.label = b.dataset.label || b.textContent.trim(); b.innerHTML = `${b.dataset.label}<span>${n}</span>`;
   });
-  const byCat = ofKind("accessory").filter(p => (filter === "all" || p.category === filter) && isMat(p));
+  const byCat = accList().filter(p => (filter === "all" || p.category === filter) && isMat(p));
   document.querySelectorAll("#weightChips .wchip").forEach(b => {
     const n = b.dataset.w === "all" ? byCat.length : byCat.filter(p => inRange(p, b.dataset.w)).length;
     b.dataset.label = b.dataset.label || b.textContent.trim(); b.innerHTML = `${b.dataset.label}<span>${n}</span>`;
   });
-  const ranked = window.YAMOO.rankProducts(ofKind("accessory"), state.stats);
+  const ranked = window.YAMOO.rankProducts(accList(), state.stats);
   const all = ranked.list;
   const tagOf = p => p.tag || (ranked.best.has(p.id) ? "BEST" : "");
   prodTagOf = tagOf;
