@@ -521,6 +521,7 @@
 
   /* ---------- 상품 관리 ---------- */
   let products = [], productTab = "bar", productSub = "all";
+  let picked = new Set(), shownProducts = []; // 가격 일괄 변경용 체크
   // 관리 화면 묶음: 악세사리는 24K(순금)와 실버(실버바와 함께)로 나눠 보여줌
   const PGROUP = { bar: "골드바", zodiac: "카드형 1g", gold24: "24K", silver: "실버", gift: "순금선물" };
   const PSUB = { gold24: ["necklace", "ring", "bracelet", "earring"], gift: ["goods", "dol", "key", "memo"] };
@@ -545,21 +546,91 @@
       + (subs.length ? `<span class="ptabs-sep" aria-hidden="true">›</span>` + [["all", "전체"], ...subs.map(c => [c, CATEGORY[c]])].map(([k, v]) =>
         `<button data-tab="psub:${k}" class="sub${productSub === k ? " is-on" : ""}">${v} <span>${k === "all" ? inTab.length : inTab.filter(p => p.category === k).length}</span></button>`).join("") : "");
     const list = productSub === "all" || !subs.length ? inTab : inTab.filter(p => p.category === productSub);
-    const head = `<thead><tr><th></th><th>상품명</th><th>종류</th><th>중량 · 함량</th><th>가격 조정</th><th>현재 판매가</th><th>조회 · 판매</th><th>노출</th><th>품절</th><th>순서</th></tr></thead>`;
+    shownProducts = list;
+    [...picked].forEach(id => { if (!list.some(p => p.id === id)) picked.delete(id); });
+    const allOn = list.length && list.every(p => picked.has(p.id));
+    const head = `<thead><tr><th class="pick"><input type="checkbox" data-pickall ${allOn ? "checked" : ""} aria-label="모두 선택"></th><th></th><th>상품명</th><th>종류</th><th>중량 · 함량</th><th>가격 조정</th><th>현재 판매가</th><th>조회 · 판매</th><th>노출</th><th>품절</th><th>순서</th></tr></thead>`;
     $("#productTable").innerHTML = head + "<tbody>" + (list.length ? list.map(p => `
       <tr class="clickable${p.visible ? "" : " is-dim"}" data-product="${p.id}">
+        <td class="pick"><input type="checkbox" data-pick="${p.id}" ${picked.has(p.id) ? "checked" : ""} aria-label="선택"></td>
         <td><img class="thumb" src="${esc(imgUrl(p.img))}" alt=""></td>
         <td><b>${esc(p.name)}</b>${p.tag ? ` <span class="pill g-gold">${esc(p.tag)}</span>` : ""}</td>
         <td>${kindLabel(p)}${p.category ? " · " + CATEGORY[p.category] : ""}</td>
         <td>${Number(p.weight_g)}g · ${p.kind === "silver" ? "은 999.9" : KARAT_KO[p.karat] || p.karat}</td>
-        <td>${hasLabor(p.kind) ? "공임 " + won(p.labor) : "+" + Number(p.premium_pct) + "%"}</td>
+        <td>${adjLabel(p)}</td>
         <td>${p._price ? won(p._price) : "-"}</td>
         <td class="muted">${p._views} · <b>${p._sold}</b></td>
         <td><button class="switch ${p.visible ? "is-on" : ""}" data-toggle="${p.id}:visible" aria-label="노출">${p.visible ? "노출" : "숨김"}</button></td>
         <td><button class="switch switch--warn ${p.sold_out ? "is-on" : ""}" data-toggle="${p.id}:sold_out" aria-label="품절">${p.sold_out ? "품절" : "판매중"}</button></td>
         <td>${p.sort}</td>
-      </tr>`).join("") : `<tr><td class="empty" colspan="10">상품이 없습니다</td></tr>`) + "</tbody>";
+      </tr>`).join("") : `<tr><td class="empty" colspan="11">상품이 없습니다</td></tr>`) + "</tbody>";
+    $("#bulkPrice").textContent = picked.size ? `가격 일괄 변경 (${picked.size}개 선택)` : "가격 일괄 변경";
   }
+
+  // 가격 조정 표시: 시세 대비 % · 1돈(3.75g)당 공임
+  const perDonOf = p => Number(p.weight_g) > 0 ? Number(p.labor || 0) / Number(p.weight_g) * 3.75 : 0;
+  function adjLabel(p) {
+    const a = [];
+    if (Number(p.premium_pct)) a.push("+" + Number(p.premium_pct) + "%");
+    if (Number(p.labor)) a.push("돈당 " + won(Math.round(perDonOf(p) / 100) * 100));
+    return a.join(" · ") || "-";
+  }
+
+  // 가격 일괄 변경: 체크한 상품(없으면 지금 보이는 목록 전체)에 같은 기준 적용
+  document.addEventListener("change", e => {
+    const one = e.target.closest("[data-pick]");
+    if (one) { one.checked ? picked.add(one.dataset.pick) : picked.delete(one.dataset.pick); return renderProducts(); }
+    if (e.target.closest("[data-pickall]")) {
+      shownProducts.forEach(p => e.target.checked ? picked.add(p.id) : picked.delete(p.id));
+      renderProducts();
+    }
+  });
+  $("#bulkPrice").addEventListener("click", async () => {
+    const targets = picked.size ? shownProducts.filter(p => picked.has(p.id)) : shownProducts;
+    if (!targets.length) return toast("바꿀 상품이 없어요", true);
+    const allSilver = targets.every(p => p.karat === "SV" || p.kind === "silver");
+    const tabName = productTab === "all" ? "전체" : PGROUP[productTab] + (productSub !== "all" && CATEGORY[productSub] ? " › " + CATEGORY[productSub] : "");
+    let d = null;
+    try { d = await domestic(); } catch { d = null; }
+    const html = `
+      <p>대상 <b>${targets.length}개</b> <span class="muted">· ${picked.size ? "체크한 상품" : `지금 보고 있는 목록 전체 (${esc(tabName)})`}</span></p>
+      <fieldset class="box">
+        <legend>기준</legend>
+        <label class="inline"><input type="radio" name="mode" value="don" checked> <span><b>돈당 공임</b> — 1돈(3.75g)마다 정한 금액을 더해요</span></label>
+        <label class="inline"><input type="radio" name="mode" value="pct"> <span><b>%</b> — 금·은 시세 금액에 정한 비율을 더해요</span></label>
+      </fieldset>
+      <label data-m="don">1돈당 공임 (원) <small>참고: 순금 50,000 · 실버 25,000</small><input type="number" name="don" min="0" step="1000" value="${allSilver ? 25000 : 50000}"></label>
+      <label data-m="pct" hidden>시세 대비 더하기 (%) <small>예) 10 → 시세 금액의 10%를 더함 · 빼려면 −</small><input type="number" name="pct" step="0.1" value="10"></label>
+      <p class="muted">고른 기준으로 바꾸면 다른 쪽 값은 0이 돼요. 공임·% 금액은 손님 화면에 보이지 않아요.</p>
+      <div class="bulk-prev" id="bulkPrev"></div>`;
+    const calc = (p, f) => f.mode.value === "pct"
+      ? { premium_pct: Number(f.pct.value) || 0, labor: 0 }
+      : { premium_pct: 0, labor: Math.round((Number(f.don.value) || 0) * Number(p.weight_g) / 3.75 / 100) * 100 };
+    openEdit("가격 일괄 변경", html, {
+      after: f => {
+        const sync = () => {
+          if (!f.mode || !$("#bulkPrev")) return; // 다른 편집 창이 열려 있으면 무시
+          f.querySelectorAll("[data-m]").forEach(el => { el.hidden = el.dataset.m !== f.mode.value; });
+          $("#bulkPrev").innerHTML = `<table class="table table--mini"><thead><tr><th>상품</th><th>지금</th><th>바뀐 뒤</th></tr></thead><tbody>${targets.map(p => {
+            const after = d ? productPrice({ ...p, ...calc(p, f) }, d) : null;
+            const diff = after != null && p._price ? after - p._price : 0;
+            return `<tr><td>${esc(p.name)} <span class="muted">${Number(p.weight_g)}g</span></td><td>${p._price ? won(p._price) : "-"}</td><td><b>${after != null ? won(after) : "-"}</b>${diff ? ` <small class="${diff > 0 ? "up" : "down"}">${diff > 0 ? "+" : "−"}${won(Math.abs(diff))}</small>` : ""}</td></tr>`;
+          }).join("")}</tbody></table>`;
+        };
+        f.addEventListener("input", sync);
+        f.addEventListener("change", sync);
+        sync();
+      },
+      save: async f => {
+        if (!confirm(`${targets.length}개 상품의 가격 기준을 바꿀까요? 홈페이지에 바로 반영돼요.`)) return false;
+        for (let i = 0; i < targets.length; i += 8) {
+          await Promise.all(targets.slice(i, i + 8).map(async p => must(await sb.from("products").update(calc(p, f)).eq("id", p.id))));
+        }
+        picked.clear();
+        toast(`${targets.length}개 상품 가격을 바꿨어요`);
+      },
+    });
+  });
 
   function openProduct(p) {
     const isNew = !p;
@@ -577,10 +648,10 @@
         <label data-for="bar zodiac accessory gift">함량<select name="karat">${opts(KARAT_KO, p.karat)}</select></label>
       </div>
       <div class="row2">
-        <label data-for="bar zodiac silver">프리미엄 (%) <small>살 때 시세(금·은) 대비</small><input type="number" name="premium_pct" step="any" value="${p.premium_pct}"></label>
-        <label data-for="accessory gift">공임 (원) <small>손님 화면엔 안 보여요</small><input type="number" name="labor" min="0" step="1000" value="${p.labor}"></label>
-        <label>예상 판매가<output id="pricePreview" class="price-out">-</output></label>
+        <label>시세 대비 더하기 (%) <small>금·은 시세 금액에 더할 비율</small><input type="number" name="premium_pct" step="any" value="${p.premium_pct}"></label>
+        <label>공임 (원) <small id="laborDon">손님 화면엔 안 보여요</small><input type="number" name="labor" min="0" step="100" value="${p.labor}"></label>
       </div>
+      <label>예상 판매가<output id="pricePreview" class="price-out">-</output></label>
       <label>이미지 <small>목록에서 고르거나 이미지 주소(https://…) 입력</small><input name="img" list="imgList" value="${esc(p.img || "")}"><datalist id="imgList">${IMAGES.map(i => `<option value="${i}">`).join("")}</datalist></label>
       <div class="row2">
         <label>표시 태그 <small>예) BEST, NEW</small><input name="tag" maxlength="12" value="${esc(p.tag || "")}"></label>
@@ -598,6 +669,7 @@
     openEdit(isNew ? "상품 추가" : "상품 수정", html, {
       after: f => {
         const sync = async () => {
+          if (!f.kind || !$("#pimgPreview")) return; // 다른 편집 창이 열려 있으면 무시
           const k = f.kind.value;
           f.querySelectorAll("[data-for]").forEach(el => { el.hidden = !el.dataset.for.split(" ").includes(k); });
           [...f.category.options].forEach(o => { o.hidden = !!o.value && !(CAT_OF[k] || []).includes(o.value); });
@@ -605,6 +677,8 @@
           $("#pimgPreview").src = imgUrl(f.img.value.trim());
           const dflt = infoDefaults({ kind: k, weight_g: Number(f.weight_g.value) || 0, karat: f.karat.value });
           Object.keys(INFO_FIELDS).forEach(key => { f["info_" + key].placeholder = dflt[key]; });
+          const lw = Number(f.weight_g.value), lb = Number(f.labor.value) || 0;
+          $("#laborDon").textContent = lw > 0 && lb ? `1돈당 ${won(Math.round(lb / lw * 3.75 / 100) * 100)} · 손님 화면엔 안 보여요` : "손님 화면엔 안 보여요";
           try {
             const d = await domestic();
             const w = Number(f.weight_g.value);
@@ -618,8 +692,8 @@
         const row = {
           kind: f.kind.value, name: f.name.value.trim(), weight_g: Number(f.weight_g.value), karat: f.karat.value,
           category: hasLabor(f.kind.value) ? (f.category.value || null) : null,
-          premium_pct: hasLabor(f.kind.value) ? 0 : Number(f.premium_pct.value) || 0,
-          labor: hasLabor(f.kind.value) ? Number(f.labor.value) || 0 : 0,
+          premium_pct: Number(f.premium_pct.value) || 0,
+          labor: Number(f.labor.value) || 0,
           img: f.img.value.trim() || null, tag: f.tag.value.trim() || null, sort: parseInt(f.sort.value, 10) || 0,
           visible: f.visible.checked, sold_out: f.sold_out.checked,
           info: Object.fromEntries(Object.keys(INFO_FIELDS).map(k => [k, f["info_" + k].value.trim()]).filter(([, v]) => v)),
@@ -678,6 +752,7 @@
   });
   document.addEventListener("click", async e => {
     if (e.target.closest(".st-pick")) return; // 선택 상자를 눌러도 상세 창이 열리지 않게
+    if (e.target.closest("td.pick, th.pick")) return; // 상품 체크 칸
     const nx = e.target.closest("[data-next]");
     if (nx) { const [kind, id, st] = nx.dataset.next.split(":"); return setStatus(kind, +id, st); }
     const tg = e.target.closest("[data-toggle]");

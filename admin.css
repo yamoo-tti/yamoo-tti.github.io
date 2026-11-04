@@ -180,6 +180,14 @@ button.kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -12px rgb
 .table td.ellipsis { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
 .table tr.is-dim td { opacity: .5; }
 .thumb { width: 44px; height: 44px; object-fit: contain; background: #1c1a16; border-radius: 4px; display: block; }
+.head-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.table th.pick, .table td.pick { width: 36px; padding-right: 0; cursor: default; }
+.table .pick input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold-2); }
+.bulk-prev { max-height: 46vh; overflow: auto; border: 1px solid var(--line, #e6e2d8); border-radius: 6px; margin-top: 6px; }
+.table--mini th, .table--mini td { padding: 8px 10px; font-size: 13px; white-space: normal; }
+.table--mini th { position: sticky; top: 0; background: #fff; }
+.table--mini small.up { color: #c0392b; }
+.table--mini small.down { color: #2e7d4f; }
 .st-new { background: #fdeee6; color: var(--warn); }
 .st-confirmed, .st-scheduled { background: #e8eefb; color: var(--blue); }
 .st-paid, .st-received { background: #fbf1d9; color: var(--gold-2); }
