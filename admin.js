@@ -816,6 +816,8 @@
     } catch (err) { fail(err); }
   });
 
+  // 18K 잠금장식 금액: 3돈 29만 → 5돈 32만 (1돈당 1.5만), 5돈 → 20돈 50만 (1돈당 1.2만), 1,000원 단위 · 최소 25만 (supabase/size-addon.sql과 같은 식)
+  const claspPrice = d => Math.max(250000, Math.round((d <= 5 ? 290000 + (d - 3) * 15000 : 320000 + (d - 5) * 12000) / 1000) * 1000);
   // 상품 편집의 공임 입력 방식 (1돈당 / 총 공임) — 이 브라우저에 기억
   const laborMode = () => { try { return localStorage.getItem("keumbi_labor_mode") === "total" ? "total" : "don"; } catch { return "don"; } };
   // 가격 조정 표시: 시세 대비 % · 1돈(3.75g)당 공임
@@ -933,6 +935,19 @@
           return mem.length ? `<p class="muted">이 묶음의 옵션: ${mem.map(x => esc(optLabel(x)) + (x.sold_out ? "(품절)" : "")).join(" · ")}</p>` : "";
         })()}
       </fieldset>
+      <fieldset class="box">
+        <legend>사이즈 · 추가 옵션</legend>
+        <div class="row2">
+          <label>사이즈 (cm) <small>쉼표로 구분 · 비우면 사이즈 선택 없음</small><input name="sizes" maxlength="200" value="${esc(p.sizes || "")}" placeholder="예) 15,15.5,16 …"></label>
+          <label>기준 사이즈 (cm) <small>위 중량이 몇 cm 기준인지 · 사이즈만큼 중량·공임 비례</small><input type="number" name="base_size" min="0" step="0.5" value="${p.base_size == null ? "" : Number(p.base_size)}"></label>
+        </div>
+        <p class="muted"><button type="button" class="btn btn--line btn--sm" data-sizes="15,15.5,16,16.5,17,17.5,18,18.5,19,19.5,20,20.5,21">팔찌 15~21 (0.5)</button> <button type="button" class="btn btn--line btn--sm" data-sizes="41,42,43,44,45,46">목걸이 41~46</button> <button type="button" class="btn btn--line btn--sm" data-sizes="">없음</button></p>
+        <div class="row2">
+          <label>추가 옵션 이름 <small>비우면 없음</small><input name="addon_name" maxlength="30" value="${esc(p.addon_name || "")}" placeholder="예) 18K 잠금장식"></label>
+          <label>추가 금액 (원) <small id="addonAuto"></small><input type="number" name="addon_price" min="0" step="1000" value="${p.addon_price == null ? "" : Number(p.addon_price)}"></label>
+        </div>
+        <p class="muted"><button type="button" class="btn btn--line btn--sm" id="addonCalc">18K 잠금장식 금액 중량으로 계산</button> 3돈 29만 · 5돈 32만 · 20돈 50만 기준 비율</p>
+      </fieldset>
       <label class="inline"><input type="checkbox" name="visible" ${p.visible ? "checked" : ""}> 홈페이지에 노출</label>
       <label class="inline"><input type="checkbox" name="sold_out" ${p.sold_out ? "checked" : ""}> 품절 (구매 버튼 막기)</label>
       <fieldset class="box pinfo-edit">
@@ -982,6 +997,17 @@
         f.labor_mode.dataset.prev = f.labor_mode.value;
         f.addEventListener("input", sync);
         f.name.addEventListener("input", () => { f.name.dataset.touched = "1"; });
+        f.querySelectorAll("[data-sizes]").forEach(b => b.addEventListener("click", () => {
+          f.sizes.value = b.dataset.sizes;
+          if (!b.dataset.sizes) f.base_size.value = "";
+          else if (!f.base_size.value) f.base_size.value = b.dataset.sizes.startsWith("15") ? 17 : 45;
+        }));
+        $("#addonCalc").addEventListener("click", () => {
+          const d = Number(f.weight_g.value) / 3.75;
+          if (!(d > 0)) return toast("중량을 먼저 넣어 주세요", true);
+          f.addon_name.value = f.addon_name.value.trim() || "18K 잠금장식";
+          f.addon_price.value = claspPrice(d);
+        });
         const ao = $("#addOption");
         if (ao) ao.addEventListener("click", () => openProduct(null, { from: p }));
         sync();
@@ -996,6 +1022,11 @@
           photos: f.photos.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean).join("\n") || null,
           tag: f.tag.value.trim() || null, sort: parseInt(f.sort.value, 10) || 0,
           visible: f.visible.checked, sold_out: f.sold_out.checked,
+          sizes: f.sizes.value.split(",").map(s => s.trim()).filter(Boolean).join(",") || null,
+          // size-weight.sql 실행 전에는 칸이 없으니 보내지 않음
+          ...(products.some(x => "base_size" in x) ? { base_size: Number(f.base_size.value) > 0 ? Number(f.base_size.value) : null } : {}),
+          addon_name: f.addon_name.value.trim() || null,
+          addon_price: f.addon_name.value.trim() && Number(f.addon_price.value) > 0 ? Number(f.addon_price.value) : null,
           opt_group: f.opt_group.value.trim() || null, opt_label: f.opt_label.value.trim() || null,
           info: Object.fromEntries(Object.keys(INFO_FIELDS).map(k => [k, f["info_" + k].value.trim()]).filter(([, v]) => v)),
         };

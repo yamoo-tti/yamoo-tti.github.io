@@ -329,3 +329,5 @@ fieldset.box .row2 { align-items: end; }
 .labor-in { display: flex; gap: 6px; }
 .labor-in select { flex: 0 0 auto; width: auto; }
 .labor-in input { flex: 1; min-width: 0; }
+
+.btn--sm { height: 30px; padding: 0 10px; font-size: 12px; }

@@ -165,6 +165,21 @@
     out.forEach(o => o.length > 1 && o.sort((a, b) => Number(a.weight_g) - Number(b.weight_g) || (a.sort || 0) - (b.sort || 0)));
     return out;
   }
+  // 사이즈 · 추가 옵션(예: 18K 잠금장식) — 주문 상품명 뒤 '(사이즈 17cm · 18K 잠금장식)'은 서버 opt_check와 같은 글자
+  const sizeList = p => String(p.sizes || "").split(",").map(s => s.trim()).filter(Boolean);
+  const hasAddon = p => !!String(p.addon_name || "").trim() && Number(p.addon_price) > 0;
+  const needsPick = p => sizeList(p).length > 0 || hasAddon(p);
+  // 고른 사이즈만큼 중량·공임을 바꾼 상품 (supabase size_scaled와 같은 식: 중량 소수 둘째 자리, 공임 원 단위)
+  const sized = (p, size) => {
+    const b = Number(p.base_size), s = Number(size);
+    if (!(b > 0) || !sizeList(p).length || !(s > 0)) return p;
+    const r = s / b;
+    return { ...p, weight_g: Math.round(Number(p.weight_g) * r * 100) / 100, labor: Math.round(Number(p.labor || 0) * r) };
+  };
+  const pickLabel = (p, size, addon) => {
+    const w = Number(sized(p, size).weight_g);
+    return [size ? `사이즈 ${size}cm` : "", addon && hasAddon(p) ? String(p.addon_name).trim() : "", w !== Number(p.weight_g) ? `${w}g` : ""].filter(Boolean).join(" · ");
+  };
   const optLabel = p => {
     const t = String(p.opt_label || "").trim(), w = Number(p.weight_g), d = w / DON;
     return t || (w >= DON / 2 && Math.abs(d * 2 - Math.round(d * 2)) < 1e-6 ? (d === 0.5 ? "반돈" : `${d}돈`) : `${w}g`);
@@ -220,5 +235,5 @@
   }
   trackVisit();
 
-  window.YAMOO = { loadStats, rankProducts, groupOptions, optLabel, optPick, optTitle,trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
+  window.YAMOO = { sizeList, hasAddon, needsPick, pickLabel, sized, loadStats, rankProducts, groupOptions, optLabel, optPick, optTitle,trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
 })();

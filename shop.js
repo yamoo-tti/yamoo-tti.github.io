@@ -137,20 +137,45 @@
     openModal($("#infoModal"));
   };
 
+  /* ---------- 사이즈 · 추가 옵션 (팔찌·목걸이 사이즈, 18K 잠금장식 등) ---------- */
+  const Y = window.YAMOO;
+  const optsHtml = (p, pre = {}) => {
+    const sz = Y.sizeList(p);
+    return (sz.length ? `<label>사이즈 (cm)<select name="opt_size" required><option value="">사이즈를 골라 주세요</option>${sz.map(s =>
+      `<option value="${esc(s)}"${pre.size === s ? " selected" : ""}>${esc(s)}cm</option>`).join("")}</select></label>${Number(p.base_size) > 0 ? `<p class="opt-w"></p>` : ""}` : "")
+      + (Y.hasAddon(p) ? `<label class="check opt-addon"><input type="checkbox" name="opt_addon"${pre.addon ? " checked" : ""}> <span>${esc(p.addon_name)} 추가 <b>+${won(Number(p.addon_price))}</b></span></label>` : "");
+  };
+  const pickOf = f => ({ size: f.opt_size ? f.opt_size.value : "", addon: !!(f.opt_addon && f.opt_addon.checked) });
+  // 고른 사이즈·옵션의 1개 금액 (사이즈만큼 금 중량 반영 + 추가 옵션)
+  const unitOf = (p, pick) => { const b = window.SHOP.price(Y.sized(p, pick && pick.size)); return b == null ? null : b + addonOf(p, pick); };
+  const optNote = (box, p, pick) => {
+    const el = box.querySelector(".opt-w");
+    if (!el || !(Number(p.base_size) > 0)) return;
+    const w = Number(Y.sized(p, pick.size).weight_g);
+    el.innerHTML = pick.size
+      ? `고른 사이즈 <b>${esc(pick.size)}cm</b> · 금 중량 <b>${w}g</b> (${Math.round(w / Y.DON * 100) / 100}돈) <small>· 등록 ${Number(p.weight_g)}g은 ${Number(p.base_size)}cm 기준</small>`
+      : `등록 중량 ${Number(p.weight_g)}g은 <b>${Number(p.base_size)}cm</b> 기준이에요. 사이즈에 따라 금 중량·가격이 달라져요.`;
+  };
+  const addonOf = (p, pick) => pick && pick.addon && Y.hasAddon(p) ? Number(p.addon_price) : 0;
+  const withPick = (name, p, pick) => { const l = pick ? Y.pickLabel(p, pick.size, pick.addon) : ""; return l ? `${name} (${l})` : name; };
+
   /* ---------- 구매 신청 ---------- */
   const orderModal = $("#orderModal"), orderForm = $("#orderForm");
   const syncReceive = bindWhen(orderForm, "receive");
   const syncOrderReceipt = bindReceipt(orderForm);
   let current = null;
+  let orderOpts = $("#orderOpts");
+  if (!orderOpts) { orderOpts = document.createElement("div"); orderOpts.id = "orderOpts"; orderOpts.className = "order-opts"; $("#orderInfo").before(orderOpts); }
 
   function updateTotal() {
     const qty = Math.min(99, Math.max(1, parseInt(orderForm.qty.value, 10) || 1));
-    const unit = window.SHOP.price(current);
+    const pk = pickOf(orderForm), unit = unitOf(current, pk);
+    optNote(orderOpts, current, pk);
     const fee = orderForm.receive.value === "delivery" ? Number(shopInfo.delivery_fee) || 0 : 0;
     $("#orderTotal").innerHTML = unit ? won(unit * qty + fee) + (fee ? `<small>택배비 ${won(fee)} 포함</small>` : "") : "매장 문의";
     return unit ? unit * qty + fee : null;
   }
-  orderForm.addEventListener("change", e => { if (e.target.name === "receive") updateTotal(); });
+  orderForm.addEventListener("change", e => { if (["receive", "opt_addon", "opt_size"].includes(e.target.name)) updateTotal(); });
 
   window.openOrder = function (p) {
     if (!sb || !p.id) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
@@ -164,6 +189,8 @@
     $("#orderInfo").open = false;
     $("#orderInfoBody").innerHTML = infoTable(p);
     orderForm.reset();
+    orderOpts.innerHTML = optsHtml(p);
+    orderOpts.hidden = !Y.needsPick(p);
     fillEmail(orderForm);
     syncReceive();
     syncOrderReceipt();
@@ -192,6 +219,7 @@
       p_product_id: current.id, p_qty: qty, p_name: f.name.value, p_phone: f.phone.value,
       p_receive: f.receive.value, p_address: f.address.value, p_note: f.note.value, p_quoted: updateTotal(),
       p_receipt: receipt,
+      ...(Y.needsPick(current) ? { p_size: pickOf(f).size || null, p_addon: pickOf(f).addon } : {}),
     });
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }
@@ -199,7 +227,7 @@
     await Promise.all([saveMarketing(f), sendReceipt(f, r.code)]);
     // 주문 완료 페이지로 이동 (정보는 이 브라우저 탭에만 잠시 보관)
     if (r.code) {
-      const pname = current.kind === "zodiac" ? `GBK 카드형 골드바 1g (${current.name})` : current.name;
+      const pname = withPick(current.kind === "zodiac" ? `GBK 카드형 골드바 1g (${current.name})` : current.name, current, pickOf(f));
       try { sessionStorage.setItem("keumbi_order_" + r.code, JSON.stringify({ ...r, product: pname, qty, receive: f.receive.value })); }
       catch { /* 저장이 막힌 브라우저면 완료 페이지에서 연락처로 다시 확인 */ }
       location.href = "order-done.html?code=" + encodeURIComponent(r.code);
@@ -237,18 +265,58 @@
     b.classList.toggle("has-items", n > 0);
   }
 
-  window.addToCart = function (p) {
+  // 장바구니 한 줄 = 상품 + 사이즈 + 추가 옵션 (같은 상품이라도 사이즈가 다르면 따로)
+  const keyOf = i => [i.id, i.size || "", i.addon ? 1 : 0].join("|");
+  window.addToCart = function (p, pick) {
     if (!sb || !p.id) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
     if (p.sold_out) { toast("품절된 상품이에요"); return; }
+    if (!pick && Y.needsPick(p)) { openPick(p); return; }
     window.YAMOO.trackView(p.id);
-    const it = cartItems.find(i => i.id === p.id);
-    if (it) it.qty = Math.min(99, it.qty + 1); else cartItems.push({ id: p.id, qty: 1 });
+    const row = { id: p.id, qty: 1, size: (pick && pick.size) || "", addon: !!(pick && pick.addon) };
+    const it = cartItems.find(i => keyOf(i) === keyOf(row));
+    if (it) it.qty = Math.min(99, it.qty + 1); else cartItems.push(row);
     if (cartItems.length > 20) { cartItems.pop(); toast("장바구니에는 20종류까지 담을 수 있어요"); return; }
     saveCart();
     const b = $("#cartCount");
     if (b) { b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump"); }
-    toast(`‘${displayName(p)}’을(를) 장바구니에 담았어요`);
+    toast(`‘${withPick(displayName(p), p, row)}’을(를) 장바구니에 담았어요`);
   };
+
+  // 장바구니 담기 전 사이즈·옵션 고르는 창
+  let pickModal = null, pickCur = null;
+  function openPick(p) {
+    if (!pickModal) {
+      pickModal = document.createElement("div");
+      pickModal.className = "modal"; pickModal.id = "pickModal"; pickModal.hidden = true;
+      pickModal.innerHTML = `<div class="modal__backdrop" data-close></div>
+        <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
+          <button class="modal__x" data-close aria-label="닫기">×</button>
+          <form class="auth-form" id="pickForm">
+            <h2 class="modal__title" id="pickTitle">옵션 선택</h2>
+            <div class="order-item" id="pickItem"></div>
+            <div class="order-opts" id="pickOpts"></div>
+            <p class="order-total">1개 금액 <strong id="pickTotal">-</strong></p>
+            <button class="btn btn--dark" type="submit">장바구니 담기</button>
+          </form>
+        </div>`;
+      document.body.appendChild(pickModal);
+      pickModal.addEventListener("click", e => { if (e.target.closest("[data-close]")) closeModal(pickModal); });
+      const pf = pickModal.querySelector("#pickForm");
+      pf.addEventListener("change", () => updatePick());
+      pf.addEventListener("submit", e => { e.preventDefault(); const pick = pickOf(pf); closeModal(pickModal); window.addToCart(pickCur, pick); });
+    }
+    pickCur = p;
+    const unit = window.SHOP.price(p);
+    $("#pickItem").innerHTML = `<img src="${esc(imgOf(p))}" alt=""><div><b>${esc(displayName(p))}</b><span>${unit ? won(unit) + " / 개 · 현재 시세 기준" : "가격 매장 문의"}</span></div>`;
+    $("#pickOpts").innerHTML = optsHtml(p);
+    updatePick();
+    openModal(pickModal);
+  }
+  function updatePick() {
+    const pk = pickOf($("#pickForm")), unit = unitOf(pickCur, pk);
+    optNote($("#pickOpts"), pickCur, pk);
+    $("#pickTotal").textContent = unit ? won(unit) : "매장 문의";
+  }
 
   // 장바구니 내용 + 합계 (가격은 현재 시세로 다시 계산)
   function renderCart() {
@@ -264,28 +332,30 @@
     }
     cartForm.hidden = false;
     let goods = 0, priced = true;
+    const noSize = r => Y.sizeList(r.p).length > 0 && !Y.sizeList(r.p).includes(r.size || "");
     $("#cartList").innerHTML = (gone.length ? `<p class="cart-warn">판매가 끝난 상품 ${gone.length}개를 장바구니에서 뺐어요.</p>` : "") + live.map(r => {
-      const unit = window.SHOP.price(r.p);
+      const unit = unitOf(r.p, r);
       if (unit == null) priced = false; else goods += unit * r.qty;
+      const k = esc(keyOf(r));
       return `
         <div class="cart-row${r.p.sold_out ? " is-soldout" : ""}">
           <img src="${esc(imgOf(r.p))}" alt="">
           <div class="cart-row__info">
-            <b>${esc(displayName(r.p))}</b>
-            <span>${unit != null ? won(unit) + " / 개" : "가격 확인 중"}${r.p.sold_out ? ' · <em>품절</em>' : ""}</span>
+            <b>${esc(withPick(displayName(r.p), r.p, r))}</b>
+            <span>${unit != null ? won(unit) + " / 개" : "가격 확인 중"}${r.p.sold_out ? ' · <em>품절</em>' : ""}${noSize(r) ? ' · <em>사이즈를 골라 다시 담아 주세요</em>' : ""}</span>
           </div>
-          <div class="qty qty--sm"><button type="button" data-cq="${esc(r.id)}:-1" aria-label="빼기">−</button><input value="${r.qty}" readonly aria-label="수량"><button type="button" data-cq="${esc(r.id)}:1" aria-label="더하기">+</button></div>
+          <div class="qty qty--sm"><button type="button" data-cq="${k}:-1" aria-label="빼기">−</button><input value="${r.qty}" readonly aria-label="수량"><button type="button" data-cq="${k}:1" aria-label="더하기">+</button></div>
           <p class="cart-row__sub">${unit != null ? won(unit * r.qty) : "-"}</p>
-          <button type="button" class="cart-row__x" data-cdel="${esc(r.id)}" aria-label="삭제">×</button>
+          <button type="button" class="cart-row__x" data-cdel="${k}" aria-label="삭제">×</button>
         </div>`;
     }).join("");
     const fee = cartForm.receive.value === "delivery" ? Number(shopInfo.delivery_fee) || 0 : 0;
     $("#cartGoods").textContent = priced ? won(goods) : "-";
     $("#cartFee").textContent = won(fee);
     $("#cartTotal").textContent = priced ? won(goods + fee) : "매장 문의";
-    const hasSoldOut = live.some(r => r.p.sold_out);
-    $("#cartSubmit").disabled = hasSoldOut;
-    $("#cartSubmit").textContent = hasSoldOut ? "품절 상품을 빼 주세요" : `${live.length}종 ${cartCount()}개 주문하기`;
+    const hasSoldOut = live.some(r => r.p.sold_out), missing = live.some(noSize);
+    $("#cartSubmit").disabled = hasSoldOut || missing;
+    $("#cartSubmit").textContent = hasSoldOut ? "품절 상품을 빼 주세요" : missing ? "사이즈 없는 상품을 빼고 다시 담아 주세요" : `${live.length}종 ${cartCount()}개 주문하기`;
   }
 
   function openCart() {
@@ -300,13 +370,13 @@
   cartModal.addEventListener("click", e => {
     const q = e.target.closest("[data-cq]");
     if (q) {
-      const [id, d] = q.dataset.cq.split(":");
-      const it = cartItems.find(i => i.id === id);
+      const cut = q.dataset.cq.lastIndexOf(":"), k = q.dataset.cq.slice(0, cut), d = q.dataset.cq.slice(cut + 1);
+      const it = cartItems.find(i => keyOf(i) === k);
       if (it) { it.qty = Math.min(99, Math.max(1, it.qty + +d)); saveCart(); renderCart(); }
       return;
     }
     const x = e.target.closest("[data-cdel]");
-    if (x) { cartItems = cartItems.filter(i => i.id !== x.dataset.cdel); saveCart(); renderCart(); return; }
+    if (x) { cartItems = cartItems.filter(i => keyOf(i) !== x.dataset.cdel); saveCart(); renderCart(); return; }
     if (e.target.closest("a[data-close]")) closeModal(cartModal);
   });
   cartForm.addEventListener("change", e => { if (e.target.name === "receive") renderCart(); });
@@ -314,7 +384,7 @@
   cartForm.addEventListener("submit", async e => {
     e.preventDefault();
     const f = cartForm, btn = $("#cartSubmit");
-    const items = cartItems.filter(i => window.SHOP.find(i.id)).map(i => ({ id: i.id, qty: i.qty }));
+    const items = cartItems.filter(i => window.SHOP.find(i.id)).map(i => ({ id: i.id, qty: i.qty, size: i.size || null, addon: !!i.addon }));
     if (!items.length) { renderCart(); return; }
     let receipt;
     try { receipt = receiptOf(f); } catch (msg) { toast(msg); return; }
@@ -327,7 +397,7 @@
     if (error) { toast(rpcError(error)); return; }
     const r = data || {};
     await Promise.all([saveMarketing(f), sendReceipt(f, r.code)]);
-    const names = items.map(i => displayName(window.SHOP.find(i.id)));
+    const names = items.map(i => { const p = window.SHOP.find(i.id); return withPick(displayName(p), p, i); });
     try {
       sessionStorage.setItem("keumbi_order_" + r.code, JSON.stringify({
         ...r, receive: f.receive.value,
