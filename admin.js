@@ -816,6 +816,8 @@
     } catch (err) { fail(err); }
   });
 
+  // 상품 편집의 공임 입력 방식 (1돈당 / 총 공임) — 이 브라우저에 기억
+  const laborMode = () => { try { return localStorage.getItem("keumbi_labor_mode") === "total" ? "total" : "don"; } catch { return "don"; } };
   // 가격 조정 표시: 시세 대비 % · 1돈(3.75g)당 공임
   const perDonOf = p => Number(p.weight_g) > 0 ? Number(p.labor || 0) / Number(p.weight_g) * 3.75 : 0;
   function adjLabel(p) {
@@ -906,7 +908,9 @@
       </div>
       <div class="row2">
         <label>시세 대비 더하기 (%) <small>금·은 시세 금액에 더할 비율</small><input type="number" name="premium_pct" step="any" value="${p.premium_pct}"></label>
-        <label>공임 (원) <small id="laborDon">손님 화면엔 안 보여요</small><input type="number" name="labor" min="0" step="100" value="${p.labor}"></label>
+        <label>공임 (원) <small id="laborDon">손님 화면엔 안 보여요</small>
+          <span class="labor-in"><select name="labor_mode" aria-label="공임 입력 방식"><option value="don"${laborMode() === "don" ? " selected" : ""}>1돈당</option><option value="total"${laborMode() === "total" ? " selected" : ""}>총 공임</option></select><input type="number" name="labor_in" min="0" step="100" value="${laborMode() === "don" ? perDonOf(p) ? Math.round(perDonOf(p) / 100) * 100 : 0 : Number(p.labor) || 0}" aria-label="공임 금액"></span>
+          <input type="hidden" name="labor" value="${Number(p.labor) || 0}"></label>
       </div>
       <label>예상 판매가<output id="pricePreview" class="price-out">-</output></label>
       <label>이미지 <small>목록에서 고르거나 이미지 주소(https://…) 입력</small><input name="img" list="imgList" value="${esc(p.img || "")}"><datalist id="imgList">${IMAGES.map(i => `<option value="${i}">`).join("")}</datalist></label>
@@ -940,7 +944,7 @@
       </fieldset>`;
     openEdit(isNew ? "상품 추가" : "상품 수정", html, {
       after: f => {
-        const sync = async () => {
+        const sync = async ev => {
           if (!f.kind || !$("#pimgPreview")) return; // 다른 편집 창이 열려 있으면 무시
           const k = f.kind.value;
           f.querySelectorAll("[data-for]").forEach(el => { el.hidden = !el.dataset.for.split(" ").includes(k); });
@@ -953,14 +957,29 @@
           $("#optAuto").textContent = Number(f.weight_g.value) > 0 ? `비우면 '${auto}'` : "비우면 중량으로 자동";
           // 옵션 추가: 상품명을 '묶음 이름 + 옵션'으로 자동 (직접 고치면 그대로 둠)
           if (src && !f.name.dataset.touched && f.opt_group.value.trim()) f.name.value = `${f.opt_group.value.trim()} ${f.opt_label.value.trim() || (Number(f.weight_g.value) > 0 ? auto : "")}`.trim();
-          const lw = Number(f.weight_g.value), lb = Number(f.labor.value) || 0;
-          $("#laborDon").textContent = lw > 0 && lb ? `1돈당 ${won(Math.round(lb / lw * 3.75 / 100) * 100)} · 손님 화면엔 안 보여요` : "손님 화면엔 안 보여요";
+          // 공임: '1돈당' 또는 '총 공임'으로 입력 → 저장은 항상 총 공임(원)
+          const lw = Number(f.weight_g.value), mode = f.labor_mode.value;
+          if (mode !== f.labor_mode.dataset.prev) {
+            // 방식을 바꾸면 같은 공임이 되도록 숫자만 바꿔 줌
+            const cur = Number(f.labor.value) || 0;
+            f.labor_in.value = mode === "don" ? (lw > 0 ? Math.round(cur / lw * 3.75 / 100) * 100 : 0) : cur;
+            f.labor_mode.dataset.prev = mode;
+            try { localStorage.setItem("keumbi_labor_mode", mode); } catch { /* 무시 */ }
+          }
+          const lin = Number(f.labor_in.value) || 0;
+          // 처음 열 때는 저장된 공임 그대로 (반올림으로 몇백 원 바뀌지 않게)
+          if (ev) f.labor.value = mode === "don" ? (lw > 0 ? Math.round(lin * lw / 3.75 / 100) * 100 : 0) : lin;
+          const lb = Number(f.labor.value);
+          $("#laborDon").textContent = !(lw > 0) || !lb ? "손님 화면엔 안 보여요"
+            : mode === "don" ? `= 총 공임 ${won(lb)} (${Math.round(lw / 3.75 * 100) / 100}돈) · 손님 화면엔 안 보여요`
+            : `= 1돈당 ${won(Math.round(lb / lw * 3.75 / 100) * 100)} · 손님 화면엔 안 보여요`;
           try {
             const d = await domestic();
             const w = Number(f.weight_g.value);
             $("#pricePreview").textContent = w > 0 ? won(productPrice({ kind: k, weight_g: w, karat: f.karat.value, premium_pct: f.premium_pct.value, labor: f.labor.value }, d)) : "-";
           } catch { $("#pricePreview").textContent = "시세 확인 불가"; }
         };
+        f.labor_mode.dataset.prev = f.labor_mode.value;
         f.addEventListener("input", sync);
         f.name.addEventListener("input", () => { f.name.dataset.touched = "1"; });
         const ao = $("#addOption");
