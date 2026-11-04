@@ -69,18 +69,19 @@
 
   // 상품 판매가 = 시세(g당) × 중량 × (1 + 시세 대비 %) + 공임
   //   시세: 골드바·카드형·순금 24K = 순금 살 때 / 실버바·실버 주얼리 = 은 살 때 / 18K·14K = 해당 함량 팔 때 × 1.3
-  //   반올림: 골드바·카드형·실버바 100원, 주얼리·순금선물 1,000원
+  //   끝자리: 골드바·카드형·실버바(그래뉼) 1,000원 단위 올림, 주얼리·순금선물 1,000원 단위 반올림
   //  ※ supabase quote_price 와 같은 식 유지
+  const up1000 = x => Math.ceil(Math.round(x) / 1000) * 1000;
   function productPrice(p, d) {
     const g = key => d.items.find(i => i.key === key);
     const w = Number(p.weight_g), k = 1 + Number(p.premium_pct || 0) / 100, l = Number(p.labor || 0);
-    if (p.kind === "silver") return r100(g("ag").buy / DON * w * k + l);
+    if (p.kind === "silver") return up1000(g("ag").buy / DON * w * k + l);
     if (p.kind === "accessory" || p.kind === "gift") {
       const kt = String(p.karat).toUpperCase();
       const rate = kt === "24K" || kt === "SV" ? g(kt === "SV" ? "ag" : "24k").buy / DON : g(kt.toLowerCase()).sell / DON * 1.3;
       return Math.round((rate * w * k + l) / 1000) * 1000;
     }
-    return r100(g("24k").buy / DON * w * k + l);
+    return up1000(g("24k").buy / DON * w * k + l);
   }
 
   const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
