@@ -97,6 +97,21 @@
     try { await sb.rpc("add_marketing_contact", { p_name: f.name.value, p_phone: f.phone.value }); } catch { /* 무시 */ }
   }
 
+  // 회원이면 가입한 이메일을 미리 채움 (비회원은 직접 입력)
+  async function fillEmail(f) {
+    if (!sb || !f.email || f.email.value) return;
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const em = session && session.user && session.user.email;
+      if (em && !f.email.value) f.email.value = em;
+    } catch { /* 무시 */ }
+  }
+  // 주문 직후: 손님에게 구매내역서, 사장님에게 주문내역서 메일 (실패해도 주문은 그대로)
+  async function sendReceipt(f, code) {
+    if (!code) return;
+    try { await sb.rpc("send_order_receipt", { p_code: code, p_phone: f.phone.value, p_email: f.email ? f.email.value : "" }); } catch { /* 무시 */ }
+  }
+
   const rpcError = err => {
     const m = (err && err.message) || "";
     return /[가-힣]/.test(m) ? m : "접수 중 문제가 생겼어요. 잠시 후 다시 시도하거나 " + PHONE + "로 전화 주세요.";
@@ -149,6 +164,7 @@
     $("#orderInfo").open = false;
     $("#orderInfoBody").innerHTML = infoTable(p);
     orderForm.reset();
+    fillEmail(orderForm);
     syncReceive();
     syncOrderReceipt();
     orderForm.hidden = false;
@@ -179,8 +195,8 @@
     });
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }
-    await saveMarketing(f);
     const r = typeof data === "string" ? { code: data } : (data || {});
+    await Promise.all([saveMarketing(f), sendReceipt(f, r.code)]);
     // 주문 완료 페이지로 이동 (정보는 이 브라우저 탭에만 잠시 보관)
     if (r.code) {
       const pname = current.kind === "zodiac" ? `GBK 카드형 골드바 1g (${current.name})` : current.name;
@@ -275,6 +291,7 @@
   function openCart() {
     if (!sb) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
     syncCartReceive();
+    fillEmail(cartForm);
     renderCart();
     openModal(cartModal);
   }
@@ -308,8 +325,8 @@
     });
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }
-    await saveMarketing(f);
     const r = data || {};
+    await Promise.all([saveMarketing(f), sendReceipt(f, r.code)]);
     const names = items.map(i => displayName(window.SHOP.find(i.id)));
     try {
       sessionStorage.setItem("keumbi_order_" + r.code, JSON.stringify({

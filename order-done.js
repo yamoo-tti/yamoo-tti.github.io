@@ -16,9 +16,18 @@
 
   if (!code) { root.innerHTML = `<div class="od__card"><h1>주문 정보를 찾을 수 없어요</h1><p class="od__lead">홈페이지 상단 <b>접수 조회</b>에서 접수번호로 확인해 주세요.</p><a class="btn btn--dark od__btn" href="./">홈으로</a></div>`; return; }
 
+  const token = (new URLSearchParams(location.search).get("t") || "").replace(/[^a-f0-9]/g, "");
   let saved = null;
   try { saved = JSON.parse(sessionStorage.getItem("keumbi_order_" + code)); } catch { saved = null; }
-  if (saved) render(saved); else tryMember();
+  if (token) byToken(); else if (saved) render(saved); else tryMember();
+
+  // 메일의 [구매내역 보기] 링크: 링크 속 열쇠로 바로 보여줌 (언제 열어도 최신 상태)
+  async function byToken() {
+    if (!sb) return askPhone();
+    const { data, error } = await sb.rpc("order_view", { p_code: code, p_token: token });
+    if (error || !data) return tryMember();
+    render(data);
+  }
 
   // 로그인한 회원이면 휴대폰 번호 없이 바로 보여줌
   async function tryMember() {
