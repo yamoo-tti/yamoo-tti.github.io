@@ -752,7 +752,9 @@ ul, ol { padding: 0; list-style: none; }
 .bean__main { position: relative; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 40px 70px -40px rgba(80,58,15,.55), 0 0 0 1px rgba(156,118,41,.12); }
 .bean__main img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; transition: transform .9s var(--ease); }
 .bean__main:hover img { transform: scale(1.04); }
-.bean__badge { position: absolute; top: 18px; left: 18px; padding: 6px 12px; border-radius: 2px; background: var(--ink); color: var(--gold-hi); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+.bean__badges { position: absolute; top: 18px; left: 18px; right: 18px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+.bean__badge { padding: 6px 12px; border-radius: 2px; background: var(--ink); color: var(--gold-hi); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+.bean__badge--gift { background: var(--gold-hi); color: var(--ink); box-shadow: 0 0 0 1px rgba(156,118,41,.35); }
 .bean__thumbs { display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; scrollbar-width: none; }
 .bean__thumbs:empty { display: none; }
 .bean__thumbs button { flex: none; width: 72px; height: 72px; padding: 0; border-radius: 6px; overflow: hidden; border: 2px solid transparent; opacity: .6; transition: opacity .2s, border-color .2s; background: #fff; }
