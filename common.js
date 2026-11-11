@@ -236,28 +236,58 @@
   }
   trackVisit();
 
-  // 회원 등급 뱃지: 금속 테두리에 원석이 박힌 모양 (브론즈·실버·골드·VIP 다이아)
+  // 회원 등급 뱃지: 금속 베젤에 브릴리언트 컷 원석이 박힌 모양 (브론즈·실버·골드·VIP 다이아)
+  //   면(facet)마다 빛 방향(왼쪽 위)에 따라 밝기를 달리 칠해 실제 보석처럼 보이게 함
   const GEM = {
-    basic:  { n: "브론즈", m: ["#f3c196", "#a8653a", "#5e3216"], s: ["#ff9b7a", "#b8321f", "#4f0c08"] }, // 동 + 가넷
-    silver: { n: "실버",   m: ["#ffffff", "#aeb7c1", "#5f6873"], s: ["#a9ccff", "#2a5bd0", "#0c1f5c"] }, // 은 + 사파이어
-    gold:   { n: "골드",   m: ["#fff4c4", "#d6a419", "#7d5a06"], s: ["#ff9fae", "#c8102e", "#540513"] }, // 금 + 루비
-    vip:    { n: "VIP",    m: ["#ffffff", "#d3dce6", "#7d8a9a"], s: ["#ffffff", "#e4f5ff", "#86c3ea"] }, // 백금 + 다이아몬드
+    basic:  { n: "브론즈", m: ["#f7d2ad", "#b8743f", "#4f2810"], g: ["#ffc2a8", "#c0392b", "#3d0806"] }, // 동 + 가넷
+    silver: { n: "실버",   m: ["#ffffff", "#c3cbd4", "#4f5864"], g: ["#cfe0ff", "#2f62d6", "#071645"] }, // 은 + 사파이어
+    gold:   { n: "골드",   m: ["#fff4c2", "#dcaa2a", "#6b4904"], g: ["#ffc9d2", "#d4123e", "#45020f"] }, // 금 + 루비
+    vip:    { n: "VIP",    m: ["#ffffff", "#dfe5ec", "#7b8796"], g: ["#ffffff", "#d7e4f1", "#5d7690"] }, // 백금 + 다이아몬드
   };
   const GRADE_NAME = { basic: "브론즈", silver: "실버", gold: "골드", vip: "VIP" };
-  function gradeBadge(g, size) {
-    const k = GEM[g] ? g : "basic", t = GEM[k], id = "gb-" + k + "-" + Math.random().toString(36).slice(2, 6), w = size || 20;
-    return `<svg class="gbadge gbadge--${k}" viewBox="0 0 24 24" width="${w}" height="${w}" role="img" aria-label="${t.n} 등급"><title>${t.n} 등급</title>
-      <defs><linearGradient id="${id}m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.m[0]}"/><stop offset=".55" stop-color="${t.m[1]}"/><stop offset="1" stop-color="${t.m[2]}"/></linearGradient>
-      <radialGradient id="${id}s" cx=".36" cy=".3" r=".85"><stop offset="0" stop-color="${t.s[0]}"/><stop offset=".55" stop-color="${t.s[1]}"/><stop offset="1" stop-color="${t.s[2]}"/></radialGradient></defs>
-      <polygon points="8,1.5 16,1.5 22.5,8 22.5,16 16,22.5 8,22.5 1.5,16 1.5,8" fill="url(#${id}m)" stroke="${t.m[2]}" stroke-width=".8"/>
-      <polygon points="9.3,4.3 14.7,4.3 19.7,9.3 19.7,14.7 14.7,19.7 9.3,19.7 4.3,14.7 4.3,9.3" fill="none" stroke="${t.m[0]}" stroke-opacity=".7" stroke-width=".6"/>
-      <circle cx="12" cy="12" r="6.1" fill="${t.m[2]}" opacity=".45"/>
-      <circle cx="12" cy="12" r="5.5" fill="url(#${id}s)"/>
-      <polygon points="12,8.4 15.1,10.2 15.1,13.8 12,15.6 8.9,13.8 8.9,10.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width=".45"/>
-      <path d="M12 6.5v1.9M16.8 9.3l-1.7 .9M16.8 14.7l-1.7-.9M12 17.5v-1.9M7.2 14.7l1.7-.9M7.2 9.3l1.7 .9" stroke="#fff" stroke-opacity=".4" stroke-width=".45"/>
-      <ellipse cx="10.3" cy="9.7" rx="1.7" ry=".9" fill="#fff" opacity=".8" transform="rotate(-32 10.3 9.7)"/>
-      <g fill="${t.m[0]}" stroke="${t.m[2]}" stroke-width=".3"><circle cx="12" cy="6.2" r=".85"/><circle cx="17.8" cy="12" r=".85"/><circle cx="12" cy="17.8" r=".85"/><circle cx="6.2" cy="12" r=".85"/></g>
-      ${k === "vip" ? `<path d="M19.6 1.2l.55 1.35 1.35.55-1.35.55-.55 1.35-.55-1.35-1.35-.55 1.35-.55z" fill="#fff"/>` : ""}
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => "#" + hex(a).map((v, i) => Math.round(v + (hex(b)[i] - v) * t).toString(16).padStart(2, "0")).join("");
+  // 0(어두움) ~ 1(밝음) → 원석 색
+  const shade = (g, v) => v < .5 ? mix(g[2], g[1], v * 2) : mix(g[1], g[0], (v - .5) * 2);
+  function gradeBadge(grade, size) {
+    const k = GEM[grade] ? grade : "basic", t = GEM[k], w = size || 20;
+    const id = "gb" + k + Math.random().toString(36).slice(2, 7);
+    const C = 16, R = 10.6, rad = d => d * Math.PI / 180;
+    const pt = (deg, r) => [(C + r * Math.cos(rad(deg))).toFixed(2), (C + r * Math.sin(rad(deg))).toFixed(2)].join(",");
+    const L = -135; // 빛: 왼쪽 위
+    const lit = deg => (Math.cos(rad(deg - L)) + 1) / 2; // 빛을 정면으로 받을수록 1
+    const fire = ["#ffd6e8", "#d6ecff", "#fff3c4", "#dff7e6"]; // 다이아몬드 무지개빛
+    let facets = "";
+    for (let i = 0; i < 8; i++) {
+      const a = i * 45, T0 = pt(a, R * .5), T1 = pt(a + 45, R * .5), S = pt(a + 22.5, R * .76), Sp = pt(a - 22.5, R * .76);
+      const G0 = pt(a, R), G1 = pt(a + 22.5, R), G2 = pt(a + 45, R);
+      const v = lit(a), vs = lit(a + 22.5);
+      const col = x => k === "vip" && i % 3 === 1 && x > .55 ? mix(shade(t.g, x), fire[i % 4], .35) : shade(t.g, x);
+      facets += `<polygon points="${T0} ${Sp} ${G0} ${S}" fill="${col(.15 + v * .8)}"/>`;                 // 크라운(카이트) 면
+      facets += `<polygon points="${S} ${G0} ${G1}" fill="${col(.9 - vs * .75)}"/>`;                       // 거들 면 (반대로 빛나 대비)
+      facets += `<polygon points="${S} ${G1} ${G2}" fill="${col(.25 + vs * .6)}"/>`;
+      facets += `<polygon points="${T0} ${T1} ${S}" fill="${col(.35 + vs * .55)}"/>`;                      // 스타 면
+    }
+    const table = Array.from({ length: 8 }, (_, i) => pt(i * 45, R * .5)).join(" ");
+    const spark = (x, y, s, o) => `<path d="M${x} ${y - s}C${x + s * .12} ${y - s * .12} ${x + s * .12} ${y - s * .12} ${x + s} ${y}C${x + s * .12} ${y + s * .12} ${x + s * .12} ${y + s * .12} ${x} ${y + s}C${x - s * .12} ${y + s * .12} ${x - s * .12} ${y + s * .12} ${x - s} ${y}C${x - s * .12} ${y - s * .12} ${x - s * .12} ${y - s * .12} ${x} ${y - s}Z" fill="#fff" opacity="${o}"/>`;
+    return `<svg class="gbadge gbadge--${k}" viewBox="0 0 32 32" width="${w}" height="${w}" role="img" aria-label="${t.n} 등급"><title>${t.n} 등급</title>
+      <defs>
+        <linearGradient id="${id}a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.m[0]}"/><stop offset=".45" stop-color="${t.m[1]}"/><stop offset="1" stop-color="${t.m[2]}"/></linearGradient>
+        <linearGradient id="${id}b" x1="1" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${t.m[0]}"/><stop offset=".5" stop-color="${t.m[1]}"/><stop offset="1" stop-color="${t.m[2]}"/></linearGradient>
+        <linearGradient id="${id}t" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${shade(t.g, .95)}"/><stop offset=".6" stop-color="${shade(t.g, .55)}"/><stop offset="1" stop-color="${shade(t.g, .35)}"/></linearGradient>
+        <radialGradient id="${id}s" cx=".5" cy=".5" r=".5"><stop offset=".8" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient>
+      </defs>
+      <circle cx="16" cy="16" r="15.2" fill="url(#${id}a)"/>
+      <circle cx="16" cy="16" r="15.2" fill="none" stroke="${t.m[2]}" stroke-opacity=".55" stroke-width=".6"/>
+      <circle cx="16" cy="16" r="13.6" fill="none" stroke="${t.m[0]}" stroke-opacity=".75" stroke-width=".5"/>
+      <circle cx="16" cy="16" r="12.3" fill="url(#${id}b)"/>
+      <circle cx="16" cy="16" r="${R + .35}" fill="${t.m[2]}"/>
+      ${facets}
+      <polygon points="${table}" fill="url(#${id}t)" stroke="#fff" stroke-opacity=".35" stroke-width=".25"/>
+      <circle cx="16" cy="16" r="${R}" fill="url(#${id}s)"/>
+      <path d="M${pt(-160, R * .9)} A${R * .9} ${R * .9} 0 0 1 ${pt(-110, R * .9)}" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".8" stroke-linecap="round"/>
+      ${spark(12.2, 11.6, k === "vip" ? 3.4 : 2.4, .95)}
+      ${k === "vip" ? spark(25.6, 6.2, 2.6, 1) + spark(6.5, 25, 1.6, .85) : ""}
     </svg>`;
   }
 
