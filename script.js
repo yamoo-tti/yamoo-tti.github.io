@@ -428,10 +428,9 @@ function searchInfo(p) {
   const w = Number(p.weight_g), d = Math.round(w / DON * 1000) / 1000;
   const weights = new Set([`${w}g`]);
   if (w >= 1000 && w % 1000 === 0) weights.add(`${w / 1000}kg`);
-  if (p.kind !== "silver" && p.karat !== "SV") { // 금 제품은 악세사리도 'OO돈'으로 검색되게
-    if (Number.isInteger(d) || d === 0.5) weights.add(`${d}돈`);
-    if (DON_WORD[d]) weights.add(DON_WORD[d]);
-  }
+  // 모든 상품: 무게를 돈으로도 검색되게 (3.75g = 1돈, 소수 둘째 자리까지. 예: 5.625g → 1.5돈)
+  if (w > 0) weights.add(`${Math.round(w / DON * 100) / 100}돈`);
+  if (DON_WORD[d]) weights.add(DON_WORD[d]);
   const words = {
     bar: "골드바 금괴 순금 금 GBK 24K 999.9 보증서",
     zodiac: "카드형 골드바 십이지 십이지신 띠 순금 금 GBK 24K 선물 돌 백일 보증서",
@@ -447,6 +446,7 @@ const nameHas = (p, t) => new RegExp(`(^|[^\\d.])${t.replace(/\./g, "\\.")}`).te
 function searchMatch(p, terms) {
   const info = searchInfo(p);
   return terms.every(t => {
+    t = t.replace(/^\d+(\.\d+)?/, n => String(+n)); // '1.50돈' → '1.5돈', '05g' → '5g'
     if (/^\d+(\.\d+)?(g|kg|돈)$/.test(t)) return info.weights.includes(t) || nameHas(p, t);
     if (/^\d+(\.\d+)?$/.test(t)) return info.weights.includes(t + "g") || info.weights.includes(t + "돈") || nameHas(p, t + "돈");
     return info.hay.includes(t);
