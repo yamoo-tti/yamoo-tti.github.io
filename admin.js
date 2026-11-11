@@ -1,6 +1,6 @@
 /* 금비 GOLD 관리자 */
 (function () {
-  const { sb, esc, won, fmtDate, fetchLive, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, DEFAULT_SETTINGS, INFO_FIELDS, infoDefaults, optLabel } = window.YAMOO;
+  const { sb, esc, won, fmtDate, fetchLive, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, DEFAULT_SETTINGS, INFO_FIELDS, infoDefaults, optLabel, DON } = window.YAMOO;
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
 
@@ -179,8 +179,12 @@
       $("#dashPrice").innerHTML = priceRows(d.items);
     } catch (e) { $("#dashPrice").innerHTML = `<tr><td>시세를 불러오지 못했습니다</td></tr>`; }
   }
-  const priceRows = items => `<tr><th>품목 (3.75g)</th><th>살 때</th><th>팔 때</th></tr>` +
-    items.map(i => `<tr><td>${i.name}</td><td>${i.buy ? i.buy.toLocaleString() : "제품시세"}</td><td>${i.sell.toLocaleString()}</td></tr>`).join("");
+  // agPerGram: 은을 1g당 가격으로 표시 (시세 설정 미리보기용)
+  const priceRows = (items, agPerGram = false) => `<tr><th>품목 (3.75g)</th><th>살 때</th><th>팔 때</th></tr>` +
+    items.map(i => {
+      const g = agPerGram && i.key === "ag", f = n => (g ? Math.round(n / DON) : n).toLocaleString();
+      return `<tr><td>${i.name}${g ? ' <span class="muted">(1g당)</span>' : ""}</td><td>${i.buy ? f(i.buy) : "제품시세"}</td><td>${f(i.sell)}</td></tr>`;
+    }).join("");
 
   /* ---------- 구매 신청 · 매입 신청 ---------- */
   const REQ = {
@@ -1320,7 +1324,7 @@
     const d = computeDomestic(liveCache, readSettings());
     $("#previewTime").textContent = fmtDate(liveCache.updatedAt) + " 기준";
     $("#previewBase").textContent = `국제 금 1돈 환산 ${won(d.base.gold)} (${"$" + liveCache.usd.XAU.toFixed(2)}/oz × 환율 ${liveCache.krw.toFixed(2)}원)`;
-    $("#previewTable").innerHTML = priceRows(d.items);
+    $("#previewTable").innerHTML = priceRows(d.items, true);
   }
   $("#settingsForm").addEventListener("input", preview);
   $("#settingsForm").addEventListener("submit", async e => {
