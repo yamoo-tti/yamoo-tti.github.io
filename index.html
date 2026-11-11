@@ -295,6 +295,32 @@
       </div>
     </section>
 
+    <!-- 국제 시세 차트 (금 매입 안내 아래) -->
+    <section class="section" id="chart">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">Global Chart</p>
+            <h2>국제 시세 차트</h2>
+          </div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-card__head">
+            <div>
+              <p class="chart-card__label">국제 차트 (USD/oz) · TradingView</p>
+              <p class="chart-card__value"><span id="chartTitle">금 XAU/USD</span></p>
+            </div>
+            <div class="seg" role="tablist" aria-label="종목">
+              <button class="is-on" data-symbol="OANDA:XAUUSD" data-title="금 XAU/USD" role="tab" aria-selected="true">금</button>
+              <button data-symbol="OANDA:XAGUSD" data-title="은 XAG/USD" role="tab" aria-selected="false">은</button>
+              <button data-symbol="OANDA:XPTUSD" data-title="백금 XPT/USD" role="tab" aria-selected="false">백금</button>
+            </div>
+          </div>
+          <div class="tv-chart" id="tvChart"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- 공지/시황 -->
     <section class="section">
       <div class="wrap board">
@@ -331,32 +357,6 @@
         </div>
         <div class="stores">
           <article class="store"><h3>금비 종로점</h3><p>서울특별시 종로구 율곡로10길 105 디아망 빌딩 2층</p><p class="store__meta"><a href="tel:010-5287-8002">010-5287-8002</a> · 평일 10:00–19:00</p></article>
-        </div>
-      </div>
-    </section>
-
-    <!-- 국제 시세 차트 (페이지 맨 아래로 이동) -->
-    <section class="section" id="chart">
-      <div class="wrap">
-        <div class="section__head">
-          <div>
-            <p class="eyebrow">Global Chart</p>
-            <h2>국제 시세 차트</h2>
-          </div>
-        </div>
-        <div class="card chart-card">
-          <div class="chart-card__head">
-            <div>
-              <p class="chart-card__label">국제 차트 (USD/oz) · TradingView</p>
-              <p class="chart-card__value"><span id="chartTitle">금 XAU/USD</span></p>
-            </div>
-            <div class="seg" role="tablist" aria-label="종목">
-              <button class="is-on" data-symbol="OANDA:XAUUSD" data-title="금 XAU/USD" role="tab" aria-selected="true">금</button>
-              <button data-symbol="OANDA:XAGUSD" data-title="은 XAG/USD" role="tab" aria-selected="false">은</button>
-              <button data-symbol="OANDA:XPTUSD" data-title="백금 XPT/USD" role="tab" aria-selected="false">백금</button>
-            </div>
-          </div>
-          <div class="tv-chart" id="tvChart"></div>
         </div>
       </div>
     </section>
