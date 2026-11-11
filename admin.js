@@ -429,6 +429,15 @@
     f.from.value = ymd(a); f.to.value = ymd(b);
   }
 
+  // 관리자 계정(또는 관리자 휴대폰 번호)으로 한 주문·매입 신청은 매출 정리·판매 분석에서 뺌 (테스트 주문 등)
+  async function adminFilter() {
+    const { data } = await sb.from("profiles").select("id,phone").eq("role", "admin");
+    const digits = v => String(v || "").replace(/\D/g, "");
+    const ids = new Set((data || []).map(a => a.id));
+    const ph = new Set((data || []).map(a => digits(a.phone)).filter(p => p.length >= 10));
+    return r => !(r.user_id && ids.has(r.user_id)) && !ph.has(digits(r.phone));
+  }
+
   async function loadSales() {
     const f = $("#salesForm");
     if (!f.from.value) setRange("month");
@@ -437,13 +446,16 @@
     // 입금 확인일 기준: 주문일이 조금 앞설 수 있어 넉넉히 불러온 뒤 거름
     const start = new Date(from + "T00:00:00"); start.setDate(start.getDate() - 14);
     const end = new Date(to + "T00:00:00"); end.setDate(end.getDate() + 1);
-    const [o, s] = await Promise.all([
+    const [o, s, keep] = await Promise.all([
       sb.from("orders").select("*").in("status", PAID).gte("created_at", start.toISOString()).lt("created_at", end.toISOString()).order("created_at").limit(5000),
       sb.from("sell_requests").select("*").eq("status", "done").gte("updated_at", new Date(from + "T00:00:00").toISOString()).lt("updated_at", end.toISOString()).order("updated_at").limit(5000),
+      adminFilter(),
     ]);
     if (o.error) return fail(o.error);
     if (s.error) return fail(s.error);
-    sales = { orders: o.data.filter(r => paidDay(r) >= from && paidDay(r) <= to), sells: s.data, from, to };
+    const inRange = o.data.filter(r => paidDay(r) >= from && paidDay(r) <= to);
+    const orders = inRange.filter(keep), sells = s.data.filter(keep);
+    sales = { orders, sells, from, to, skipped: inRange.length - orders.length + s.data.length - sells.length };
     renderSales();
   }
 
@@ -461,7 +473,7 @@
       <div class="kpi kpi--gold"><p>입금 확인 매출</p><strong>${won(total)}</strong><small>${orders.length}건 · 택배비 포함</small></div>
       <div class="kpi"><p>상품 매출</p><strong>${won(total - fee)}</strong><small>택배비 ${won(fee)} 별도</small></div>
       <button class="kpi${rcTodo ? " kpi--warn" : ""}" data-go="orders" data-rctab><p>영수증·계산서 발행 필요</p><strong>${rcTodo}</strong><small>누르면 목록으로</small></button>
-      <div class="kpi"><p>매입 지급</p><strong>${won(payout)}</strong><small>${sells.length}건 · 지급 완료</small></div>`;
+      <div class="kpi"><p>매입 지급</p><strong>${won(payout)}</strong><small>${sells.length}건 · 지급 완료${sales.skipped ? ` · 관리자 계정 ${sales.skipped}건 제외` : ""}</small></div>`;
 
     const days = {};
     orders.forEach(r => { const d = paidDay(r); days[d] = days[d] || { n: 0, amt: 0, buy: 0 }; days[d].n++; days[d].amt += Number(r.final_price) || 0; });
@@ -524,7 +536,7 @@
     const len = daysBetween(from, to), pFrom = addDays(from, -len), pTo = addDays(from, -1);
     const qStart = new Date(pFrom + "T00:00:00"); qStart.setDate(qStart.getDate() - 14);
     const qEnd = new Date(addDays(to, 1) + "T00:00:00");
-    const [o, cur, prev, pr, mem, hist, adm] = await Promise.all([
+    const [o, cur, prev, pr, mem, hist, keep] = await Promise.all([
       sb.from("orders").select("id,status,final_price,shipping_fee,items,product_id,product_name,qty,phone,created_at,paid_at,receive,user_id")
         .gte("created_at", qStart.toISOString()).lt("created_at", qEnd.toISOString()).order("created_at").limit(5000),
       sb.rpc("analytics_counts", { p_from: from, p_to: to }),
@@ -532,13 +544,10 @@
       sb.from("products").select("id,name,kind,karat,category,weight_g,visible"),
       sb.from("profiles").select("created_at").gte("created_at", new Date(pFrom + "T00:00:00").toISOString()).lt("created_at", qEnd.toISOString()).limit(5000),
       sb.from("orders").select("phone").in("status", PAID).lt("created_at", new Date(from + "T00:00:00").toISOString()).limit(10000),
-      sb.from("profiles").select("id,phone").eq("role", "admin"),
+      adminFilter(),
     ]);
     for (const r of [o, pr, mem, hist]) if (r.error) return fail(r.error);
-    // 관리자 계정으로 한 주문은 판매 분석에서 뺌 (관리자 휴대폰 번호로 비회원 주문한 것도)
-    const admIds = new Set((adm.data || []).map(a => a.id));
-    const admPh = new Set((adm.data || []).map(a => String(a.phone || "").replace(/\D/g, "")).filter(p => p.length >= 10));
-    o.data = o.data.filter(r => !admIds.has(r.user_id) && !admPh.has(String(r.phone || "").replace(/\D/g, "")));
+    o.data = o.data.filter(keep); // 관리자 계정 주문 제외
     if (cur.error || prev.error) { toast("판매 분석 SQL(analytics.sql)을 먼저 실행해 주세요", true); console.error(cur.error || prev.error); }
     an = { from, to, pFrom, pTo, orders: o.data, cur: cur.data || {}, prev: prev.data || {}, products: pr.data, members: mem.data, oldPhones: new Set(hist.data.map(r => r.phone)) };
     renderAnalytics();
