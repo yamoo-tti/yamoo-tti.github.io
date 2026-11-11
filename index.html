@@ -90,7 +90,17 @@
     <!-- HERO 슬라이더 -->
     <section class="hero" aria-roledescription="carousel" aria-label="주요 소식">
       <div class="hero__slides">
-        <article class="slide is-active" style="--img:url('images/bar-dark.jpg')">
+        <!-- 금비 브랜드 슬라이드: 금빛 비 효과 (script.js initGoldRain) -->
+        <article class="slide slide--rain is-active" style="--img:url('images/molten.jpg')">
+          <canvas class="gold-rain" aria-hidden="true"></canvas>
+          <div class="wrap slide__inner">
+            <p class="slide__eyebrow">Gold Rain · 金雨</p>
+            <h1>금이 비처럼<br>내려와</h1>
+            <p class="slide__lead">금비가 매일 정직한 시세로 금을 내려드립니다. <br>순금 골드바, 주얼리부터 금 매입까지 금비에서.</p>
+            <div class="slide__cta"><a href="#goldbar" class="btn btn--gold">골드바 보기</a><a href="#price" class="btn btn--ghost">오늘의 금시세</a></div>
+          </div>
+        </article>
+        <article class="slide" style="--img:url('images/bar-dark.jpg')">
           <div class="wrap slide__inner">
             <p class="slide__eyebrow">Fine Gold 999.9</p>
             <h1>가치를 지키는<br>가장 단단한 방법</h1>

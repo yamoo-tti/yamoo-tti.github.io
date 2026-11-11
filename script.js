@@ -559,6 +559,78 @@ function initHero() {
   go(0);
 }
 
+/* ---------- 금비 슬라이드: 금빛 비 효과 ---------- */
+function initGoldRain() {
+  const cv = $(".gold-rain");
+  if (!cv) return;
+  const slide = cv.closest(".slide");
+  const ctx = cv.getContext("2d");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let W = 0, H = 0, drops = [], glints = [], raf = 0;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const newDrop = top => {
+    const z = Math.random(); // 0 = 먼 곳(작고 느림), 1 = 가까운 곳(크고 빠름)
+    return { x: rnd(-40, W + 40), y: top ? rnd(-H, 0) : rnd(0, H), z,
+      len: 10 + z * 34, w: .6 + z * 2.2, v: 3 + z * 9, a: .25 + z * .6, tw: rnd(0, Math.PI * 2) };
+  };
+  const resize = () => {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.round(Math.min(W, 1600) / (W < 700 ? 9 : 7));
+    drops = Array.from({ length: n }, () => newDrop(false));
+  };
+  const SLANT = .12; // 살짝 비스듬히 내리는 비
+  const draw = () => {
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalCompositeOperation = "lighter";
+    for (const d of drops) {
+      const x2 = d.x - d.len * SLANT, y2 = d.y - d.len;
+      const g = ctx.createLinearGradient(d.x, d.y, x2, y2);
+      const tw = .75 + .25 * Math.sin(d.tw);
+      g.addColorStop(0, `rgba(255,236,170,${d.a * tw})`);
+      g.addColorStop(.35, `rgba(236,198,110,${d.a * .7 * tw})`);
+      g.addColorStop(1, "rgba(192,154,69,0)");
+      ctx.strokeStyle = g; ctx.lineWidth = d.w; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(x2, y2); ctx.stroke();
+      if (d.z > .55) { // 가까운 빗방울 끝의 반짝임
+        ctx.fillStyle = `rgba(255,246,214,${d.a * tw})`;
+        ctx.beginPath(); ctx.arc(d.x, d.y, d.w * .9, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    for (const s of glints) { // 바닥에 닿을 때 튀는 금빛
+      const r = s.r * (1 - s.life) + 1;
+      ctx.strokeStyle = `rgba(255,226,150,${.5 * s.life})`; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(s.x, s.y, r * 2.2, r * .6, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.globalCompositeOperation = "source-over";
+  };
+  const step = () => {
+    for (const d of drops) {
+      d.y += d.v; d.x += d.v * SLANT; d.tw += .15;
+      if (d.y - d.len > H) {
+        if (d.z > .6 && glints.length < 40) glints.push({ x: d.x, y: H - rnd(4, 40), r: 4 + d.z * 6, life: 1 });
+        Object.assign(d, newDrop(true), { y: rnd(-60, -10) });
+      }
+    }
+    for (const s of glints) s.life -= .04;
+    glints = glints.filter(s => s.life > 0);
+  };
+  const loop = () => {
+    raf = 0;
+    if (document.hidden || !slide.classList.contains("is-active")) return; // 안 보일 땐 멈춤
+    step(); draw();
+    raf = requestAnimationFrame(loop);
+  };
+  const start = () => { if (!raf && !reduce) raf = requestAnimationFrame(loop); };
+  resize(); draw();
+  addEventListener("resize", () => { resize(); draw(); });
+  document.addEventListener("visibilitychange", start);
+  new MutationObserver(start).observe(slide, { attributes: true, attributeFilter: ["class"] });
+  start();
+}
+
 /* ---------- 모바일 메뉴 ---------- */
 const toggle = $(".menu-toggle"), mnav = $("#mobileNav");
 toggle.addEventListener("click", () => {
@@ -580,6 +652,7 @@ function initReveal() {
 }
 
 initHero();
+initGoldRain();
 initReveal();
 loadProducts();
 refresh();
