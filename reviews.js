@@ -49,9 +49,10 @@
         ${writing ? "" : `<button type="button" class="btn btn--line rv__write" data-rvwrite>후기 쓰기</button>`}
       </div>
       ${writing ? formHtml(typeof writing === "object" ? writing : null) : ""}
+      ${list.some(r => r.gift) ? `<p class="rv__disc">‘쿠폰 지급 후기’는 후기를 쓴 회원께 감사 쿠폰을 드린 후기예요. 별점·내용과 관계없이 똑같이 드리며, 후기를 고르거나 숨기지 않아요.</p>` : ""}
       ${n ? `<ul class="rv__list">${list.map(r => `
         <li class="rv">
-          <div class="rv__top">${stars(r.rating)}<b>${esc(r.name)}</b><time>${fmtDate(r.created_at, false)}${r.edited ? " · 수정됨" : ""}</time>${r.mine ? `<span class="rv__mine">내 후기</span><button type="button" class="rv__edit" data-rvedit="${r.id}">수정</button>` : ""}</div>
+          <div class="rv__top">${stars(r.rating)}<b>${esc(r.name)}</b><time>${fmtDate(r.created_at, false)}${r.edited ? " · 수정됨" : ""}</time>${r.gift ? `<span class="rv__giftTag" title="후기 작성 후 쿠폰을 받은 후기예요">쿠폰 지급 후기</span>` : ""}${r.mine ? `<span class="rv__mine">내 후기</span><button type="button" class="rv__edit" data-rvedit="${r.id}">수정</button>` : ""}</div>
           ${r.option_label ? `<p class="rv__opt">${esc(r.option_label)}</p>` : ""}
           <p class="rv__body">${esc(r.body)}</p>
           ${r.reply ? `<div class="rv__reply"><b>금비 GOLD 답글</b><p>${esc(r.reply)}</p></div>` : ""}

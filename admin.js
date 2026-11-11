@@ -1290,6 +1290,7 @@
   // 회원 포인트 · 쿠폰 (coupons-points.sql 실행 후) — 직접 지급·차감
   async function loadMemberBnf(m) {
     const box = $("#memberBnf");
+    await sb.rpc("expire_points", { p_uid: m.id }).then(() => {}, () => {}); // 기간 지난 포인트 정리 (SQL 실행 전이면 무시)
     const [pl, cp] = await Promise.all([
       sb.from("point_logs").select("amount,reason,created_at").eq("user_id", m.id).order("created_at", { ascending: false }).limit(200),
       sb.from("coupons").select("id,name,amount,min_order,expires_at,used_at").eq("user_id", m.id).order("created_at", { ascending: false }).limit(50),
@@ -1394,7 +1395,7 @@
 
   // 주문 · 입금 · 문자 설정 (shop_info)
   const SHOP_FIELDS = ["bank_name", "bank_account", "bank_holder", "pay_minutes", "delivery_fee", "owner_phone", "sms_sender"];
-  const BNF_FIELDS = ["point_rate", "review_coupon", "coupon_min", "coupon_months"];
+  let BNF_FIELDS = ["point_rate", "point_months", "review_coupon", "coupon_min", "coupon_months"];
   let hasBnf = false;
   async function loadShop() {
     const f = $("#shopForm");
@@ -1405,7 +1406,11 @@
     // 포인트·후기 쿠폰 칸 (coupons-points.sql 실행 전이면 숨김)
     hasBnf = "point_rate" in data;
     $("#bnfSet").hidden = !hasBnf;
-    if (hasBnf) { BNF_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; }); f.review_event.checked = !!data.review_event; }
+    if (hasBnf) {
+      BNF_FIELDS = BNF_FIELDS.filter(k => k in data); // SQL이 아직 안 바뀐 칸은 숨김
+      f.point_months.closest("label").hidden = !("point_months" in data);
+      BNF_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; }); f.review_event.checked = !!data.review_event;
+    }
     $("#shopMeta").textContent = `최종 수정 ${fmtDate(data.updated_at)}`;
   }
   $("#shopForm").addEventListener("submit", async e => {
@@ -1416,6 +1421,7 @@
     if (hasBnf) {
       BNF_FIELDS.forEach(k => { row[k] = Number(f[k].value) || 0; });
       row.coupon_months = Math.min(36, Math.max(1, row.coupon_months));
+      if ("point_months" in row) row.point_months = Math.min(60, Math.max(1, row.point_months));
       row.review_event = f.review_event.checked;
     }
     btn.disabled = true;

@@ -201,21 +201,26 @@
     const d = s => { const x = new Date(s); return `${x.getMonth() + 1}/${x.getDate()}`; };
     box.innerHTML = `
       <fieldset class="bnf__set"><legend>쿠폰 · 포인트 <small>홈페이지 주문 전용</small></legend>
-        ${cps.length ? `<label>쿠폰<select name="coupon"><option value="">사용 안 함 (${cps.length}장 보유)</option>${cps.map(c =>
+        ${cps.length ? `<label>쿠폰 <small>골드바·실버바 제외</small><select name="coupon"><option value="">사용 안 함 (${cps.length}장 보유)</option>${cps.map(c =>
           `<option value="${c.id}" data-amt="${c.amount}" data-min="${c.min_order}">${won(c.amount)} ${esc(c.name)}${c.min_order ? ` (${c.min_order % 10000 ? won(c.min_order) : c.min_order / 10000 + "만원"} 이상)` : ""} ~${d(c.expires_at)}</option>`).join("")}</select></label>` : ""}
         ${pts ? `<label>포인트 <small>보유 <b>${pts.toLocaleString()}P</b> · 1P = 1원</small><span class="bnf__pts"><input type="number" name="points" min="0" max="${pts}" step="1" inputmode="numeric" placeholder="0"><button type="button" class="btn btn--line btn--sm" data-bnfall>전액</button></span></label>` : ""}
         <p class="bnf__msg" data-bnfmsg></p>
       </fieldset>`;
   }
   // 고른 쿠폰·포인트로 할인 금액 계산 (서버 bnf_check 와 같은 규칙)
-  function calcBnf(form, goods) {
+  // 쿠폰은 마진이 적은 골드바·실버바·카드형 골드바에는 못 씀 (포인트는 모두 가능)
+  const NOCOUP = ["bar", "silver", "zodiac"];
+  const coupOk = p => !!p && !NOCOUP.includes(p.kind);
+  function calcBnf(form, goods, cgoods) {
     const out = { coupon: null, cdisc: 0, pts: 0, msg: "" };
     if (!bnf || goods == null) return out;
+    const cg = cgoods == null ? goods : cgoods;
     const sel = form.querySelector("[name=coupon]"), ptIn = form.querySelector("[name=points]");
     if (sel && sel.value) {
       const o = sel.selectedOptions[0], min = Number(o.dataset.min) || 0;
-      if (goods < min) out.msg = `이 쿠폰은 상품 금액 ${won(min)} 이상일 때 쓸 수 있어요`;
-      else { out.coupon = +sel.value; out.cdisc = Math.min(Number(o.dataset.amt) || 0, Math.floor(goods)); }
+      if (cg <= 0) out.msg = "쿠폰은 골드바·실버바에는 쓸 수 없어요 (포인트는 쓸 수 있어요)";
+      else if (cg < min) out.msg = `이 쿠폰은 골드바·실버바를 뺀 상품 금액이 ${won(min)} 이상일 때 쓸 수 있어요`;
+      else { out.coupon = +sel.value; out.cdisc = Math.min(Number(o.dataset.amt) || 0, Math.floor(cg)); }
     }
     if (ptIn) {
       let p = Math.max(0, Math.floor(Number(ptIn.value) || 0));
@@ -258,7 +263,7 @@
     const pk = pickOf(orderForm), unit = unitOf(current, pk);
     optNote(orderOpts, current, pk);
     const fee = orderForm.receive.value === "delivery" ? Number(shopInfo.delivery_fee) || 0 : 0;
-    const b = calcBnf(orderForm, unit ? unit * qty : null), disc = b.cdisc + b.pts;
+    const b = calcBnf(orderForm, unit ? unit * qty : null, unit && coupOk(current) ? unit * qty : 0), disc = b.cdisc + b.pts;
     orderForm._bnf = b;
     $("#orderTotal").innerHTML = unit ? won(unit * qty - disc + fee) + [fee ? `택배비 ${won(fee)} 포함` : "", disc ? `할인 ${won(disc)} 적용` : ""].filter(Boolean).map(t => `<small>${t}</small>`).join("") : "매장 문의";
     return unit ? unit * qty - disc + fee : null;
@@ -424,11 +429,11 @@
       return;
     }
     cartForm.hidden = false;
-    let goods = 0, priced = true;
+    let goods = 0, cgoods = 0, priced = true;
     const noSize = r => Y.sizeList(r.p).length > 0 && !Y.sizeList(r.p).includes(r.size || "");
     $("#cartList").innerHTML = (gone.length ? `<p class="cart-warn">판매가 끝난 상품 ${gone.length}개를 장바구니에서 뺐어요.</p>` : "") + live.map(r => {
       const unit = unitOf(r.p, r);
-      if (unit == null) priced = false; else goods += unit * r.qty;
+      if (unit == null) priced = false; else { goods += unit * r.qty; if (coupOk(r.p)) cgoods += unit * r.qty; }
       const k = esc(keyOf(r));
       return `
         <div class="cart-row${r.p.sold_out ? " is-soldout" : ""}">
@@ -443,7 +448,7 @@
         </div>`;
     }).join("");
     const fee = cartForm.receive.value === "delivery" ? Number(shopInfo.delivery_fee) || 0 : 0;
-    const b = calcBnf(cartForm, priced ? goods : null), disc = b.cdisc + b.pts;
+    const b = calcBnf(cartForm, priced ? goods : null, cgoods), disc = b.cdisc + b.pts;
     cartForm._bnf = b;
     let dRow = $("#cartDiscRow");
     if (!dRow) {

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261111h">
+  <link rel="stylesheet" href="admin.css?v=20261111i">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -265,9 +265,10 @@
           </fieldset>
           <fieldset id="bnfSet"><legend>포인트 · 후기 쿠폰 <small>회원 · 홈페이지 주문 전용</small></legend>
             <label>포인트 적립률 (%) <small>입금 확인 때 결제 금액(택배비 제외) × 적립률 · 0이면 적립 안 함</small><input type="number" name="point_rate" min="0" max="10" step="0.1"></label>
+            <label>포인트 유효기간 (개월) <small>적립일부터 · 지나면 자동 소멸 · 먼저 쌓인 포인트부터 사용</small><input type="number" name="point_months" min="1" max="60" step="1"></label>
             <label class="inline"><input type="checkbox" name="review_event"> 후기 이벤트 켜기 <small>첫 화면 팝업 + 후기 쓰면 쿠폰 자동 지급</small></label>
             <label>후기 쿠폰 금액 (원)<input type="number" name="review_coupon" min="0" step="1000"></label>
-            <label>쿠폰 쓸 수 있는 최소 상품 금액 (원)<input type="number" name="coupon_min" min="0" step="10000"></label>
+            <label>쿠폰 쓸 수 있는 최소 상품 금액 (원) <small>골드바·실버바·카드형 골드바는 쿠폰 사용 불가 (포인트는 가능)</small><input type="number" name="coupon_min" min="0" step="10000"></label>
             <label>쿠폰 유효기간 (개월) <small>받은 날부터</small><input type="number" name="coupon_months" min="1" max="36" step="1"></label>
           </fieldset>
           <div class="settings__foot">
@@ -330,6 +331,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="common.js?v=20261104q"></script>
-  <script src="admin.js?v=20261111h"></script>
+  <script src="admin.js?v=20261111i"></script>
 </body>
 </html>

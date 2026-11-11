@@ -54,8 +54,8 @@
     box.hidden = false;
     box.innerHTML = `
       <div class="mo__bnf-top">
-        <div><p>포인트</p><strong>${(Number(data.points) || 0).toLocaleString()}<small>P</small></strong><span>1P = 1원 · 홈페이지 주문에서 사용${Number(data.point_rate) > 0 ? ` · 결제 금액의 ${Number(data.point_rate)}% 적립` : ""}</span></div>
-        <div><p>쿠폰</p><strong>${cps.length}<small>장</small></strong><span>후기를 쓰면 쿠폰을 드려요</span></div>
+        <div><p>포인트</p><strong>${(Number(data.points) || 0).toLocaleString()}<small>P</small></strong><span>1P = 1원 · 홈페이지 주문에서 사용${Number(data.point_rate) > 0 ? ` · 결제 금액의 ${Number(data.point_rate)}% 적립` : ""}${data.point_months ? ` · 적립일부터 ${data.point_months}개월 안에 사용` : ""}</span>${Number(data.expiring) > 0 ? `<em class="mo__exp">30일 안에 사라질 포인트 ${Number(data.expiring).toLocaleString()}P</em>` : ""}</div>
+        <div><p>쿠폰</p><strong>${cps.length}<small>장</small></strong><span>후기를 쓰면 쿠폰을 드려요 · 골드바·실버바 제외</span></div>
       </div>
       ${cps.length ? `<ul class="mo__cps">${cps.map(c => `<li><b>${won(c.amount)}</b><span>${esc(c.name)}${c.min_order ? ` · 상품 ${won(c.min_order)} 이상` : ""}</span><em>${d(c.expires_at)}까지</em></li>`).join("")}</ul>` : ""}
       ${logs.length ? `<details class="mo__logs"><summary>포인트 내역</summary><ul>${logs.map(l => `<li><span>${d(l.created_at)}</span><span>${esc(l.reason)}</span><b class="${l.amount > 0 ? "is-plus" : "is-minus"}">${l.amount > 0 ? "+" : ""}${Number(l.amount).toLocaleString()}P</b></li>`).join("")}</ul></details>` : ""}`;

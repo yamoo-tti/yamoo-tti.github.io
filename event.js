@@ -30,7 +30,7 @@
             <li><b>2</b><span>입금 확인 후 상품 상세 또는 주문내역에서 <em>후기 쓰기</em></span></li>
             <li><b>3</b><span>등록 즉시 쿠폰 지급</span></li>
           </ol>
-          <p class="evt__note">홈페이지 주문 전용${c.coupon_min ? ` · 상품 금액 ${won(c.coupon_min)} 이상` : ""} · 받은 날부터 ${c.coupon_months || 3}개월 안에 사용 · 주문 1건당 후기 1개</p>
+          <p class="evt__note">홈페이지 주문 전용 · 골드바·실버바 제외${c.coupon_min ? ` · 상품 금액 ${won(c.coupon_min)} 이상` : ""} · 받은 날부터 ${c.coupon_months || 3}개월 안에 사용 · 주문 1건당 후기 1개</p>
           <a class="btn btn--dark evt__go" href="my-orders.html#review">후기 쓰러 가기</a>
           <button type="button" class="evt__hide" data-evhide>오늘 하루 보지 않기</button>
         </div>

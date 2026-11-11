@@ -14,6 +14,7 @@ alter table public.shop_info add column if not exists review_coupon int not null
 alter table public.shop_info add column if not exists coupon_min   int not null default 200000 check (coupon_min >= 0);
 alter table public.shop_info add column if not exists coupon_days  int not null default 90 check (coupon_days between 1 and 3650); -- (예전 칸 · 안 씀)
 alter table public.shop_info add column if not exists coupon_months int not null default 3 check (coupon_months between 1 and 36); -- 쿠폰 유효기간: 받은 날부터 N개월
+alter table public.shop_info add column if not exists point_months  int not null default 12 check (point_months between 1 and 60); -- 포인트 유효기간: 적립일부터 N개월
 
 -- 2) 쿠폰 · 포인트 내역
 create table if not exists public.coupons (
@@ -51,11 +52,39 @@ create policy "points_own_read" on public.point_logs for select using (user_id =
 drop policy if exists "points_admin_write" on public.point_logs;
 create policy "points_admin_write" on public.point_logs for insert with check (public.is_admin());
 
+-- 포인트 유효기간: 먼저 적립된 포인트부터 쓰는 것으로 보고(선입선출),
+-- p_at 시점에 '적립일 + N개월'이 지났는데 아직 안 쓴 포인트 = 소멸할 포인트
+create or replace function public.point_expired_due(p_uid uuid, p_at timestamptz)
+returns int language sql stable security definer set search_path = public as $$
+  select greatest(
+           coalesce(sum(l.amount) filter (where l.amount > 0 and l.created_at <= p_at - make_interval(months => coalesce(si.point_months, 12))), 0)
+         + coalesce(sum(l.amount) filter (where l.amount < 0), 0), 0)::int
+    from public.point_logs l cross join (select point_months from public.shop_info where id = 1) si
+   where l.user_id = p_uid;
+$$;
+revoke all on function public.point_expired_due(uuid, timestamptz) from public, anon, authenticated;
+
+-- 쓸 수 있는 포인트 (기간 지난 포인트는 빼고)
 create or replace function public.point_balance(p_uid uuid)
 returns int language sql stable security definer set search_path = public as $$
-  select coalesce(sum(amount), 0)::int from public.point_logs where user_id = p_uid;
+  select (coalesce((select sum(amount) from public.point_logs where user_id = p_uid), 0) - public.point_expired_due(p_uid, now()))::int;
 $$;
 revoke all on function public.point_balance(uuid) from public, anon, authenticated;
+
+-- 기간 지난 포인트를 '유효기간 만료'로 내역에 기록 (본인 또는 관리자)
+create or replace function public.expire_points(p_uid uuid)
+returns int language plpgsql volatile security definer set search_path = public as $$
+declare x int;
+begin
+  if p_uid is null or (p_uid <> auth.uid() and not public.is_admin()) then return 0; end if;
+  x := public.point_expired_due(p_uid, now());
+  if x > 0 then
+    insert into public.point_logs (user_id, amount, reason) values (p_uid, -x, '유효기간 만료');
+  end if;
+  return x;
+end $$;
+revoke all on function public.expire_points(uuid) from public, anon;
+grant execute on function public.expire_points(uuid) to authenticated;
 
 -- 주문에 쓴 쿠폰 · 포인트
 alter table public.orders add column if not exists coupon_id       bigint references public.coupons on delete set null;
@@ -64,25 +93,33 @@ alter table public.orders add column if not exists points_used     int not null 
 alter table public.orders add column if not exists points_earned   int not null default 0;
 
 -- 3) 내 혜택 (회원 화면 · 주문 창)
-create or replace function public.my_benefits()
-returns jsonb language sql stable security definer set search_path = public as $$
-  select case when auth.uid() is null then null else jsonb_build_object(
+drop function if exists public.my_benefits();
+create function public.my_benefits()
+returns jsonb language plpgsql volatile security definer set search_path = public as $$
+begin
+  if auth.uid() is null then return null; end if;
+  perform public.expire_points(auth.uid());
+  return jsonb_build_object(
     'points', public.point_balance(auth.uid()),
     'point_rate', (select point_rate from public.shop_info where id = 1),
+    'point_months', (select point_months from public.shop_info where id = 1),
+    'expiring', public.point_expired_due(auth.uid(), now() + interval '30 days'),
     'coupons', coalesce((select jsonb_agg(jsonb_build_object('id', c.id, 'name', c.name, 'amount', c.amount, 'min_order', c.min_order, 'expires_at', c.expires_at) order by c.expires_at)
                           from public.coupons c where c.user_id = auth.uid() and c.used_at is null and c.expires_at > now()), '[]'::jsonb),
     'logs', coalesce((select jsonb_agg(x order by x.created_at desc) from (
                         select l.amount, l.reason, l.created_at from public.point_logs l
                          where l.user_id = auth.uid() order by l.created_at desc limit 30) x), '[]'::jsonb)
-  ) end;
-$$;
+  );
+end $$;
 revoke all on function public.my_benefits() from public, anon;
 grant execute on function public.my_benefits() to authenticated;
 
--- 4) 쿠폰 · 포인트 확인 → 할인 금액 (p_goods: 택배비 뺀 상품 금액)
-create or replace function public.bnf_check(p_coupon bigint, p_points int, p_goods numeric, out cdisc int, out pts int)
+-- 4) 쿠폰 · 포인트 확인 → 할인 금액
+--    p_goods: 택배비 뺀 상품 금액 / p_cgoods: 그중 쿠폰을 쓸 수 있는 금액 (골드바·실버바·카드형 골드바 제외)
+drop function if exists public.bnf_check(bigint, int, numeric);
+create or replace function public.bnf_check(p_coupon bigint, p_points int, p_goods numeric, p_cgoods numeric default null, out cdisc int, out pts int)
 language plpgsql security definer set search_path = public as $$
-declare cp public.coupons; bal int;
+declare cp public.coupons; bal int; cg numeric := coalesce(p_cgoods, p_goods);
 begin
   cdisc := 0; pts := greatest(coalesce(p_points, 0), 0);
   if p_coupon is null and pts = 0 then return; end if;
@@ -93,16 +130,18 @@ begin
     select * into cp from public.coupons where id = p_coupon and user_id = auth.uid() for update;
     if cp.id is null or cp.used_at is not null then raise exception '이미 사용했거나 없는 쿠폰이에요'; end if;
     if cp.expires_at <= now() then raise exception '기간이 지난 쿠폰이에요'; end if;
-    if p_goods < cp.min_order then raise exception '이 쿠폰은 상품 금액 %원 이상 주문에 쓸 수 있어요', public.fmt_won(cp.min_order); end if;
-    cdisc := least(cp.amount, floor(p_goods)::int);
+    if cg <= 0 then raise exception '쿠폰은 골드바·실버바에는 쓸 수 없어요 (포인트는 쓸 수 있어요)'; end if;
+    if cg < cp.min_order then raise exception '이 쿠폰은 골드바·실버바를 뺀 상품 금액이 %원 이상일 때 쓸 수 있어요', public.fmt_won(cp.min_order); end if;
+    cdisc := least(cp.amount, floor(cg)::int);
   end if;
   if pts > 0 then
+    perform public.expire_points(auth.uid());
     bal := public.point_balance(auth.uid());
     if pts > bal then raise exception '포인트가 부족해요 (보유 %P)', public.fmt_won(bal); end if;
     pts := least(pts, greatest(floor(p_goods)::int - cdisc, 0));
   end if;
 end $$;
-revoke all on function public.bnf_check(bigint, int, numeric) from public, anon, authenticated;
+revoke all on function public.bnf_check(bigint, int, numeric, numeric) from public, anon, authenticated;
 
 -- 주문 저장 뒤: 쿠폰 사용 처리 · 포인트 차감
 create or replace function public.bnf_commit(p_order bigint, p_coupon bigint, p_cdisc int, p_pts int)
@@ -158,7 +197,8 @@ begin
   pname := case when pr.kind = 'zodiac' then 'GBK 카드형 골드바 1g (' || pr.name || ')' else pr.name end
         || case when oc.label <> '' then ' (' || oc.label || ')' else '' end;
   unit := public.quote_price(sp) + oc.extra;
-  select * into b from public.bnf_check(p_coupon, p_points, unit * p_qty);
+  select * into b from public.bnf_check(p_coupon, p_points, unit * p_qty,
+    case when pr.kind in ('bar', 'silver', 'zodiac') then 0 else unit * p_qty end);
   disc := b.cdisc + b.pts;
   if p_receive = 'delivery' then fee := coalesce(si.delivery_fee, 0); end if;
   if unit is not null then
@@ -214,7 +254,7 @@ create function public.submit_cart(
 declare
   si public.shop_info; pr public.products; sp public.products; it jsonb; q int; rc jsonb; oc record; b record;
   c text; ph text := public.clean_phone(p_phone); pname text; first_name text; oid bigint;
-  unit numeric; total numeric := 0; fee numeric := 0; priced boolean := true; disc int := 0;
+  unit numeric; total numeric := 0; cg numeric := 0; fee numeric := 0; priced boolean := true; disc int := 0;
   lines jsonb := '[]'::jsonb; cnt int := 0; nsum int := 0; lst text := '';
   dl timestamptz; kst text;
 begin
@@ -243,12 +283,13 @@ begin
     if unit is null then priced := false; end if;
     lines := lines || jsonb_build_object('product_id', pr.id, 'name', pname, 'qty', q, 'unit', unit, 'subtotal', unit * q);
     total := total + coalesce(unit * q, 0);
+    if pr.kind not in ('bar', 'silver', 'zodiac') then cg := cg + coalesce(unit * q, 0); end if;
     cnt := cnt + 1; nsum := nsum + q;
     first_name := coalesce(first_name, pname);
     lst := lst || E'\n- ' || pname || ' × ' || q;
   end loop;
 
-  select * into b from public.bnf_check(p_coupon, p_points, case when priced then total end);
+  select * into b from public.bnf_check(p_coupon, p_points, case when priced then total end, cg);
   disc := b.cdisc + b.pts;
   lines := public.bnf_lines(lines, b.cdisc, b.pts);
   if p_receive = 'delivery' then fee := coalesce(si.delivery_fee, 0); end if;
@@ -408,16 +449,17 @@ end $$;
 revoke all on function public.update_my_review(bigint, int, text) from public, anon;
 grant execute on function public.update_my_review(bigint, int, text) to authenticated;
 
--- 손님 화면용 후기 목록: 내 후기 표시(mine) · 수정됨 표시(edited) 추가 (반환 칸이 바뀌어 다시 만듦)
+-- 손님 화면용 후기 목록: 내 후기(mine) · 수정됨(edited) · 쿠폰 받은 후기(gift — 공정위 추천·보증 심사지침에 따라 표시)
 drop function if exists public.product_reviews(uuid[]);
 create function public.product_reviews(p_ids uuid[])
-returns table (id bigint, product_id uuid, name text, rating int, body text, option_label text, reply text, created_at timestamptz, mine boolean, edited boolean)
+returns table (id bigint, product_id uuid, name text, rating int, body text, option_label text, reply text, created_at timestamptz, mine boolean, edited boolean, gift boolean)
 language sql stable security definer set search_path = public as $$
   select r.id, r.product_id,
          case when char_length(r.name) <= 2 then left(r.name, 1) || '*'
               else left(r.name, 1) || repeat('*', char_length(r.name) - 2) || right(r.name, 1) end,
          r.rating, r.body, r.option_label, r.reply, r.created_at,
-         (auth.uid() is not null and r.user_id = auth.uid()), r.edited_at is not null
+         (auth.uid() is not null and r.user_id = auth.uid()), r.edited_at is not null,
+         exists (select 1 from public.coupons c where c.source = 'review:' || r.id)
     from public.reviews r
    where r.visible and r.product_id = any(p_ids)
    order by r.created_at desc
