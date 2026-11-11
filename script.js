@@ -111,7 +111,6 @@ function renderIntl() {
       <p class="intl__val num">${krw.toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}원</p>
       <p class="intl__sub">1달러 기준</p>
     </div>`;
-  updateChartKrw();
 }
 
 function renderTicker() {
@@ -130,14 +129,6 @@ function renderTicker() {
   track.classList.add("is-running");
 }
 
-const CHART_SYM = { "OANDA:XAUUSD": "XAU", "OANDA:XAGUSD": "XAG", "OANDA:XPTUSD": "XPT" };
-let chartSymbol = "OANDA:XAUUSD";
-function updateChartKrw() {
-  if (!state.live || !$("#chartKrw")) return; // 차트 옆 원화 표시는 제거됨
-  const m = CHART_SYM[chartSymbol];
-  $("#chartKrw").textContent = m ? `현재 1돈 ${won(donWon(m))}` : `현재 ${state.live.krw.toFixed(2)}원`;
-}
-
 /* ---------- 국내 시세표 ---------- */
 function renderPriceTable() {
   // 은은 1g 가격으로 표시 (나머지는 3.75g 기준)
@@ -150,28 +141,6 @@ function renderPriceTable() {
     </tr>`).join("");
 }
 $("#refreshBtn").addEventListener("click", refresh);
-
-/* ---------- TradingView 국제 차트 ---------- */
-function mountChart(symbol) {
-  const box = $("#tvChart");
-  box.innerHTML = `<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div>`;
-  const s = document.createElement("script");
-  s.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-  s.async = true;
-  s.textContent = JSON.stringify({
-    autosize: true, symbol, interval: "60", timezone: "Asia/Seoul", theme: "light", style: "1",
-    locale: "kr", allow_symbol_change: false, hide_side_toolbar: true, hide_volume: true,
-    calendar: false, save_image: false, support_host: "https://www.tradingview.com",
-  });
-  box.firstElementChild.appendChild(s);
-}
-document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
-  document.querySelectorAll(".seg button").forEach(x => { x.classList.toggle("is-on", x === b); x.setAttribute("aria-selected", x === b); });
-  $("#chartTitle").textContent = b.dataset.title;
-  chartSymbol = b.dataset.symbol;
-  updateChartKrw();
-  mountChart(b.dataset.symbol);
-}));
 
 /* ---------- 계산기 ---------- */
 const calcSel = $("#calcItem");
@@ -612,7 +581,6 @@ function initReveal() {
 
 initHero();
 initReveal();
-mountChart("OANDA:XAUUSD");
 loadProducts();
 refresh();
 setInterval(() => { if (!document.hidden) refresh(); }, 60000);
