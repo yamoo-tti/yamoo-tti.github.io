@@ -166,6 +166,10 @@ ul, ol { padding: 0; list-style: none; }
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .slide--rain h1 { background: linear-gradient(180deg, #fffaf0 0%, #f7e3b0 50%, #e8c77a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 }
+/* 다크 모드 휴대폰(삼성 인터넷 등)은 그라데이션 글씨를 어둡게 바꿔버려서 단색 금색으로 */
+@media (prefers-color-scheme: dark) {
+  .slide--rain h1 { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: #f6e2ae; text-shadow: 0 2px 16px rgba(0,0,0,.8); }
+}
 @media (max-width: 760px) {
   .slide.slide--rain::after { background: linear-gradient(180deg, rgba(10,9,7,.45) 0%, rgba(10,9,7,.8) 45%, rgba(10,9,7,.94) 75%); }
 }
