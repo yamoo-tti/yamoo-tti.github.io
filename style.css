@@ -184,7 +184,7 @@ ul, ol { padding: 0; list-style: none; }
 .price__time { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
 .price__time strong { color: var(--ink); font-weight: 500; }
 .demo-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--tint); color: var(--gold-2); border: 1px solid var(--line); }
-.price__grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; }
+.price__grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
 .price__table-card { padding: 8px 24px 20px; }
 .price-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .price-table th { font-size: 13px; font-weight: 500; color: var(--muted); text-align: right; padding: 16px 0 12px; border-bottom: 1px solid var(--ink); }
