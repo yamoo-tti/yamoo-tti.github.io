@@ -189,74 +189,92 @@ function barCard(b) {
       </article>`;
 }
 
-/* ---------- 메인 상품: 순금 콩알금 (묶음 이름이 '순금 콩알금'인 상품들 = 옵션) ---------- */
+/* ---------- 간판 상품 칸 (콩알금 · 광폭 팔찌) ---------- */
+// 콩알금: 관리자에서 묶음 이름이 '순금 콩알금'인 상품들 = 중량 옵션 (사진은 모든 옵션 사진을 함께 보여줌)
+// 광폭 팔찌: 아래 상품 번호(id)의 상품들 = 중량 옵션. 디자인이 달라서 고른 상품의 사진만 보여줌
 const BEAN = "순금 콩알금";
-let beanPick = null, beanPhoto = null;
-const beanOpts = () => state.products.filter(p => p.opt_group === BEAN).sort((a, b) => a.weight_g - b.weight_g);
+const BANGLE_IDS = [
+  "c0af80ee-ee48-4d47-bb3e-89255607332c", // 남성 팔각 광폭 체인 순금 팔찌 20돈
+  "aff480e7-b89c-493c-9db9-679f7144221e", // 팔각 광폭 체인 순금 팔찌 30돈
+  "f5c6247a-71d3-438e-89f5-7ff03a553b3b", // 팔각 체인 콤비 순금 팔찌 50돈
+];
+const byWeight = (a, b) => a.weight_g - b.weight_g;
+const FEATURES = {
+  bean: { opts: () => state.products.filter(p => p.opt_group === BEAN).sort(byWeight), sharePhotos: true },
+  bangle: { opts: () => state.products.filter(p => BANGLE_IDS.includes(p.id)).sort(byWeight), sharePhotos: false, showName: true },
+};
+const featState = {}; // { bean: { pick, photo, gallery }, … }
 // 사진: 상품 사진 + 관리자 '추가 사진'(한 줄에 하나)
 const photosOf = p => [p.img, ...String(p.photos || "").split(/\r?\n/)].map(s => (s || "").trim()).filter(Boolean);
 const photoSrc = s => /^https?:\/\//.test(s) ? s : `images/${s}`;
-function renderBean() {
-  const box = $("#bean");
-  if (!box) return;
-  const opts = beanOpts();
+function renderFeature(key) {
+  const box = document.querySelector(`[data-feature="${key}"]`), cfg = FEATURES[key];
+  if (!box || !cfg) return;
+  const st = featState[key] || (featState[key] = { pick: null, photo: null, gallery: [] });
+  const f = n => box.querySelector(`[data-f="${n}"]`);
+  const opts = cfg.opts();
   box.hidden = !opts.length;
   if (!opts.length || !state.domestic) return;
-  const Y = window.YAMOO, p = Y.optPick(opts, beanPick), price = priceOf(p), w = Number(p.weight_g);
-  const gallery = [...new Set([...photosOf(p), ...opts.flatMap(photosOf)])];
-  const main = gallery.includes(beanPhoto) ? beanPhoto : gallery[0];
-  const img = $("#beanMain");
+  const Y = window.YAMOO, p = Y.optPick(opts, st.pick), price = priceOf(p), w = Number(p.weight_g);
+  const gallery = cfg.sharePhotos ? [...new Set([...photosOf(p), ...opts.flatMap(photosOf)])] : photosOf(p);
+  const main = gallery.includes(st.photo) ? st.photo : gallery[0];
+  const img = f("main");
   if (main && img.getAttribute("src") !== photoSrc(main)) img.src = photoSrc(main);
-  beanGallery = gallery;
+  img.alt = p.name;
+  st.gallery = gallery;
   const many = gallery.length > 1;
-  document.querySelectorAll("[data-bnav]").forEach(b => { b.hidden = !many; });
-  $("#beanCount").hidden = !many;
-  $("#beanCount").textContent = `${gallery.indexOf(main) + 1} / ${gallery.length}`;
-  $("#beanThumbs").innerHTML = gallery.length < 2 ? "" : gallery.map((s, i) =>
+  box.querySelectorAll("[data-bnav]").forEach(b => { b.hidden = !many; });
+  f("count").hidden = !many;
+  f("count").textContent = `${gallery.indexOf(main) + 1} / ${gallery.length}`;
+  f("thumbs").innerHTML = gallery.length < 2 ? "" : gallery.map((s, i) =>
     `<button type="button" data-bphoto="${esc(s)}" class="${s === main ? "is-on" : ""}" aria-label="사진 ${i + 1}"><img src="${esc(photoSrc(s))}" alt="" loading="lazy"></button>`).join("");
   const sub = o => { const ow = Number(o.weight_g), l = Y.optLabel(o); return /g$/.test(l) ? `${Math.round(ow / DON * 100) / 100}돈` : `${ow}g`; };
-  $("#beanOpts").style.setProperty("--n", Math.min(opts.length, 4));
-  $("#beanOpts").innerHTML = opts.map(o => `
-    <button type="button" class="bean-opt${o.id === p.id ? " is-on" : ""}" data-bean="${esc(o.id)}" aria-pressed="${o.id === p.id}" ${o.sold_out ? "disabled" : ""}>
+  f("opts").style.setProperty("--n", Math.min(opts.length, 4));
+  f("opts").innerHTML = opts.map(o => `
+    <button type="button" class="bean-opt${o.id === p.id ? " is-on" : ""}" data-fopt="${esc(o.id)}" aria-pressed="${o.id === p.id}" ${o.sold_out ? "disabled" : ""}>
       <b>${esc(Y.optLabel(o))}</b><span>${sub(o)}</span><em>${o.sold_out ? "품절" : won(priceOf(o))}</em>
     </button>`).join("");
-  $("#beanSel").innerHTML = `<b>${esc(Y.optLabel(p))}</b> 선택 · ${/g$/.test(Y.optLabel(p)) ? sub(p) : `${w}g`}`;
-  $("#beanPrice").textContent = p.sold_out ? "품절" : won(price);  const cart = $("#beanCart"), buy = $("#beanBuy");
-  cart.dataset.cart = orderKey(p); buy.dataset.order = orderKey(p); $("#beanInfo").dataset.info = orderKey(p);
+  f("sel").innerHTML = `<b>${esc(Y.optLabel(p))}</b> 선택 · ${/g$/.test(Y.optLabel(p)) ? sub(p) : `${w}g`}${cfg.showName ? `<br><small>${esc(p.name)}</small>` : ""}`;
+  f("price").textContent = p.sold_out ? "품절" : won(price);
+  const cart = f("cart"), buy = f("buy");
+  cart.dataset.cart = orderKey(p); buy.dataset.order = orderKey(p); f("info").dataset.info = orderKey(p);
   cart.disabled = buy.disabled = !!p.sold_out;
   buy.textContent = p.sold_out ? "품절" : "바로 구매";
 }
+const renderFeatures = () => Object.keys(FEATURES).forEach(renderFeature);
+const featKey = el => { const b = el.closest("[data-feature]"); return b && b.dataset.feature; };
 document.addEventListener("click", e => {
-  const o = e.target.closest("[data-bean]");
-  if (o) { beanPick = o.dataset.bean; beanPhoto = null; renderBean(); return; }
+  const key = featKey(e.target);
+  if (!key) return;
+  const st = featState[key] || (featState[key] = { pick: null, photo: null, gallery: [] });
+  const o = e.target.closest("[data-fopt]");
+  if (o) { st.pick = o.dataset.fopt; st.photo = null; renderFeature(key); return; }
   const ph = e.target.closest("[data-bphoto]");
-  if (ph) { beanPhoto = ph.dataset.bphoto; renderBean(); return; }
+  if (ph) { st.photo = ph.dataset.bphoto; renderFeature(key); return; }
   const nv = e.target.closest("[data-bnav]");
-  if (nv) beanStep(+nv.dataset.bnav);
+  if (nv) featStep(key, +nv.dataset.bnav);
 });
 // 큰 사진 넘기기 (화살표 · 손가락으로 밀기)
-let beanGallery = [];
-function beanStep(d) {
-  if (beanGallery.length < 2) return;
-  const src = $("#beanMain").getAttribute("src");
-  const at = Math.max(0, beanGallery.findIndex(s => photoSrc(s) === src));
-  beanPhoto = beanGallery[(at + d + beanGallery.length) % beanGallery.length];
-  renderBean();
+function featStep(key, d) {
+  const st = featState[key];
+  if (!st || st.gallery.length < 2) return;
+  const src = document.querySelector(`[data-feature="${key}"] [data-f="main"]`).getAttribute("src");
+  const at = Math.max(0, st.gallery.findIndex(s => photoSrc(s) === src));
+  st.photo = st.gallery[(at + d + st.gallery.length) % st.gallery.length];
+  renderFeature(key);
 }
-(() => {
-  const m = document.querySelector(".bean__main");
-  if (!m) return;
+document.querySelectorAll("[data-feature] .bean__main").forEach(m => {
   let x0 = null;
   m.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
   m.addEventListener("touchend", e => {
     if (x0 == null) return;
     const dx = e.changedTouches[0].clientX - x0; x0 = null;
-    if (Math.abs(dx) > 40) beanStep(dx < 0 ? 1 : -1);
+    if (Math.abs(dx) > 40) featStep(featKey(m), dx < 0 ? 1 : -1);
   });
-})();
+});
 
 function renderBars() {
-  renderBean();
+  renderFeatures();
   $("#bars").innerHTML = ofKind("bar").map(barCard).join("");
   // 실버: 은 그래뉼을 앞에, 실버바를 맨 뒤에 (같은 종류끼리는 원래 순서 유지)
   const silver = ofKind("silver").sort((a, b) => a.name.includes("그래뉼") ? (b.name.includes("그래뉼") ? 0 : -1) : (b.name.includes("그래뉼") ? 1 : 0));

@@ -47,8 +47,9 @@
         <span>금비<em>GOLD</em></span>
       </a>
       <nav class="nav" aria-label="주요 메뉴">
-        <a href="#price">금시세</a>
         <a href="#bean">콩알금</a>
+        <a href="#bangle">광폭팔찌</a>
+        <a href="#price">금시세</a>
         <a href="#goldbar">골드바</a>
         <a href="#silverBlock">실버</a>
         <a href="#accessory">악세사리</a>
@@ -62,7 +63,7 @@
       </div>
     </div>
     <nav class="mobile-nav" id="mobileNav" aria-label="모바일 메뉴">
-      <a href="#price">금시세</a><a href="#bean">콩알금</a><a href="#goldbar">골드바</a><a href="#silverBlock">실버</a><a href="#accessory">악세사리</a><a href="#gift">순금선물</a><a href="#sell">금 매입</a><a href="#store">매장안내</a>
+      <a href="#bean">콩알금</a><a href="#bangle">광폭팔찌</a><a href="#price">금시세</a><a href="#goldbar">골드바</a><a href="#silverBlock">실버</a><a href="#accessory">악세사리</a><a href="#gift">순금선물</a><a href="#sell">금 매입</a><a href="#store">매장안내</a>
     </nav>
   </header>
 
@@ -100,6 +101,14 @@
             <div class="slide__cta"><a href="#goldbar" class="btn btn--gold">골드바 보기</a><a href="#price" class="btn btn--ghost">오늘의 금시세</a></div>
           </div>
         </article>
+        <article class="slide slide--product" style="--img:url('images/store/5721174587.jpg')">
+          <div class="wrap slide__inner">
+            <p class="slide__eyebrow">Wide Chain Bracelet</p>
+            <h1>존재감 있는 순금,<br>광폭 팔찌</h1>
+            <p class="slide__lead">묵직한 순금 24K 팔각 체인. <br>20돈 · 30돈 · 50돈, 오늘 시세 그대로.</p>
+            <div class="slide__cta"><a href="#bangle" class="btn btn--gold">광폭 팔찌 보기</a></div>
+          </div>
+        </article>
         <article class="slide" style="--img:url('images/bar-dark.jpg')">
           <div class="wrap slide__inner">
             <p class="slide__eyebrow">Fine Gold 999.9</p>
@@ -131,6 +140,68 @@
           <button class="arrow" data-dir="-1" aria-label="이전 슬라이드">‹</button>
           <button class="arrow" data-dir="1" aria-label="다음 슬라이드">›</button>
         </div>
+      </div>
+    </section>
+
+    <!-- 간판 상품 1: 순금 콩알금 (관리자 > 상품 관리에서 묶음 이름 '순금 콩알금'인 상품들) -->
+    <section class="bean" id="bean" data-feature="bean" hidden>
+      <div class="wrap">
+        <article class="bean__card">
+          <div class="bean__gallery">
+            <div class="bean__main"><img data-f="main" src="images/store/12553693981.jpg" alt="순금 콩알금"><span class="bean__badges"><span class="bean__badge">금비 추천</span><span class="bean__badge bean__badge--gift">선물하기 좋아요</span></span>
+              <button type="button" class="bean__nav bean__nav--prev" data-bnav="-1" aria-label="이전 사진" hidden>‹</button><button type="button" class="bean__nav bean__nav--next" data-bnav="1" aria-label="다음 사진" hidden>›</button><span class="bean__count" data-f="count" hidden></span></div>
+            <div class="bean__thumbs" data-f="thumbs"></div>
+          </div>
+          <div class="bean__info">
+            <p class="bean__eyebrow">Gold Bean · Fine Gold 999.9</p>
+            <h2 class="bean__name">순금 콩알금</h2>
+            <p class="bean__lead">한 알 한 알 정성껏 빚은 순금 99.99%.<br>돌잔치·생일·기념일 선물로, 나를 위한 금테크로.</p>
+            <ul class="bean__points">
+              <li><b>99.99<small>%</small></b><span>순금 24K</span></li>
+              <li><b>1g<small>부터</small></b><span>부담 없는 선물</span></li>
+              <li><b>유리케이스</b><span>선물 포장 선택</span></li>
+            </ul>
+            <p class="bean__label">중량 선택</p>
+            <div class="bean__opts" data-f="opts" role="group" aria-label="중량 선택"></div>
+            <div class="bean__sum">
+              <span data-f="sel">-</span>
+              <p><strong data-f="price">-</strong></p>
+            </div>
+            <div class="bean__btns"><button type="button" class="btn bean__cart" data-f="cart">장바구니</button><button type="button" class="btn btn--gold" data-f="buy">바로 구매</button></div>
+            <p class="bean__foot"><span>오늘 시세 기준 · 1분마다 갱신</span><button type="button" class="info-link" data-f="info">상품정보 제공고시</button></p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- 간판 상품 2: 순금 광폭 팔찌 20·30·50돈 (script.js 의 BANGLE_IDS 에서 상품 지정) -->
+    <section class="bean bean--dark bean--rev" id="bangle" data-feature="bangle" hidden>
+      <div class="wrap">
+        <article class="bean__card">
+          <div class="bean__gallery">
+            <div class="bean__main"><img data-f="main" src="images/store/5721174587.jpg" alt="순금 광폭 팔찌"><span class="bean__badges"><span class="bean__badge">금비 추천</span><span class="bean__badge bean__badge--gift">묵직한 존재감</span></span>
+              <button type="button" class="bean__nav bean__nav--prev" data-bnav="-1" aria-label="이전 사진" hidden>‹</button><button type="button" class="bean__nav bean__nav--next" data-bnav="1" aria-label="다음 사진" hidden>›</button><span class="bean__count" data-f="count" hidden></span></div>
+            <div class="bean__thumbs" data-f="thumbs"></div>
+          </div>
+          <div class="bean__info">
+            <p class="bean__eyebrow">Wide Chain Bracelet · 24K</p>
+            <h2 class="bean__name">순금 광폭 팔찌</h2>
+            <p class="bean__lead">손목 위에서 존재감을 드러내는 묵직한 순금 팔각 체인.<br>20돈 · 30돈 · 50돈, 오늘 시세 그대로.</p>
+            <ul class="bean__points">
+              <li><b>99.99<small>%</small></b><span>순금 24K</span></li>
+              <li><b>20<small>돈부터</small></b><span>묵직한 중량</span></li>
+              <li><b>사이즈</b><span>15~21cm 선택</span></li>
+            </ul>
+            <p class="bean__label">중량 선택</p>
+            <div class="bean__opts" data-f="opts" role="group" aria-label="중량 선택"></div>
+            <div class="bean__sum">
+              <span data-f="sel">-</span>
+              <p><strong data-f="price">-</strong></p>
+            </div>
+            <div class="bean__btns"><button type="button" class="btn bean__cart" data-f="cart">장바구니</button><button type="button" class="btn btn--gold" data-f="buy">바로 구매</button></div>
+            <p class="bean__foot"><span>오늘 시세 기준 · 1분마다 갱신</span><button type="button" class="info-link" data-f="info">상품정보 제공고시</button></p>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -177,36 +248,6 @@
       </div>
     </section>
 
-    <!-- 메인 상품: 순금 콩알금 (관리자 > 상품 관리에서 묶음 이름 '순금 콩알금'인 상품들) -->
-    <section class="bean" id="bean" hidden>
-      <div class="wrap">
-        <article class="bean__card">
-          <div class="bean__gallery">
-            <div class="bean__main"><img id="beanMain" src="images/store/12553693981.jpg" alt="순금 콩알금"><span class="bean__badges"><span class="bean__badge">금비 추천</span><span class="bean__badge bean__badge--gift">선물하기 좋아요</span></span>
-              <button type="button" class="bean__nav bean__nav--prev" data-bnav="-1" aria-label="이전 사진" hidden>‹</button><button type="button" class="bean__nav bean__nav--next" data-bnav="1" aria-label="다음 사진" hidden>›</button><span class="bean__count" id="beanCount" hidden></span></div>
-            <div class="bean__thumbs" id="beanThumbs"></div>
-          </div>
-          <div class="bean__info">
-            <p class="bean__eyebrow">Gold Bean · Fine Gold 999.9</p>
-            <h2 class="bean__name">순금 콩알금</h2>
-            <p class="bean__lead">한 알 한 알 정성껏 빚은 순금 99.99%.<br>돌잔치·생일·기념일 선물로, 나를 위한 금테크로.</p>
-            <ul class="bean__points">
-              <li><b>99.99<small>%</small></b><span>순금 24K</span></li>
-              <li><b>1g<small>부터</small></b><span>부담 없는 선물</span></li>
-              <li><b>유리케이스</b><span>선물 포장 선택</span></li>
-            </ul>
-            <p class="bean__label">중량 선택</p>
-            <div class="bean__opts" id="beanOpts" role="group" aria-label="중량 선택"></div>
-            <div class="bean__sum">
-              <span id="beanSel">-</span>
-              <p><strong id="beanPrice">-</strong></p>
-            </div>
-            <div class="bean__btns"><button type="button" class="btn bean__cart" id="beanCart">장바구니</button><button type="button" class="btn btn--gold" id="beanBuy">바로 구매</button></div>
-            <p class="bean__foot"><span>오늘 시세 기준 · 1분마다 갱신</span><button type="button" class="info-link" id="beanInfo">상품정보 제공고시</button></p>
-          </div>
-        </article>
-      </div>
-    </section>
 
     <!-- 골드바 -->
     <section class="section section--dark" id="goldbar">

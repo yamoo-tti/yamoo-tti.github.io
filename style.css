@@ -156,6 +156,9 @@ ul, ol { padding: 0; list-style: none; }
 /* 금비 브랜드 슬라이드: 어두운 금 배경 + 떨어지는 금빛 비 */
 .slide--rain::before { filter: brightness(.45) saturate(1.15); }
 .slide--rain::after { background: radial-gradient(ellipse at 70% 40%, rgba(10,9,7,0) 0%, rgba(10,9,7,.55) 60%), linear-gradient(90deg, rgba(10,9,7,.85) 0%, rgba(10,9,7,.4) 50%, rgba(10,9,7,.1) 100%); }
+/* 상품 사진 슬라이드: 사진을 오른쪽에 두고 왼쪽은 어둡게 */
+.slide--product::before { background-position: 70% 60%; background-color: #0d0c09; }
+.slide--product::after { background: linear-gradient(90deg, #0d0c09 0%, #0d0c09 38%, rgba(13,12,9,.55) 58%, rgba(13,12,9,0) 80%); }
 .gold-rain { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
 .slide--rain h1 { background: linear-gradient(180deg, #fff6dc 0%, #ecd08a 55%, #c09a45 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .slide__eyebrow { font-family: var(--serif-en); font-style: italic; font-size: 20px; color: var(--gold-hi); margin-bottom: 14px; }
@@ -815,6 +818,30 @@ ul, ol { padding: 0; list-style: none; }
 .bean__count { position: absolute; right: 14px; bottom: 14px; padding: 3px 10px; border-radius: 12px; background: rgba(22,20,15,.6); color: #fff; font-size: 12px; font-variant-numeric: tabular-nums; letter-spacing: .04em; z-index: 2; }
 .bean__main img { transition: transform .9s var(--ease), opacity .25s; }
 @media (hover: none) { .bean__nav { opacity: .9; width: 36px; height: 36px; font-size: 22px; } }
+.bean__sum > span small { display: block; margin-top: 3px; font-size: 12px; }
+
+/* ---------- 간판 상품 2: 광폭 팔찌 (어두운 배경 · 사진 오른쪽) ---------- */
+.bean--rev .bean__gallery { order: 2; }
+.bean--dark { color: #f3ede2; border-top-color: #2a2721;
+  background: radial-gradient(70% 70% at 95% 10%, rgba(236,208,138,.18) 0%, rgba(236,208,138,0) 60%), radial-gradient(60% 60% at 0% 100%, rgba(192,154,69,.12) 0%, rgba(192,154,69,0) 70%), linear-gradient(180deg, #17150f 0%, #0d0c09 100%); }
+.bean--dark::before { content: "Gold Bangle"; right: auto; left: -1vw; color: rgba(236,208,138,.06); }
+.bean--dark .bean__eyebrow { color: var(--gold-hi); }
+.bean--dark .bean__name, .bean--dark .bean__label, .bean--dark .bean__points b, .bean--dark .bean__sum strong, .bean--dark .bean__sum > span b { color: #fff; }
+.bean--dark .bean__lead { color: #cfc6b5; }
+.bean--dark .bean__points { border-color: rgba(236,208,138,.25); }
+.bean--dark .bean__points li + li { border-left-color: rgba(236,208,138,.15); }
+.bean--dark .bean__points span, .bean--dark .bean__sum > span, .bean--dark .bean__sum small, .bean--dark .bean__foot, .bean--dark .bean-opt span { color: #a39a8a; }
+.bean--dark .bean__foot .info-link { color: #cfc6b5; }
+.bean--dark .bean__main { box-shadow: 0 40px 80px -40px rgba(0,0,0,.85), 0 0 0 1px rgba(236,208,138,.22); }
+.bean--dark .bean-opt { background: rgba(255,255,255,.04); border-color: #3a352c; color: #fff; }
+.bean--dark .bean-opt:hover:not(:disabled) { background: rgba(255,255,255,.08); border-color: var(--gold); }
+.bean--dark .bean-opt em { color: #ddd5c6; }
+.bean--dark .bean-opt.is-on { background: rgba(236,208,138,.1); border-color: var(--gold-hi); box-shadow: 0 0 0 1px var(--gold-hi), 0 14px 28px -16px rgba(236,208,138,.45); }
+.bean--dark .bean-opt.is-on em { color: var(--gold-hi); }
+.bean--dark .bean-opt.is-on::after { background: var(--gold-hi); color: var(--ink); }
+.bean--dark .bean__cart { background: transparent; border-color: #f3ede2 !important; color: #f3ede2; }
+.bean--dark .bean__cart:hover { background: #f3ede2; color: var(--ink); }
+@media (max-width: 860px) { .bean--rev .bean__gallery { order: 0; } }
 /* 사이즈 · 추가 옵션 */
 .product__opt { margin: -2px 0 6px; font-size: 12px; color: var(--muted); }
 .order-opts { display: grid; gap: 12px; }
