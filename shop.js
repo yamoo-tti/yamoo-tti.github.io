@@ -11,7 +11,8 @@
     document.body.style.overflow = "hidden";
     setTimeout(() => { const f = el.querySelector("input:not([type=hidden]):not([type=radio]):not([type=checkbox]), select"); f && f.focus(); }, 30);
   }
-  function closeModal(el) { el.hidden = true; document.body.style.overflow = ""; }
+  // 아래에 상품 상세가 열려 있으면 화면 스크롤은 계속 막아 둠
+  function closeModal(el) { el.hidden = true; document.body.style.overflow = document.querySelector(".modal:not([hidden])") ? "hidden" : ""; }
   ["#orderModal", "#sellModal", "#lookupModal", "#noticeModal", "#cartModal", "#infoModal"].forEach(id => {
     const el = $(id);
     if (!el) return;
@@ -19,7 +20,7 @@
   });
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
-    document.querySelectorAll(".modal:not([hidden])").forEach(m => { if (m.id !== "authModal") closeModal(m); });
+    document.querySelectorAll(".modal:not([hidden])").forEach(m => { if (m.id !== "authModal" && m.id !== "pdModal") closeModal(m); });
   });
 
   // 수령/접수 방법에 따라 주소·방문일 칸 보이기

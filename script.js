@@ -282,6 +282,8 @@ function renderBars() {
   $("#silverBlock").hidden = !silver.length;
   $("#silverBars").innerHTML = silver.map(barCard).join("");
   refreshSearch();
+  if (pd.id) renderPd(); // 시세가 바뀌면 열려 있는 상세 가격도 새로
+  bootPd();
 
   const zodiac = ofKind("zodiac");
   $("#zodiacBlock").hidden = !zodiac.length;
@@ -434,6 +436,171 @@ document.addEventListener("click", e => {
   const p = key.startsWith("idx:") ? state.products[+key.slice(4)] : window.SHOP.find(key);
   if (p && window.addToCart) window.addToCart(p);
 });
+
+/* ---------- 상품 상세 (주소: ?p=상품번호 → 링크 공유·검색 노출용) ---------- */
+const pdModal = $("#pdModal");
+const pd = { id: null, photo: null, gallery: [], pushed: false, title: document.title, desc: "" };
+const pdMeta = document.querySelector('meta[name="description"]');
+pd.desc = pdMeta ? pdMeta.content : "";
+const keyToProduct = key => key && (key.startsWith("idx:") ? state.products[+key.slice(4)] : window.SHOP.find(key));
+// 같은 묶음(opt_group)의 옵션들 = 상세 화면의 중량 선택
+const pdOpts = p => {
+  const g = String(p.opt_group || "").trim();
+  if (BANGLE_IDS.includes(p.id)) return state.products.filter(o => BANGLE_IDS.includes(o.id)).sort(byWeight);
+  return g ? state.products.filter(o => String(o.opt_group || "").trim() === g).sort(byWeight) : [p];
+};
+const pdTitle = p => p.kind === "zodiac" ? `GBK 카드형 골드바 1g ${p.name}` : p.name;
+function pdFacts(p) {
+  const Y = window.YAMOO, d = Y.infoDefaults(p), o = p.info || {}, w = Number(p.weight_g), sz = Y.sizeList(p);
+  return [
+    ["소재", String(o.material || "").trim() || d.material],
+    ["중량", `${wLabel(w)}${p.kind !== "silver" && w >= DON / 2 ? ` (${Math.round(w / DON * 100) / 100}돈)` : ""}${p.kind === "accessory" ? " · 수작업 특성상 약간 차이" : ""}`],
+    sz.length ? ["사이즈", `${sz[0]}~${sz[sz.length - 1]}${Y.sizeUnit(p)}${Number(p.base_size) > 0 ? ` (중량은 ${Number(p.base_size)}cm 기준)` : ""}`] : null,
+    Y.hasAddon(p) ? ["추가 옵션", `${p.addon_name} +${won(Number(p.addon_price))}`] : null,
+    ["보증", "정품 보증서 동봉"],
+    ["받는 방법", "보험 등기 택배 또는 종로 매장 방문 수령"],
+  ].filter(Boolean);
+}
+function renderPd() {
+  const p = state.products.find(x => x.id === pd.id);
+  if (!p || !state.domestic) return;
+  const Y = window.YAMOO, opts = pdOpts(p);
+  const gallery = [...new Set(photosOf(p).length ? photosOf(p) : [p.img || "bar-close.jpg"])];
+  const main = gallery.includes(pd.photo) ? pd.photo : gallery[0];
+  pd.gallery = gallery;
+  const img = $("#pdImg");
+  if (img.getAttribute("src") !== photoSrc(main)) img.src = photoSrc(main);
+  img.alt = pdTitle(p);
+  const many = gallery.length > 1;
+  pdModal.querySelectorAll("[data-pdnav]").forEach(b => { b.hidden = !many; });
+  $("#pdCount").hidden = !many;
+  $("#pdCount").textContent = `${gallery.indexOf(main) + 1} / ${gallery.length}`;
+  $("#pdThumbs").innerHTML = many ? gallery.map((s, i) =>
+    `<button type="button" data-pdphoto="${esc(s)}" class="${s === main ? "is-on" : ""}" aria-label="사진 ${i + 1}"><img src="${esc(photoSrc(s))}" alt="" loading="lazy"></button>`).join("") : "";
+  const kindTxt = { bar: "순금 골드바", zodiac: "카드형 골드바", silver: "순은 실버", gift: "순금선물", accessory: karatLabel(p.karat) + " 주얼리" }[p.kind] || "";
+  $("#pdSpec").textContent = kindTxt;
+  $("#pdName").textContent = pdTitle(p);
+  $("#pdOpts").innerHTML = opts.length < 2 ? "" : `<p class="pd__label">중량 선택</p><div class="pd__optlist">${opts.map(o =>
+    `<button type="button" data-pdopt="${esc(o.id)}" class="${o.id === p.id ? "is-on" : ""}" aria-pressed="${o.id === p.id}" ${o.sold_out ? "disabled" : ""}><b>${esc(Y.optLabel(o))}</b><em>${o.sold_out ? "품절" : won(priceOf(o))}</em></button>`).join("")}</div>`;
+  $("#pdPrice").textContent = p.sold_out ? "품절" : won(priceOf(p));
+  const desc = String(p.description || "").trim();
+  $("#pdDesc").hidden = !desc;
+  $("#pdDesc").innerHTML = desc.split(/\n{2,}/).map(t => `<p>${esc(t).replace(/\n/g, "<br>")}</p>`).join("");
+  $("#pdFacts").innerHTML = pdFacts(p).map(([k, v]) => `<li><span>${esc(k)}</span><b>${esc(v)}</b></li>`).join("");
+  const cart = $("#pdCart"), buy = $("#pdBuy");
+  cart.dataset.cart = buy.dataset.order = p.id;
+  cart.disabled = buy.disabled = !!p.sold_out;
+  buy.textContent = p.sold_out ? "품절" : "바로 구매";
+  $("#pdInfo").innerHTML = `<table class="pinfo__tbl"><tbody>${Y.productInfo(p).map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join("")}</tbody></table>`;
+  if (window.renderReviews) window.renderReviews(p, opts);
+  // 검색엔진·카톡 공유용 제목·설명·상품 정보
+  document.title = `${pdTitle(p)} | 금비 GOLD`;
+  if (pdMeta) pdMeta.content = `${pdTitle(p)} · ${kindTxt} · ${wLabel(Number(p.weight_g))} · 실시간 시세 ${won(priceOf(p))}. 서울 종로 금비 GOLD 010-5287-8002`;
+  let ld = $("#pdLd");
+  if (!ld) { ld = document.createElement("script"); ld.type = "application/ld+json"; ld.id = "pdLd"; document.head.appendChild(ld); }
+  ld.textContent = JSON.stringify({
+    "@context": "https://schema.org", "@type": "Product", name: pdTitle(p), sku: p.id,
+    image: gallery.map(s => new URL(photoSrc(s), location.href).href), brand: { "@type": "Brand", name: "금비 GOLD" },
+    offers: { "@type": "Offer", priceCurrency: "KRW", price: priceOf(p), url: location.href, availability: p.sold_out ? "https://schema.org/SoldOut" : "https://schema.org/InStock" },
+  });
+}
+function openPd(id, push = true) {
+  const p = state.products.find(x => x.id === id);
+  if (!p || !pdModal) return;
+  pd.id = id; pd.photo = null;
+  window.YAMOO.trackView(id);
+  if (push && new URLSearchParams(location.search).get("p") !== id) {
+    history[pdModal.hidden ? "pushState" : "replaceState"]({ pd: id }, "", `${location.pathname}?p=${encodeURIComponent(id)}`);
+    if (pdModal.hidden) pd.pushed = true;
+  }
+  pdModal.hidden = false;
+  document.body.style.overflow = "hidden";
+  renderPd();
+  pdModal.querySelector(".pd").scrollTop = 0;
+}
+function hidePd() {
+  if (!pdModal || pdModal.hidden) return;
+  pdModal.hidden = true;
+  document.body.style.overflow = document.querySelector(".modal:not([hidden])") ? "hidden" : "";
+  document.title = pd.title;
+  if (pdMeta) pdMeta.content = pd.desc;
+  const ld = $("#pdLd"); if (ld) ld.remove();
+  pd.id = null;
+}
+function closePd() {
+  if (pd.pushed) { pd.pushed = false; history.back(); return; } // popstate 에서 닫힘
+  hidePd();
+  history.replaceState(null, "", location.pathname);
+}
+window.openPd = openPd;
+window.addEventListener("popstate", () => {
+  const id = new URLSearchParams(location.search).get("p");
+  if (id && state.products.some(x => x.id === id)) openPd(id, false);
+  else { pd.pushed = false; hidePd(); }
+});
+// 주소에 ?p= 가 있으면 상품·시세가 준비된 뒤 상세를 엶 (renderBars 끝에서 부름)
+let pdBoot = new URLSearchParams(location.search).get("p");
+function bootPd() {
+  if (!pdBoot || !state.domestic || !state.products.some(x => x.id === pdBoot)) return;
+  const id = pdBoot; pdBoot = null;
+  openPd(id, false);
+}
+if (pdModal) {
+  pdModal.addEventListener("click", e => {
+    if (e.target.closest("[data-pdclose]")) return closePd();
+    const o = e.target.closest("[data-pdopt]");
+    if (o) return openPd(o.dataset.pdopt);
+    const ph = e.target.closest("[data-pdphoto]");
+    if (ph) { pd.photo = ph.dataset.pdphoto; return renderPd(); }
+    const nv = e.target.closest("[data-pdnav]");
+    if (nv) return pdStep(+nv.dataset.pdnav);
+    if (e.target.closest("#pdShare")) return sharePd();
+  });
+  const m = pdModal.querySelector(".pd__main");
+  let x0 = null;
+  m.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+  m.addEventListener("touchend", e => {
+    if (x0 == null) return;
+    const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 40) pdStep(dx < 0 ? 1 : -1);
+  });
+  // ESC: 위에 다른 창(구매 창·사진 크게 보기)이 떠 있으면 그 창만 닫히게
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape" || pdModal.hidden) return;
+    const other = [...document.querySelectorAll(".modal:not([hidden]), .lightbox:not([hidden])")].some(el => el !== pdModal);
+    if (!other) closePd();
+  }, true);
+}
+function pdStep(d) {
+  if (pd.gallery.length < 2) return;
+  const at = Math.max(0, pd.gallery.indexOf(pd.photo || pd.gallery[0]));
+  pd.photo = pd.gallery[(at + d + pd.gallery.length) % pd.gallery.length];
+  renderPd();
+}
+async function sharePd() {
+  const p = state.products.find(x => x.id === pd.id);
+  const url = `${location.origin}${location.pathname}?p=${encodeURIComponent(pd.id)}`;
+  try {
+    if (navigator.share) { await navigator.share({ title: `${pdTitle(p)} | 금비 GOLD`, url }); return; }
+    await navigator.clipboard.writeText(url);
+    toast("상품 링크를 복사했어요");
+  } catch (err) { if (!err || err.name !== "AbortError") toast(url); }
+}
+// 목록의 상품 사진·이름을 누르면 상세 열기
+document.addEventListener("click", e => {
+  const hit = e.target.closest(".product__img, .product__name, .bar__img, .bar__name, .zcard__img, .zcard h4, .sres > img, .sres__body");
+  if (!hit || e.target.closest("button, a")) return;
+  const card = hit.closest("article");
+  const k = card && card.querySelector("[data-info], [data-order], [data-cart]");
+  const p = k && keyToProduct(k.dataset.info || k.dataset.order || k.dataset.cart);
+  if (!p || !p.id) return;
+  e.stopPropagation();
+  if (hit.closest(".sres") && searchPanel && !searchPanel.hidden) {
+    if (window.YAMOO.trackSearch) window.YAMOO.trackSearch(p.id);
+    closeSearch();
+  }
+  openPd(p.id);
+}, true);
 
 /* ---------- 상품 검색 ---------- */
 const searchPanel = $("#searchPanel"), searchInput = $("#searchInput"), searchBtn = $("#searchBtn");

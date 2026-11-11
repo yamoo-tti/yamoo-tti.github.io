@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261111e">
+  <link rel="stylesheet" href="style.css?v=20261111f">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -403,6 +403,43 @@
     </div>
   </footer>
 
+  <!-- 상품 상세 (목록에서 사진·이름을 누르면 열림 · 주소 ?p=상품번호) -->
+  <div class="modal pd-modal" id="pdModal" hidden>
+    <div class="modal__backdrop" data-pdclose></div>
+    <article class="modal__box pd" role="dialog" aria-modal="true" aria-labelledby="pdName">
+      <button class="modal__x pd__x" data-pdclose aria-label="닫기">×</button>
+      <div class="pd__grid">
+        <div class="pd__media">
+          <div class="pd__main">
+            <img id="pdImg" alt="">
+            <button type="button" class="pd__nav pd__nav--prev" data-pdnav="-1" aria-label="이전 사진">‹</button>
+            <button type="button" class="pd__nav pd__nav--next" data-pdnav="1" aria-label="다음 사진">›</button>
+            <span class="pd__count" id="pdCount"></span>
+          </div>
+          <div class="pd__thumbs" id="pdThumbs"></div>
+        </div>
+        <div class="pd__body">
+          <p class="pd__spec" id="pdSpec"></p>
+          <h2 class="pd__name" id="pdName"></h2>
+          <div id="pdStars"></div>
+          <div id="pdOpts"></div>
+          <p class="pd__price num" id="pdPrice"></p>
+          <p class="pd__unit">실시간 시세 연동 · 주문하는 순간의 시세로 금액 확정</p>
+          <div class="pd__btns">
+            <button type="button" class="cart-btn" id="pdCart">장바구니</button>
+            <button type="button" class="buy-btn" id="pdBuy">바로 구매</button>
+          </div>
+          <div id="pdAlert"></div>
+          <div class="pd__desc" id="pdDesc" hidden></div>
+          <ul class="pd__facts" id="pdFacts"></ul>
+          <button type="button" class="pd__share" id="pdShare">↗ 이 상품 링크 공유하기</button>
+          <details class="pinfo"><summary>상품정보 제공고시</summary><div id="pdInfo"></div></details>
+        </div>
+      </div>
+      <section class="pd__reviews" id="pdReviews" hidden></section>
+    </article>
+  </div>
+
   <!-- 로그인 / 회원가입 -->
   <div class="modal" id="authModal" hidden>
     <div class="modal__backdrop" data-close></div>
@@ -599,10 +636,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="common.js?v=20261104q"></script>
-  <script src="script.js?v=20261111a"></script>
+  <script src="script.js?v=20261111f"></script>
   <script src="auth.js?v=20261104a"></script>
-  <script src="shop.js?v=20261104q"></script>
-  <script src="lightbox.js?v=20261104k"></script>
+  <script src="shop.js?v=20261111f"></script>
+  <script src="reviews.js?v=20261111f"></script>
+  <script src="lightbox.js?v=20261111f"></script>
   <script src="kakao.js?v=20261104b"></script>
 </body>
 </html>

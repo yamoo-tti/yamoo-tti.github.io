@@ -1,6 +1,7 @@
 /* 상품 사진을 누르면 크게 보기 (홈페이지 · 순금선물 공용) */
 (function () {
-  const SEL = ".bean__main img, .product__img img, .bar__img img, .zcard__img img, .gcard__img img, .sres img, .sres__body";
+  // 목록 사진(골드바·악세사리 등)은 상품 상세가 열리고, 상세의 큰 사진을 누르면 크게 보기
+  const SEL = ".bean__main img, .pd__main img, .product__img img, .bar__img img, .zcard__img img, .gcard__img img, .sres img, .sres__body";
   const box = document.createElement("div");
   box.className = "lightbox";
   box.hidden = true;

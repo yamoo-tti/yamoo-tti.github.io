@@ -121,7 +121,7 @@
   }
 
   /* ---------- 화면 전환 ---------- */
-  const loaders = { dash: loadDash, sales: loadSales, stats: () => loadAnalytics(), orders: () => loadRequests("orders"), sells: () => loadRequests("sells"), products: loadProducts, notices: loadNotices, members: loadMembers, price: loadPrice, logs: loadLogs };
+  const loaders = { dash: loadDash, sales: loadSales, stats: () => loadAnalytics(), orders: () => loadRequests("orders"), sells: () => loadRequests("sells"), products: loadProducts, reviews: loadReviews, notices: loadNotices, members: loadMembers, price: loadPrice, logs: loadLogs };
   let current = "dash";
   function show(view) {
     current = view;
@@ -920,7 +920,8 @@
       </div>
       <label>예상 판매가<output id="pricePreview" class="price-out">-</output></label>
       <label>이미지 <small>목록에서 고르거나 이미지 주소(https://…) 입력</small><input name="img" list="imgList" value="${esc(p.img || "")}"><datalist id="imgList">${IMAGES.map(i => `<option value="${i}">`).join("")}</datalist></label>
-      <label>추가 사진 <small>한 줄에 하나 · 이미지 주소(https://…) 또는 images/ 아래 경로 · 지금은 메인 '순금 콩알금' 코너에서 사진 넘겨보기로 보여요</small><textarea name="photos" rows="3" placeholder="예) store/bean-2.jpg&#10;https://…/bean-3.jpg">${esc(p.photos || "")}</textarea></label>
+      <label>추가 사진 <small>한 줄에 하나 · 이미지 주소(https://…) 또는 images/ 아래 경로 · 상품 상세 화면에서 사진 넘겨보기로 보여요</small><textarea name="photos" rows="3" placeholder="예) store/bean-2.jpg&#10;https://…/bean-3.jpg">${esc(p.photos || "")}</textarea></label>
+      <label>상품 설명 <small>상품 상세 화면에 보여요 · 빈 줄로 문단 나누기 · 검색 노출에도 도움돼요</small><textarea name="description" rows="5" maxlength="3000" placeholder="예) 묵직한 팔각 체인을 촘촘히 엮은 남성용 광폭 팔찌예요.&#10;&#10;순금 99.99% · 보증서 동봉 · 사이즈 맞춤 가능">${esc(p.description || "")}</textarea></label>
       <div class="row2">
         <label>표시 태그 <small>예) BEST, NEW</small><input name="tag" maxlength="12" value="${esc(p.tag || "")}"></label>
         <label>순서 <small>작을수록 앞</small><input type="number" name="sort" step="1" value="${p.sort}"></label>
@@ -1029,6 +1030,8 @@
           sizes: f.sizes.value.split(",").map(s => s.trim()).filter(Boolean).join(",") || null,
           // size-weight.sql 실행 전에는 칸이 없으니 보내지 않음
           ...(products.some(x => "base_size" in x) ? { base_size: Number(f.base_size.value) > 0 ? Number(f.base_size.value) : null } : {}),
+          // reviews-restock.sql 실행 전에는 칸이 없으니 보내지 않음
+          ...(products.some(x => "description" in x) ? { description: f.description.value.trim() || null } : {}),
           addon_name: f.addon_name.value.trim() || null,
           addon_price: f.addon_name.value.trim() && Number(f.addon_price.value) > 0 ? Number(f.addon_price.value) : null,
           opt_group: f.opt_group.value.trim() || null, opt_label: f.opt_label.value.trim() || null,
@@ -1043,6 +1046,59 @@
     });
   }
   $("#addProduct").addEventListener("click", () => openProduct(null));
+
+  /* ---------- 후기 · 재입고 알림 ---------- */
+  let reviews = [];
+  const NEED_SQL = `<tr><td class="empty" colspan="6">Supabase에서 <b>reviews-restock.sql</b>을 먼저 실행해 주세요</td></tr>`;
+  const starTxt = n => "★".repeat(n) + "☆".repeat(5 - n);
+  async function loadReviews() {
+    const { data, error } = await sb.from("reviews").select("*, products(name)").order("created_at", { ascending: false }).limit(300);
+    const head = `<thead><tr><th>별점</th><th>상품</th><th>작성자</th><th>후기</th><th>답글</th><th>작성일</th></tr></thead>`;
+    if (error) { $("#reviewTable").innerHTML = head + "<tbody>" + NEED_SQL + "</tbody>"; $("#restockTable").innerHTML = ""; return; }
+    reviews = data;
+    $("#reviewTable").innerHTML = head + "<tbody>" + (data.length ? data.map(r => `
+      <tr class="clickable${r.visible ? "" : " is-dim"}" data-review="${r.id}">
+        <td style="color:#c09a45;white-space:nowrap">${starTxt(r.rating)}</td>
+        <td class="ellipsis">${esc((r.products && r.products.name) || r.option_label || "-")}</td>
+        <td>${esc(r.name)}</td>
+        <td class="ellipsis">${r.visible ? "" : '<span class="muted">[숨김] </span>'}${esc(r.body)}</td>
+        <td>${r.reply ? "✓" : '<span class="muted">-</span>'}</td>
+        <td>${fmtDate(r.created_at)}</td>
+      </tr>`).join("") : `<tr><td class="empty" colspan="6">아직 후기가 없어요</td></tr>`) + "</tbody>";
+    const w = await sb.rpc("restock_waiting");
+    const rows = (w.data || []).sort((a, b) => b.waiting - a.waiting);
+    let names = {};
+    if (rows.length) {
+      const { data: ps } = await sb.from("products").select("id,name,sold_out").in("id", rows.map(r => r.product_id));
+      (ps || []).forEach(p => { names[p.id] = p; });
+    }
+    $("#restockTable").innerHTML = `<thead><tr><th>상품</th><th>대기 인원</th><th>지금 상태</th></tr></thead><tbody>` + (rows.length ? rows.map(r => {
+      const p = names[r.product_id] || {};
+      return `<tr><td class="ellipsis">${esc(p.name || "-")}</td><td><b>${r.waiting}명</b></td><td>${p.sold_out ? "품절" : '<span class="muted">판매 중</span>'}</td></tr>`;
+    }).join("") : `<tr><td class="empty" colspan="3">기다리는 알림 신청이 없어요</td></tr>`) + "</tbody>";
+  }
+  function openReview(r) {
+    const html = `
+      <p><b style="color:#c09a45">${starTxt(r.rating)}</b> · ${esc(r.name)} · ${fmtDate(r.created_at)}</p>
+      <p class="muted">${esc((r.products && r.products.name) || "")}${r.option_label ? " · 주문 옵션: " + esc(r.option_label) : ""}</p>
+      <div class="box" style="white-space:pre-wrap;padding:12px;border:1px solid #e7e0d4;border-radius:6px">${esc(r.body)}</div>
+      <label>답글 <small>손님 화면에 '금비 GOLD 답글'로 보여요 · 비우면 답글 없음</small><textarea name="reply" rows="4" maxlength="1000">${esc(r.reply || "")}</textarea></label>
+      <label class="inline"><input type="checkbox" name="visible" ${r.visible ? "checked" : ""}> 홈페이지에 노출</label>`;
+    openEdit("후기 관리", html, {
+      save: async f => {
+        const reply = f.reply.value.trim() || null;
+        must(await sb.from("reviews").update({ reply, replied_at: reply && reply !== r.reply ? new Date().toISOString() : r.replied_at, visible: f.visible.checked }).eq("id", r.id));
+        toast("저장했습니다");
+      },
+      remove: async () => must(await sb.from("reviews").delete().eq("id", r.id)),
+    });
+  }
+  document.addEventListener("click", e => {
+    const tr = e.target.closest("[data-review]");
+    if (!tr) return;
+    const r = reviews.find(x => x.id === +tr.dataset.review);
+    if (r) openReview(r);
+  });
 
   /* ---------- 공지·이벤트 ---------- */
   let notices = [];
