@@ -1299,15 +1299,29 @@
   // 회원 쿠폰 (coupons-points.sql 실행 후) — 직접 발급
   async function loadMemberBnf(m) {
     const box = $("#memberBnf");
-    const cp = await sb.from("coupons").select("id,name,amount,min_order,expires_at,used_at").eq("user_id", m.id).order("created_at", { ascending: false }).limit(50);
+    const [cp, bd] = await Promise.all([
+      sb.from("coupons").select("id,name,amount,min_order,expires_at,used_at").eq("user_id", m.id).order("created_at", { ascending: false }).limit(50),
+      sb.from("profiles").select("birthday").eq("id", m.id).maybeSingle(), // birthday.sql 실행 전이면 오류 → 생일 줄 숨김
+    ]);
     if (editingMember !== m) return;
     if (cp.error) { box.hidden = true; return; }
     const live = cp.data.filter(c => !c.used_at && new Date(c.expires_at) > new Date());
+    const birthday = bd.error || !bd.data ? undefined : bd.data.birthday;
     box.hidden = false;
     box.innerHTML = `
-      <p class="mbnf__sum"><span>사용 가능 쿠폰 <b>${live.length}장</b></span></p>
+      <p class="mbnf__sum"><span>사용 가능 쿠폰 <b>${live.length}장</b></span>${birthday !== undefined ? `<span>생일 <b>${birthday ? `${+birthday.slice(0, 2)}월 ${+birthday.slice(3)}일` : "미등록"}</b> <button type="button" class="btn btn--line btn--sm" id="mbBdBtn">${birthday ? "수정" : "등록"}</button></span>` : ""}</p>
       ${live.length ? `<ul class="mbnf__list">${live.map(c => `<li>${esc(c.name)} ${won(c.amount)} · ${fmtDate(c.expires_at, false)}까지</li>`).join("")}</ul>` : ""}
       <div class="mbnf__row"><input type="number" id="mbCp" step="1000" placeholder="쿠폰 금액 (원)" value="10000"><button type="button" class="btn btn--line btn--sm" id="mbCpBtn">쿠폰 발급</button></div>`;
+    if ($("#mbBdBtn")) $("#mbBdBtn").onclick = async () => {
+      // 회원은 생일을 바꿀 수 없어서 고객센터 요청 시 관리자가 고침 (빈칸이면 삭제)
+      const v = prompt("생일을 월-일로 입력해 주세요 (예: 03-14). 비우면 삭제돼요.", birthday || "");
+      if (v === null) return;
+      const s = v.trim().replace(/[./\s]/g, "-").replace(/^(\d)-/, "0$1-").replace(/-(\d)$/, "-0$1");
+      if (s && (!/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(s) || new Date(2024, +s.slice(0, 2) - 1, +s.slice(3)).getMonth() !== +s.slice(0, 2) - 1)) return toast("날짜 형식을 확인해 주세요 (예: 03-14)", true);
+      const { error } = await sb.from("profiles").update({ birthday: s || null }).eq("id", m.id);
+      if (error) return fail(error);
+      toast("생일을 저장했습니다"); loadMemberBnf(m);
+    };
     $("#mbCpBtn").onclick = async () => {
       const amt = parseInt($("#mbCp").value, 10);
       if (!(amt > 0)) return toast("쿠폰 금액을 입력해 주세요", true);
@@ -1393,7 +1407,7 @@
   let hasBnf = false;
   const TIER_FIELDS = ["signup_coupon", "tier_min_order", "coupon_x"];
   let hasTier = false;
-  const ANNIV_FIELDS = ["anniv_coupon", "anniv_min", "anniv_lead", "anniv_days"];
+  const ANNIV_FIELDS = ["anniv_coupon", "anniv_min", "anniv_lead", "anniv_days", "bday_wait"];
   let hasAnniv = false;
   async function loadShop() {
     const f = $("#shopForm");
@@ -1412,8 +1426,8 @@
       TIER_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; });
       (data.tier_rule || []).forEach(r => { if (f[`t_${r.g}_n`]) { f[`t_${r.g}_n`].value = r.n; f[`t_${r.g}_amt`].value = r.amt; } });
     }
-    // 생일·기념일 쿠폰 칸 (anniversary.sql 실행 전이면 숨김)
-    hasAnniv = "anniv_coupon" in data;
+    // 생일 쿠폰 칸 (birthday.sql 실행 전이면 숨김)
+    hasAnniv = "bday_wait" in data;
     $("#annivSet").hidden = !hasAnniv;
     if (hasAnniv) ANNIV_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; });
     $("#shopMeta").textContent = `최종 수정 ${fmtDate(data.updated_at)}`;
@@ -1438,6 +1452,7 @@
       ANNIV_FIELDS.forEach(k => { row[k] = Math.max(0, parseInt(f[k].value, 10) || 0); });
       row.anniv_lead = Math.min(30, row.anniv_lead);
       row.anniv_days = Math.min(365, Math.max(1, row.anniv_days));
+      row.bday_wait = Math.min(365, row.bday_wait);
     }
     btn.disabled = true;
     const { error } = await sb.from("shop_info").update(row).eq("id", 1);

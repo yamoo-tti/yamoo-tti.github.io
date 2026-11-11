@@ -280,7 +280,8 @@
               <span>VIP</span><input type="number" name="t_vip_n" min="1" step="1"><input type="number" name="t_vip_amt" min="0" step="1000">
             </div>
           </fieldset>
-          <fieldset id="annivSet" hidden><legend>생일 · 기념일 쿠폰 <small>회원이 주문내역에서 날짜 등록 · 매일 오전 9시 자동 지급</small></legend>
+          <fieldset id="annivSet" hidden><legend>생일 쿠폰 <small>회원이 주문내역에서 생일 등록 · 매일 오전 9시 자동 지급 · 1년 1장</small></legend>
+            <label>등록 후 며칠 지나야 대상 <small>가입하자마자 생일을 넣는 꼼수 방지</small><input type="number" name="bday_wait" min="0" max="365" step="1"></label>
             <label>쿠폰 금액 (원) <small>0이면 안 줌</small><input type="number" name="anniv_coupon" min="0" step="1000"></label>
             <label>쓸 수 있는 최소 상품 금액 (원)<input type="number" name="anniv_min" min="0" step="10000"></label>
             <label>며칠 전에 지급<input type="number" name="anniv_lead" min="0" max="30" step="1"></label>
@@ -346,6 +347,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="common.js?v=20261111a"></script>
-  <script src="admin.js?v=20261111n"></script>
+  <script src="admin.js?v=20261111o"></script>
 </body>
 </html>
