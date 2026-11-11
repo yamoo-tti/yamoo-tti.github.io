@@ -428,7 +428,7 @@ function searchInfo(p) {
   const w = Number(p.weight_g), d = Math.round(w / DON * 1000) / 1000;
   const weights = new Set([`${w}g`]);
   if (w >= 1000 && w % 1000 === 0) weights.add(`${w / 1000}kg`);
-  if (p.kind !== "silver" && p.kind !== "accessory") {
+  if (p.kind !== "silver" && p.karat !== "SV") { // 금 제품은 악세사리도 'OO돈'으로 검색되게
     if (Number.isInteger(d) || d === 0.5) weights.add(`${d}돈`);
     if (DON_WORD[d]) weights.add(DON_WORD[d]);
   }
@@ -442,11 +442,13 @@ function searchInfo(p) {
   return { weights: [...weights].map(norm), hay: norm(`${p.name} ${p.tag || ""} ${words} ${[...weights].join(" ")}`) };
 }
 
+// 상품 이름에 무게가 적혀 있으면(예: '… 팔찌 50돈') 그것도 인정. '150돈' 안의 '50돈'은 제외
+const nameHas = (p, t) => new RegExp(`(^|[^\\d.])${t.replace(/\./g, "\\.")}`).test(norm(p.name));
 function searchMatch(p, terms) {
   const info = searchInfo(p);
   return terms.every(t => {
-    if (/^\d+(\.\d+)?(g|kg|돈)$/.test(t)) return info.weights.includes(t);
-    if (/^\d+(\.\d+)?$/.test(t)) return info.weights.includes(t + "g") || info.weights.includes(t + "돈");
+    if (/^\d+(\.\d+)?(g|kg|돈)$/.test(t)) return info.weights.includes(t) || nameHas(p, t);
+    if (/^\d+(\.\d+)?$/.test(t)) return info.weights.includes(t + "g") || info.weights.includes(t + "돈") || nameHas(p, t + "돈");
     return info.hay.includes(t);
   });
 }
