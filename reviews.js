@@ -9,6 +9,8 @@
   const stars = n => `<span class="rv-stars" aria-label="별점 ${n}점">${"★".repeat(Math.round(n))}<i>${"★".repeat(5 - Math.round(n))}</i></span>`;
   const cache = {}; // 묶음 첫 상품 id → 후기 목록
   let cur = null, curOpts = [], writing = false, seq = 0;
+  // 주문내역의 '후기 쓰기'로 들어오면(?p=상품&review=1) 쓰기 칸을 바로 엶
+  let autoWrite = new URLSearchParams(location.search).get("review") === "1";
 
   async function load(ids) {
     const key = ids.join(",");
@@ -23,6 +25,7 @@
     const changed = !cur || cur.id !== p.id;
     cur = p; curOpts = opts && opts.length ? opts : [p];
     if (changed) writing = false;
+    if (autoWrite) { autoWrite = false; writing = true; force = true; setTimeout(() => box.scrollIntoView({ behavior: "smooth", block: "start" }), 400); }
     renderAlert(p);
     if (!changed && !force && !box.hidden && box.innerHTML) return;
     const my = ++seq;
@@ -59,29 +62,24 @@
           ${[5, 4, 3, 2, 1].map(v => `<input type="radio" name="rating" value="${v}" id="rv${v}" ${v === 5 ? "checked" : ""}><label for="rv${v}" title="${v}점">★</label>`).join("")}
         </fieldset>
         <label>후기 <small>10자 이상 · 받아 보신 느낌, 실물·포장 상태 등</small><textarea name="body" rows="4" minlength="10" maxlength="1000" required></textarea></label>
-        <div id="rvGuest" hidden>
-          <p class="form-note">비회원은 <b>접수번호</b>와 <b>주문할 때 쓴 휴대폰 번호</b>로 구매를 확인해요. 회원이면 로그인 후 바로 쓸 수 있어요.</p>
-          <div class="row2">
-            <label>접수번호<input name="code" maxlength="20" autocapitalize="characters" placeholder="예) O261030-7KQ2M9XA"></label>
-            <label>휴대폰 번호<input name="phone" type="tel" maxlength="13" placeholder="010-0000-0000"></label>
-          </div>
-        </div>
         <p class="rv__msg" id="rvMsg" role="status"></p>
         <div class="rv__btns"><button type="button" class="btn btn--line" data-rvcancel>취소</button><button type="submit" class="btn btn--dark">후기 등록</button></div>
       </form>`;
   }
 
-  // 로그인 안 했으면 접수번호 칸 보이기
-  async function syncGuest() {
-    const g = $("#rvGuest");
-    if (!g) return;
-    const { data: { session } } = await sb.auth.getSession();
-    g.hidden = !!session;
-    g.querySelectorAll("input").forEach(i => { i.required = !session; });
+  // 후기는 로그인한 회원만 (비회원은 로그인 창으로 안내)
+  const loggedIn = async () => { try { const { data: { session } } = await sb.auth.getSession(); return !!session; } catch { return false; } };
+  function askLogin() {
+    toast("후기는 회원만 쓸 수 있어요. 로그인해 주세요");
+    const b = document.querySelector('#authNav [data-open="login"]');
+    if (b) b.click();
   }
 
   box.addEventListener("click", async e => {
-    if (e.target.closest("[data-rvwrite]")) { writing = true; await window.renderReviews(cur, curOpts, true); syncGuest(); const t = $("#rvForm textarea"); t && t.focus(); return; }
+    if (e.target.closest("[data-rvwrite]")) {
+      if (!(await loggedIn())) { askLogin(); return; }
+      writing = true; await window.renderReviews(cur, curOpts, true); const t = $("#rvForm textarea"); t && t.focus(); return;
+    }
     if (e.target.closest("[data-rvcancel]")) { writing = false; window.renderReviews(cur, curOpts, true); }
   });
   starsBox.addEventListener("click", e => {
@@ -94,20 +92,26 @@
     if (e.target.id !== "rvForm") return;
     e.preventDefault();
     const f = e.target, btn = f.querySelector("[type=submit]"), msg = $("#rvMsg");
-    const guest = !$("#rvGuest").hidden;
+    if (!(await loggedIn())) { askLogin(); return; }
     btn.disabled = true; msg.textContent = "확인 중…"; msg.classList.remove("is-error");
-    const { data, error } = await sb.rpc("submit_review", {
-      p_product: cur.id, p_rating: +f.rating.value, p_body: f.body.value,
-      p_code: guest ? f.code.value : null, p_phone: guest ? f.phone.value : null,
-    });
+    const { data, error } = await sb.rpc("submit_review", { p_product: cur.id, p_rating: +f.rating.value, p_body: f.body.value });
     btn.disabled = false;
-    if (error || data !== "ok") {
+    if (error || !/^ok/.test(data || "")) {
       msg.textContent = error ? (/[가-힣]/.test(error.message || "") ? error.message : "등록하지 못했어요. 잠시 후 다시 시도해 주세요.") : data;
       msg.classList.add("is-error");
       return;
     }
     Object.keys(cache).forEach(k => delete cache[k]);
     writing = false;
+    const cp = /^ok_coupon:(\d+)/.exec(data);
+    if (cp) {
+      const amt = Number(cp[1]).toLocaleString() + "원";
+      window.renderReviews(cur, curOpts, true).then(() => {
+        box.insertAdjacentHTML("afterbegin", `<div class="rv__gift">🎁 후기 감사 쿠폰 <b>${amt}</b>을 드렸어요! <a href="my-orders.html#benefits">내 쿠폰 보기</a> · 다음 홈페이지 주문 때 쓸 수 있어요.</div>`);
+      });
+      toast(`후기 등록 완료! ${amt} 쿠폰을 드렸어요`);
+      return;
+    }
     toast("후기를 등록했어요. 감사합니다!");
     window.renderReviews(cur, curOpts, true);
   });

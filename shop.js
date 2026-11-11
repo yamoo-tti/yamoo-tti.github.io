@@ -161,6 +161,90 @@
   const addonOf = (p, pick) => pick && pick.addon && Y.hasAddon(p) ? Number(p.addon_price) : 0;
   const withPick = (name, p, pick) => { const l = pick ? Y.pickLabel(p, pick.size, pick.addon) : ""; return l ? `${name} (${l})` : name; };
 
+  /* ---------- 쿠폰 · 포인트 (회원 · coupons-points.sql 실행 후) ---------- */
+  let bnf = null, bnfCfg = null; // bnf: 내 쿠폰·포인트, bnfCfg: 적립률·후기 쿠폰 금액(비회원 안내용)
+  if (sb) sb.from("shop_info").select("point_rate,review_event,review_coupon,coupon_min").eq("id", 1).maybeSingle()
+    .then(({ data }) => { bnfCfg = data || null; }, () => {});
+  async function loadBnf() {
+    bnf = null;
+    if (!sb) return;
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) return;
+      const { data, error } = await sb.rpc("my_benefits");
+      if (!error && data) bnf = data;
+    } catch { /* 실패하면 쿠폰·포인트 칸 없이 주문 */ }
+  }
+  const bnfBox = form => {
+    let box = form.querySelector(".bnf");
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "bnf";
+      (form.querySelector(".order-total, .cart-sum")).before(box);
+    }
+    return box;
+  };
+  function renderBnf(form) {
+    const box = bnfBox(form);
+    if (!bnf) {
+      const c = bnfCfg;
+      box.innerHTML = c && (Number(c.point_rate) > 0 || (c.review_event && c.review_coupon > 0))
+        ? `<p class="bnf__hint">🎁 <b>회원으로 주문하면</b> ${Number(c.point_rate) > 0 ? `결제 금액의 ${Number(c.point_rate)}% 포인트 적립` : ""}${Number(c.point_rate) > 0 && c.review_event && c.review_coupon > 0 ? " · " : ""}${c.review_event && c.review_coupon > 0 ? `후기 쓰면 ${won(c.review_coupon)} 쿠폰` : ""} <button type="button" class="bnf__login" data-bnflogin>로그인·가입</button></p>`
+        : "";
+      return;
+    }
+    const cps = bnf.coupons || [], pts = Number(bnf.points) || 0;
+    if (!cps.length && !pts) {
+      box.innerHTML = Number(bnf.point_rate) > 0 ? `<p class="bnf__hint">이 주문은 입금 확인 후 결제 금액의 <b>${Number(bnf.point_rate)}%</b>가 포인트로 적립돼요.</p>` : "";
+      return;
+    }
+    const d = s => { const x = new Date(s); return `${x.getMonth() + 1}/${x.getDate()}`; };
+    box.innerHTML = `
+      <fieldset class="bnf__set"><legend>쿠폰 · 포인트 <small>홈페이지 주문 전용</small></legend>
+        ${cps.length ? `<label>쿠폰<select name="coupon"><option value="">사용 안 함 (${cps.length}장 보유)</option>${cps.map(c =>
+          `<option value="${c.id}" data-amt="${c.amount}" data-min="${c.min_order}">${won(c.amount)} ${esc(c.name)}${c.min_order ? ` (${c.min_order % 10000 ? won(c.min_order) : c.min_order / 10000 + "만원"} 이상)` : ""} ~${d(c.expires_at)}</option>`).join("")}</select></label>` : ""}
+        ${pts ? `<label>포인트 <small>보유 <b>${pts.toLocaleString()}P</b> · 1P = 1원</small><span class="bnf__pts"><input type="number" name="points" min="0" max="${pts}" step="1" inputmode="numeric" placeholder="0"><button type="button" class="btn btn--line btn--sm" data-bnfall>전액</button></span></label>` : ""}
+        <p class="bnf__msg" data-bnfmsg></p>
+      </fieldset>`;
+  }
+  // 고른 쿠폰·포인트로 할인 금액 계산 (서버 bnf_check 와 같은 규칙)
+  function calcBnf(form, goods) {
+    const out = { coupon: null, cdisc: 0, pts: 0, msg: "" };
+    if (!bnf || goods == null) return out;
+    const sel = form.querySelector("[name=coupon]"), ptIn = form.querySelector("[name=points]");
+    if (sel && sel.value) {
+      const o = sel.selectedOptions[0], min = Number(o.dataset.min) || 0;
+      if (goods < min) out.msg = `이 쿠폰은 상품 금액 ${won(min)} 이상일 때 쓸 수 있어요`;
+      else { out.coupon = +sel.value; out.cdisc = Math.min(Number(o.dataset.amt) || 0, Math.floor(goods)); }
+    }
+    if (ptIn) {
+      let p = Math.max(0, Math.floor(Number(ptIn.value) || 0));
+      const cap = Math.min(Number(bnf.points) || 0, Math.max(0, Math.floor(goods) - out.cdisc));
+      if (p > cap) { p = cap; ptIn.value = cap || ""; }
+      out.pts = p;
+    }
+    const m = form.querySelector("[data-bnfmsg]");
+    if (m) {
+      m.textContent = out.msg || (out.cdisc + out.pts ? `할인 ${won(out.cdisc + out.pts)} 적용` : "");
+      m.classList.toggle("is-error", !!out.msg);
+    }
+    return out;
+  }
+  const bnfArgs = b => b.cdisc || b.pts ? { p_coupon: b.coupon, p_points: b.pts } : {};
+  document.addEventListener("click", e => {
+    const all = e.target.closest("[data-bnfall]");
+    if (all) {
+      const f = all.closest("form"), ip = f.querySelector("[name=points]");
+      ip.value = ip.max;
+      f.dispatchEvent(new Event("bnf"));
+    }
+    if (e.target.closest("[data-bnflogin]")) {
+      document.querySelectorAll(".modal:not([hidden])").forEach(m => { if (m.id !== "authModal" && m.id !== "pdModal") closeModal(m); });
+      const b = document.querySelector('#authNav [data-open="login"]');
+      if (b) b.click();
+    }
+  });
+
   /* ---------- 구매 신청 ---------- */
   const orderModal = $("#orderModal"), orderForm = $("#orderForm");
   const syncReceive = bindWhen(orderForm, "receive");
@@ -174,10 +258,14 @@
     const pk = pickOf(orderForm), unit = unitOf(current, pk);
     optNote(orderOpts, current, pk);
     const fee = orderForm.receive.value === "delivery" ? Number(shopInfo.delivery_fee) || 0 : 0;
-    $("#orderTotal").innerHTML = unit ? won(unit * qty + fee) + (fee ? `<small>택배비 ${won(fee)} 포함</small>` : "") : "매장 문의";
-    return unit ? unit * qty + fee : null;
+    const b = calcBnf(orderForm, unit ? unit * qty : null), disc = b.cdisc + b.pts;
+    orderForm._bnf = b;
+    $("#orderTotal").innerHTML = unit ? won(unit * qty - disc + fee) + [fee ? `택배비 ${won(fee)} 포함` : "", disc ? `할인 ${won(disc)} 적용` : ""].filter(Boolean).map(t => `<small>${t}</small>`).join("") : "매장 문의";
+    return unit ? unit * qty - disc + fee : null;
   }
-  orderForm.addEventListener("change", e => { if (["receive", "opt_addon", "opt_size"].includes(e.target.name)) updateTotal(); });
+  orderForm.addEventListener("change", e => { if (["receive", "opt_addon", "opt_size", "coupon"].includes(e.target.name)) updateTotal(); });
+  orderForm.addEventListener("input", e => { if (e.target.name === "points") updateTotal(); });
+  orderForm.addEventListener("bnf", updateTotal);
 
   window.openOrder = function (p) {
     if (!sb || !p.id) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
@@ -198,8 +286,10 @@
     syncOrderReceipt();
     orderForm.hidden = false;
     $("#orderDone").hidden = true;
+    renderBnf(orderForm);
     updateTotal();
     openModal(orderModal);
+    loadBnf().then(() => { if (current === p) { renderBnf(orderForm); updateTotal(); } });
   };
 
   orderForm.addEventListener("click", e => {
@@ -222,6 +312,7 @@
       p_receive: f.receive.value, p_address: f.address.value, p_note: f.note.value, p_quoted: updateTotal(),
       p_receipt: receipt,
       ...(Y.needsPick(current) ? { p_size: pickOf(f).size || null, p_addon: pickOf(f).addon } : {}),
+      ...bnfArgs(f._bnf || {}),
     });
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }
@@ -352,9 +443,18 @@
         </div>`;
     }).join("");
     const fee = cartForm.receive.value === "delivery" ? Number(shopInfo.delivery_fee) || 0 : 0;
+    const b = calcBnf(cartForm, priced ? goods : null), disc = b.cdisc + b.pts;
+    cartForm._bnf = b;
+    let dRow = $("#cartDiscRow");
+    if (!dRow) {
+      dRow = document.createElement("p"); dRow.id = "cartDiscRow"; dRow.innerHTML = `<span>쿠폰·포인트 할인</span><b id="cartDisc"></b>`;
+      $("#cartTotal").closest("p").before(dRow);
+    }
+    dRow.hidden = !disc;
+    $("#cartDisc").textContent = "−" + won(disc);
     $("#cartGoods").textContent = priced ? won(goods) : "-";
     $("#cartFee").textContent = won(fee);
-    $("#cartTotal").textContent = priced ? won(goods + fee) : "매장 문의";
+    $("#cartTotal").textContent = priced ? won(goods - disc + fee) : "매장 문의";
     const hasSoldOut = live.some(r => r.p.sold_out), missing = live.some(noSize);
     $("#cartSubmit").disabled = hasSoldOut || missing;
     $("#cartSubmit").textContent = hasSoldOut ? "품절 상품을 빼 주세요" : missing ? "사이즈 없는 상품을 빼고 다시 담아 주세요" : `${live.length}종 ${cartCount()}개 주문하기`;
@@ -364,8 +464,10 @@
     if (!sb) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
     syncCartReceive();
     fillEmail(cartForm);
+    renderBnf(cartForm);
     renderCart();
     openModal(cartModal);
+    loadBnf().then(() => { renderBnf(cartForm); renderCart(); });
   }
   const cartBtn = $("#cartBtn");
   if (cartBtn) cartBtn.addEventListener("click", openCart);
@@ -381,7 +483,9 @@
     if (x) { cartItems = cartItems.filter(i => keyOf(i) !== x.dataset.cdel); saveCart(); renderCart(); return; }
     if (e.target.closest("a[data-close]")) closeModal(cartModal);
   });
-  cartForm.addEventListener("change", e => { if (e.target.name === "receive") renderCart(); });
+  cartForm.addEventListener("change", e => { if (["receive", "coupon"].includes(e.target.name)) renderCart(); });
+  cartForm.addEventListener("input", e => { if (e.target.name === "points") renderCart(); });
+  cartForm.addEventListener("bnf", renderCart);
 
   cartForm.addEventListener("submit", async e => {
     e.preventDefault();
@@ -394,6 +498,7 @@
     const { data, error } = await sb.rpc("submit_cart", {
       p_items: items, p_name: f.name.value, p_phone: f.phone.value,
       p_receive: f.receive.value, p_address: f.address.value, p_note: f.note.value, p_receipt: receipt,
+      ...bnfArgs(f._bnf || {}),
     });
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }

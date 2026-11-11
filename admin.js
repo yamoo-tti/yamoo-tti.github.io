@@ -513,7 +513,7 @@
 
   // 주문 1건 → 상품 줄 (상품 id 포함, 장바구니 주문은 여러 줄)
   const linesOf = r => Array.isArray(r.items) && r.items.length
-    ? r.items.map(i => ({ id: i.product_id, name: i.name, qty: Number(i.qty) || 0, amount: Number(i.subtotal) || 0 }))
+    ? r.items.filter(i => !i.discount).map(i => ({ id: i.product_id, name: i.name, qty: Number(i.qty) || 0, amount: Number(i.subtotal) || 0 })) // 쿠폰·포인트 할인 줄은 상품 분석에서 뺌
     : [{ id: r.product_id, name: r.product_name, qty: Number(r.qty) || 0, amount: (Number(r.final_price) || 0) - (Number(r.shipping_fee) || 0) }];
 
   async function loadAnalytics() {
@@ -1279,6 +1279,45 @@
       <dt>최근 로그인</dt><dd>${fmtDate(m.last_login_at)}</dd>
       <dt>최종 수정</dt><dd>${fmtDate(m.updated_at)}</dd>`;
     $("#drawer").hidden = false;
+    loadMemberBnf(m);
+  }
+
+  // 회원 포인트 · 쿠폰 (coupons-points.sql 실행 후) — 직접 지급·차감
+  async function loadMemberBnf(m) {
+    const box = $("#memberBnf");
+    const [pl, cp] = await Promise.all([
+      sb.from("point_logs").select("amount,reason,created_at").eq("user_id", m.id).order("created_at", { ascending: false }).limit(200),
+      sb.from("coupons").select("id,name,amount,min_order,expires_at,used_at").eq("user_id", m.id).order("created_at", { ascending: false }).limit(50),
+    ]);
+    if (editingMember !== m) return;
+    if (pl.error || cp.error) { box.hidden = true; return; }
+    const bal = pl.data.reduce((s, r) => s + r.amount, 0);
+    const live = cp.data.filter(c => !c.used_at && new Date(c.expires_at) > new Date());
+    box.hidden = false;
+    box.innerHTML = `
+      <p class="mbnf__sum"><span>포인트 <b>${bal.toLocaleString()}P</b></span><span>사용 가능 쿠폰 <b>${live.length}장</b></span></p>
+      ${live.length ? `<ul class="mbnf__list">${live.map(c => `<li>${esc(c.name)} ${won(c.amount)} · ${fmtDate(c.expires_at, false)}까지</li>`).join("")}</ul>` : ""}
+      <div class="mbnf__row"><input type="number" id="mbPts" step="100" placeholder="포인트 (빼려면 -)"><input id="mbWhy" maxlength="40" placeholder="사유 (예: 이벤트 지급)"><button type="button" class="btn btn--line btn--sm" id="mbPtsBtn">포인트 지급</button></div>
+      <div class="mbnf__row"><input type="number" id="mbCp" step="1000" placeholder="쿠폰 금액 (원)" value="10000"><button type="button" class="btn btn--line btn--sm" id="mbCpBtn">쿠폰 발급</button></div>
+      ${pl.data.length ? `<details><summary>포인트 내역 ${pl.data.length}건</summary><ul class="mbnf__list">${pl.data.map(r => `<li>${fmtDate(r.created_at, false)} · ${esc(r.reason)} · <b>${r.amount > 0 ? "+" : ""}${r.amount.toLocaleString()}</b></li>`).join("")}</ul></details>` : ""}`;
+    $("#mbPtsBtn").onclick = async () => {
+      const n = parseInt($("#mbPts").value, 10), why = $("#mbWhy").value.trim() || (n > 0 ? "관리자 지급" : "관리자 차감");
+      if (!n) return toast("포인트를 입력해 주세요", true);
+      if (!confirm(`${m.name || m.email} 회원에게 ${n > 0 ? "+" : ""}${n.toLocaleString()}P (${why}) 처리할까요?`)) return;
+      const { error } = await sb.from("point_logs").insert({ user_id: m.id, amount: n, reason: why });
+      if (error) return fail(error);
+      toast("포인트를 반영했습니다"); loadMemberBnf(m);
+    };
+    $("#mbCpBtn").onclick = async () => {
+      const amt = parseInt($("#mbCp").value, 10);
+      if (!(amt > 0)) return toast("쿠폰 금액을 입력해 주세요", true);
+      const { data: si } = await sb.from("shop_info").select("coupon_min,coupon_days").eq("id", 1).maybeSingle();
+      const days = (si && si.coupon_days) || 90;
+      if (!confirm(`${m.name || m.email} 회원에게 ${won(amt)} 쿠폰을 발급할까요? (${days}일 유효${si && si.coupon_min ? ` · 상품 ${won(si.coupon_min)} 이상` : ""})`)) return;
+      const { error } = await sb.from("coupons").insert({ user_id: m.id, name: "금비 감사 쿠폰", amount: amt, min_order: (si && si.coupon_min) || 0, expires_at: new Date(Date.now() + days * 864e5).toISOString(), source: "admin" });
+      if (error) return fail(error);
+      toast("쿠폰을 발급했습니다"); loadMemberBnf(m);
+    };
   }
   const closeDrawer = () => { $("#drawer").hidden = true; editingMember = null; };
   $("#drawer").addEventListener("click", e => { if (e.target.closest("[data-close]")) closeDrawer(); });
@@ -1350,12 +1389,18 @@
 
   // 주문 · 입금 · 문자 설정 (shop_info)
   const SHOP_FIELDS = ["bank_name", "bank_account", "bank_holder", "pay_minutes", "delivery_fee", "owner_phone", "sms_sender"];
+  const BNF_FIELDS = ["point_rate", "review_coupon", "coupon_min", "coupon_days"];
+  let hasBnf = false;
   async function loadShop() {
     const f = $("#shopForm");
     const { data, error } = await sb.from("shop_info").select("*").eq("id", 1).maybeSingle();
     if (error || !data) { $("#shopMeta").textContent = "설정 테이블이 없어요 · order-sms.sql 을 먼저 실행해 주세요"; f.querySelector("[type=submit]").disabled = true; return; }
     SHOP_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; });
     f.sms_enabled.checked = !!data.sms_enabled;
+    // 포인트·후기 쿠폰 칸 (coupons-points.sql 실행 전이면 숨김)
+    hasBnf = "point_rate" in data;
+    $("#bnfSet").hidden = !hasBnf;
+    if (hasBnf) { BNF_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; }); f.review_event.checked = !!data.review_event; }
     $("#shopMeta").textContent = `최종 수정 ${fmtDate(data.updated_at)}`;
   }
   $("#shopForm").addEventListener("submit", async e => {
@@ -1363,6 +1408,11 @@
     const f = e.target, btn = f.querySelector("[type=submit]");
     const row = { updated_at: new Date().toISOString(), sms_enabled: f.sms_enabled.checked };
     SHOP_FIELDS.forEach(k => { row[k] = ["pay_minutes", "delivery_fee"].includes(k) ? parseInt(f[k].value, 10) : f[k].value.trim(); });
+    if (hasBnf) {
+      BNF_FIELDS.forEach(k => { row[k] = Number(f[k].value) || 0; });
+      row.coupon_days = Math.max(1, row.coupon_days);
+      row.review_event = f.review_event.checked;
+    }
     btn.disabled = true;
     const { error } = await sb.from("shop_info").update(row).eq("id", 1);
     btn.disabled = false;

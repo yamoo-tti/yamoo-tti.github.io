@@ -334,3 +334,12 @@ fieldset.box .row2 { align-items: end; }
 .labor-in input { flex: 1; min-width: 0; }
 
 .btn--sm { height: 30px; padding: 0 10px; font-size: 12px; }
+
+/* 회원 상세: 포인트 · 쿠폰 */
+.mbnf { border: 1px solid #e7e0d4; border-radius: 8px; padding: 12px; margin: 4px 0 12px; display: grid; gap: 8px; font-size: 13px; background: #fffaf0; }
+.mbnf__sum { display: flex; gap: 16px; }
+.mbnf__sum b { color: #9c7629; }
+.mbnf__list { margin: 0; padding-left: 16px; display: grid; gap: 2px; color: #4d4840; }
+.mbnf__row { display: flex; gap: 6px; }
+.mbnf__row input { flex: 1; min-width: 0; }
+.mbnf summary { cursor: pointer; color: #4d4840; }

@@ -1,7 +1,6 @@
 /* 주문내역: 회원은 본인 주문·매입 목록, 비회원은 접수번호 + 휴대폰으로 조회 */
 (function () {
-  const { sb, esc, won, fmtDate, ORDER_STATUS, SELL_STATUS, trackUrl } = window.YAMOO;
-  const $ = s => document.querySelector(s);
+  const { sb, esc, won, fmtDate, ORDER_STATUS, SELL_STATUS, trackUrl } = window.YAMOO;  const $ = s => document.querySelector(s);
   const PHONE = "010-5287-8002";
   const p2 = n => String(n).padStart(2, "0");
   const hm = d => { const x = new Date(d); return `${p2(x.getMonth() + 1)}/${p2(x.getDate())} ${p2(x.getHours())}:${p2(x.getMinutes())}`; };
@@ -28,7 +27,35 @@
         ${waiting ? `<div class="mo__wait"><span><b data-deadline="${esc(r.deadline)}">--:--</b> 안에 입금해 주세요 (${hm(r.deadline)}까지)</span><a class="btn btn--dark" href="order-done.html?code=${encodeURIComponent(r.code)}">입금 정보 보기</a></div>` : ""}
         ${isO && r.tracking_no ? `<div class="mo__ship"><span>${esc(r.courier || "택배")} <b>${esc(r.tracking_no)}</b></span><a class="btn btn--line" href="${esc(trackUrl(r.courier, r.tracking_no))}" target="_blank" rel="noopener">배송 조회</a></div>` : ""}
         ${isO && r.status === "canceled" ? `<p class="mo__note">입금 기한이 지났거나 취소된 주문이에요.</p>` : ""}
+        ${reviewBtns(r)}
       </article>`;
+  }
+  // 입금 확인 이후 주문: 상품마다 '후기 쓰기' (상품 상세의 후기 칸으로 이동)
+  function reviewBtns(r) {
+    if (r.guest || r.kind !== "order" || !["paid", "ready", "done"].includes(r.status)) return ""; // 후기는 회원만
+    const list = Array.isArray(r.items) && r.items.length
+      ? r.items.filter(i => i.product_id && !i.discount).map(i => ({ id: i.product_id, name: i.name }))
+      : r.product_id ? [{ id: r.product_id, name: "" }] : [];
+    if (!list.length) return "";
+    return `<div class="mo__rv">${list.map(i => `<a class="btn btn--line btn--sm" href="./?p=${encodeURIComponent(i.id)}&review=1">✎ 후기 쓰기${list.length > 1 ? ` <small>${esc(i.name.replace(/\s*\(.*\)$/, "").slice(0, 18))}</small>` : ""}</a>`).join("")}</div>`;
+  }
+
+  // 내 쿠폰 · 포인트 (coupons-points.sql 실행 후)
+  async function loadBenefits() {
+    const box = $("#benefits");
+    const { data, error } = await sb.rpc("my_benefits");
+    if (error || !data) return;
+    const cps = data.coupons || [], logs = data.logs || [];
+    const d = s => fmtDate(s, false);
+    box.hidden = false;
+    box.innerHTML = `
+      <div class="mo__bnf-top">
+        <div><p>포인트</p><strong>${(Number(data.points) || 0).toLocaleString()}<small>P</small></strong><span>1P = 1원 · 홈페이지 주문에서 사용${Number(data.point_rate) > 0 ? ` · 결제 금액의 ${Number(data.point_rate)}% 적립` : ""}</span></div>
+        <div><p>쿠폰</p><strong>${cps.length}<small>장</small></strong><span>후기를 쓰면 쿠폰을 드려요</span></div>
+      </div>
+      ${cps.length ? `<ul class="mo__cps">${cps.map(c => `<li><b>${won(c.amount)}</b><span>${esc(c.name)}${c.min_order ? ` · 상품 ${won(c.min_order)} 이상` : ""}</span><em>${d(c.expires_at)}까지</em></li>`).join("")}</ul>` : ""}
+      ${logs.length ? `<details class="mo__logs"><summary>포인트 내역</summary><ul>${logs.map(l => `<li><span>${d(l.created_at)}</span><span>${esc(l.reason)}</span><b class="${l.amount > 0 ? "is-plus" : "is-minus"}">${l.amount > 0 ? "+" : ""}${Number(l.amount).toLocaleString()}P</b></li>`).join("")}</ul></details>` : ""}`;
+    if (location.hash === "#benefits") box.scrollIntoView();
   }
 
   // 남은 시간 표시
@@ -49,6 +76,7 @@
       return;
     }
     $("#who").textContent = `${session.user.email} 님의 주문·매입 신청`;
+    loadBenefits();
     const { data, error } = await sb.rpc("my_requests");
     if (error) { $("#list").innerHTML = `<p class="mo__empty">주문내역을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>`; return; }
     $("#list").innerHTML = data.length
@@ -66,7 +94,7 @@
     const box = $("#found");
     if (error && /[가-힣]/.test(error.message || "")) { box.innerHTML = `<p class="mo__empty">${esc(error.message)}</p>`; return; }
     if (error || !data || !data.length) { box.innerHTML = `<p class="mo__empty">일치하는 접수가 없어요. 접수번호와 휴대폰 번호를 확인해 주세요.</p>`; return; }
-    box.innerHTML = data.map(r => card({ ...r, code })).join("");
+    box.innerHTML = data.map(r => card({ ...r, code, guest: true })).join("");
   });
 
   init();
