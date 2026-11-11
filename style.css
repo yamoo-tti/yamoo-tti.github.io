@@ -162,13 +162,12 @@ ul, ol { padding: 0; list-style: none; }
 .slide--product::after { background: linear-gradient(90deg, #0d0c09 0%, #0d0c09 38%, rgba(13,12,9,.55) 58%, rgba(13,12,9,0) 80%); }
 .gold-rain { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
 /* 금빛 그라데이션 글씨 (밝은 크림 → 금색). 그라데이션을 못 그리는 브라우저는 단색 금색으로 */
-.slide--rain h1 { color: #f6e2ae; }
-@supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  .slide--rain h1 { background: linear-gradient(180deg, #fffaf0 0%, #f7e3b0 50%, #e8c77a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-}
-/* 다크 모드 휴대폰(삼성 인터넷 등)은 그라데이션 글씨를 어둡게 바꿔버려서 단색 금색으로 */
-@media (prefers-color-scheme: dark) {
-  .slide--rain h1 { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: #f6e2ae; text-shadow: 0 2px 16px rgba(0,0,0,.8); }
+/* 휴대폰은 다크 모드가 그라데이션 글씨를 어둡게 바꿔버려서 항상 단색 금색, 컴퓨터(마우스)에서만 그라데이션 */
+.slide--rain h1 { color: #f6e2ae; text-shadow: 0 2px 16px rgba(0,0,0,.8); }
+@media (hover: hover) and (pointer: fine) and (prefers-color-scheme: light) {
+  @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+    .slide--rain h1 { background: linear-gradient(180deg, #fffaf0 0%, #f7e3b0 50%, #e8c77a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; }
+  }
 }
 @media (max-width: 760px) {
   .slide.slide--rain::after { background: linear-gradient(180deg, rgba(10,9,7,.45) 0%, rgba(10,9,7,.8) 45%, rgba(10,9,7,.94) 75%); }
