@@ -1,4 +1,5 @@
 :root {
+  color-scheme: only light; /* 휴대폰 브라우저 다크 모드가 색을 바꾸지 않게 */
   --bg: #fbf9f5;
   --tint: #f4efe6;
   --card: #ffffff;
