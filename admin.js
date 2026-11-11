@@ -4,7 +4,7 @@
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
 
-  const GRADE = { basic: "일반", silver: "실버", gold: "골드", vip: "VIP" };
+  const GRADE = { basic: "브론즈", silver: "실버", gold: "골드", vip: "VIP" };
   const STATUS = { active: "정상", suspended: "정지", withdrawn: "탈퇴" };
   const ROLE = { member: "회원", admin: "관리자" };
   const KIND = { bar: "골드바", zodiac: "카드형 1g", silver: "실버", accessory: "주얼리 (24K·실버)", gift: "순금선물" };
@@ -1391,6 +1391,8 @@
   const SHOP_FIELDS = ["bank_name", "bank_account", "bank_holder", "pay_minutes", "delivery_fee", "owner_phone", "sms_sender"];
   const BNF_FIELDS = ["review_coupon", "coupon_min", "coupon_months"];
   let hasBnf = false;
+  const TIER_FIELDS = ["signup_coupon", "tier_min_order", "coupon_x"];
+  let hasTier = false;
   async function loadShop() {
     const f = $("#shopForm");
     const { data, error } = await sb.from("shop_info").select("*").eq("id", 1).maybeSingle();
@@ -1401,6 +1403,13 @@
     hasBnf = "coupon_months" in data;
     $("#bnfSet").hidden = !hasBnf;
     if (hasBnf) { BNF_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; }); f.review_event.checked = !!data.review_event; }
+    // 회원 등급 칸 (membership.sql 실행 전이면 숨김)
+    hasTier = "tier_rule" in data;
+    $("#tierSet").hidden = !hasTier;
+    if (hasTier) {
+      TIER_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; });
+      (data.tier_rule || []).forEach(r => { if (f[`t_${r.g}_n`]) { f[`t_${r.g}_n`].value = r.n; f[`t_${r.g}_amt`].value = r.amt; } });
+    }
     $("#shopMeta").textContent = `최종 수정 ${fmtDate(data.updated_at)}`;
   }
   $("#shopForm").addEventListener("submit", async e => {
@@ -1410,7 +1419,14 @@
     SHOP_FIELDS.forEach(k => { row[k] = ["pay_minutes", "delivery_fee"].includes(k) ? parseInt(f[k].value, 10) : f[k].value.trim(); });
     if (hasBnf) {
       BNF_FIELDS.forEach(k => { row[k] = Number(f[k].value) || 0; });
-      row.coupon_months = Math.min(36, Math.max(1, row.coupon_months));      row.review_event = f.review_event.checked;
+      row.coupon_months = Math.min(36, Math.max(1, row.coupon_months));
+      row.review_event = f.review_event.checked;
+    }
+    if (hasTier) {
+      TIER_FIELDS.forEach(k => { row[k] = Math.max(0, Number(f[k].value) || 0); });
+      row.coupon_x = Math.min(100, row.coupon_x);
+      row.tier_rule = ["silver", "gold", "vip"].map(g => ({ g, n: Math.max(1, parseInt(f[`t_${g}_n`].value, 10) || 1), amt: Math.max(0, Number(f[`t_${g}_amt`].value) || 0) }));
+      if (!(row.tier_rule[0].n < row.tier_rule[1].n && row.tier_rule[1].n < row.tier_rule[2].n)) return toast("구매 횟수는 실버 < 골드 < VIP 순서로 커져야 해요", true);
     }
     btn.disabled = true;
     const { error } = await sb.from("shop_info").update(row).eq("id", 1);

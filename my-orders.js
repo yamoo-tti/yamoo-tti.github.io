@@ -52,8 +52,16 @@
     const cps = data.coupons || [];
     const d = s => fmtDate(s, false);
     box.hidden = false;
+    // 회원 등급 (membership.sql 실행 후)
+    const GN = window.YAMOO.GRADE_NAME || { basic: "브론즈", silver: "실버", gold: "골드", vip: "VIP" }, RK = { basic: 0, silver: 1, gold: 2, vip: 3 };
+    const badge = gg => window.YAMOO.gradeBadge ? window.YAMOO.gradeBadge(gg, 30) : "";
+    const rules = Array.isArray(data.tier_rule) ? data.tier_rule : null, cnt = Number(data.count) || 0, g = data.grade || "basic";
+    const next = rules && rules.find(r => cnt < r.n && RK[r.g] > RK[g]);
+    const tier = rules ? `<div class="mo__tier"><p>회원 등급</p><strong class="mo__tiername">${badge(g)}${GN[g] || g}</strong><span>구매 ${cnt}회${data.tier_min_order ? ` (상품 ${won(data.tier_min_order)} 이상 주문)` : ""}</span>
+      <span>${next ? `<b>${GN[next.g]}</b>까지 ${next.n - cnt}회 남음 · 달성하면 ${won(next.amt)} 쿠폰` : "최고 등급이에요. 감사합니다!"}</span></div>` : "";
     box.innerHTML = `
-      <div class="mo__bnf-top mo__bnf-top--one">
+      <div class="mo__bnf-top${tier ? "" : " mo__bnf-top--one"}">
+        ${tier}
         <div><p>내 쿠폰</p><strong>${cps.length}<small>장</small></strong><span>후기를 쓰면 쿠폰을 드려요 · 홈페이지 주문 전용 · 골드바·실버바 제외</span></div>
       </div>
       ${cps.length ? `<ul class="mo__cps">${cps.map(c => `<li><b>${won(c.amount)}</b><span>${esc(c.name)}${c.min_order ? ` · 상품 ${won(c.min_order)} 이상` : ""}</span><em>${d(c.expires_at)}까지</em></li>`).join("")}</ul>` : ""}`;

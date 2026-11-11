@@ -163,7 +163,10 @@
 
   /* ---------- 쿠폰 (회원 · coupons-points.sql 실행 후) ---------- */
   let bnf = null, bnfCfg = null; // bnf: 내 쿠폰, bnfCfg: 후기 쿠폰 금액(비회원 안내용)
-  if (sb) sb.from("shop_info").select("review_event,review_coupon,coupon_min").eq("id", 1).maybeSingle()
+  // 비회원 안내용 (membership.sql 실행 전이면 등급 칸 없이 다시 불러옴)
+  const CFG = "review_event,review_coupon,coupon_min";
+  if (sb) sb.from("shop_info").select(CFG + ",signup_coupon,tier_rule").eq("id", 1).maybeSingle()
+    .then(r => r.error ? sb.from("shop_info").select(CFG).eq("id", 1).maybeSingle() : r)
     .then(({ data }) => { bnfCfg = data || null; }, () => {});
   async function loadBnf() {
     bnf = null;
@@ -188,8 +191,9 @@
     const box = bnfBox(form);
     if (!bnf) {
       const c = bnfCfg;
-      box.innerHTML = c && c.review_event && c.review_coupon > 0
-        ? `<p class="bnf__hint">🎁 <b>회원으로 주문하면</b> 후기 쓰고 ${won(c.review_coupon)} 쿠폰 <button type="button" class="bnf__login" data-bnflogin>로그인·가입</button></p>`
+      const perks = c ? [c.signup_coupon > 0 ? `가입하면 ${won(c.signup_coupon)} 쿠폰` : "", c.tier_rule ? "구매할수록 등급업 쿠폰" : "", c.review_event && c.review_coupon > 0 ? `후기 쓰면 ${won(c.review_coupon)} 쿠폰` : ""].filter(Boolean) : [];
+      box.innerHTML = perks.length
+        ? `<p class="bnf__hint">🎁 <b>회원 혜택</b> ${perks.join(" · ")} <button type="button" class="bnf__login" data-bnflogin>로그인·가입</button></p>`
         : "";
       return;
     }

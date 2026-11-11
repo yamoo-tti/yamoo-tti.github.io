@@ -236,5 +236,30 @@
   }
   trackVisit();
 
-  window.YAMOO = { sizeUnit, sizeList, hasAddon, needsPick, pickLabel, sized, loadStats, rankProducts, groupOptions, optLabel, optPick, optTitle,trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
+  // 회원 등급 뱃지: 금속 테두리에 원석이 박힌 모양 (브론즈·실버·골드·VIP 다이아)
+  const GEM = {
+    basic:  { n: "브론즈", m: ["#f3c196", "#a8653a", "#5e3216"], s: ["#ff9b7a", "#b8321f", "#4f0c08"] }, // 동 + 가넷
+    silver: { n: "실버",   m: ["#ffffff", "#aeb7c1", "#5f6873"], s: ["#a9ccff", "#2a5bd0", "#0c1f5c"] }, // 은 + 사파이어
+    gold:   { n: "골드",   m: ["#fff4c4", "#d6a419", "#7d5a06"], s: ["#ff9fae", "#c8102e", "#540513"] }, // 금 + 루비
+    vip:    { n: "VIP",    m: ["#ffffff", "#d3dce6", "#7d8a9a"], s: ["#ffffff", "#e4f5ff", "#86c3ea"] }, // 백금 + 다이아몬드
+  };
+  const GRADE_NAME = { basic: "브론즈", silver: "실버", gold: "골드", vip: "VIP" };
+  function gradeBadge(g, size) {
+    const k = GEM[g] ? g : "basic", t = GEM[k], id = "gb-" + k + "-" + Math.random().toString(36).slice(2, 6), w = size || 20;
+    return `<svg class="gbadge gbadge--${k}" viewBox="0 0 24 24" width="${w}" height="${w}" role="img" aria-label="${t.n} 등급"><title>${t.n} 등급</title>
+      <defs><linearGradient id="${id}m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${t.m[0]}"/><stop offset=".55" stop-color="${t.m[1]}"/><stop offset="1" stop-color="${t.m[2]}"/></linearGradient>
+      <radialGradient id="${id}s" cx=".36" cy=".3" r=".85"><stop offset="0" stop-color="${t.s[0]}"/><stop offset=".55" stop-color="${t.s[1]}"/><stop offset="1" stop-color="${t.s[2]}"/></radialGradient></defs>
+      <polygon points="8,1.5 16,1.5 22.5,8 22.5,16 16,22.5 8,22.5 1.5,16 1.5,8" fill="url(#${id}m)" stroke="${t.m[2]}" stroke-width=".8"/>
+      <polygon points="9.3,4.3 14.7,4.3 19.7,9.3 19.7,14.7 14.7,19.7 9.3,19.7 4.3,14.7 4.3,9.3" fill="none" stroke="${t.m[0]}" stroke-opacity=".7" stroke-width=".6"/>
+      <circle cx="12" cy="12" r="6.1" fill="${t.m[2]}" opacity=".45"/>
+      <circle cx="12" cy="12" r="5.5" fill="url(#${id}s)"/>
+      <polygon points="12,8.4 15.1,10.2 15.1,13.8 12,15.6 8.9,13.8 8.9,10.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width=".45"/>
+      <path d="M12 6.5v1.9M16.8 9.3l-1.7 .9M16.8 14.7l-1.7-.9M12 17.5v-1.9M7.2 14.7l1.7-.9M7.2 9.3l1.7 .9" stroke="#fff" stroke-opacity=".4" stroke-width=".45"/>
+      <ellipse cx="10.3" cy="9.7" rx="1.7" ry=".9" fill="#fff" opacity=".8" transform="rotate(-32 10.3 9.7)"/>
+      <g fill="${t.m[0]}" stroke="${t.m[2]}" stroke-width=".3"><circle cx="12" cy="6.2" r=".85"/><circle cx="17.8" cy="12" r=".85"/><circle cx="12" cy="17.8" r=".85"/><circle cx="6.2" cy="12" r=".85"/></g>
+      ${k === "vip" ? `<path d="M19.6 1.2l.55 1.35 1.35.55-1.35.55-.55 1.35-.55-1.35-1.35-.55 1.35-.55z" fill="#fff"/>` : ""}
+    </svg>`;
+  }
+
+  window.YAMOO = { gradeBadge, GRADE_NAME, sizeUnit, sizeList, hasAddon, needsPick, pickLabel, sized, loadStats, rankProducts, groupOptions, optLabel, optPick, optTitle,trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
 })();

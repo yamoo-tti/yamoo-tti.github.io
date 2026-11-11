@@ -88,6 +88,9 @@ ul, ol { padding: 0; list-style: none; }
 .util__links button { font-size: 12px; color: inherit; padding: 0; }
 .util__links button:hover { color: #fff; }
 .util__me b { color: #fff; font-weight: 500; }
+.util__grade { display: inline-flex; align-items: center; margin-right: -6px; transition: transform .15s; }
+.util__grade:hover { transform: scale(1.12); }
+.gbadge { display: block; flex: none; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, .45)); }
 .util__admin { color: var(--gold-hi) !important; font-weight: 500; }
 
 /* ---------- Live price ---------- */
@@ -1017,3 +1020,8 @@ ul, ol { padding: 0; list-style: none; }
 .rv__giftTag { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
 .rv__disc { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 0 0 12px; }
 .mo__bnf-top--one { grid-template-columns: 1fr; }
+/* 회원 등급 */
+.mo__tier { background: linear-gradient(135deg, #f8efd9, #f3e4bf) !important; }
+.mo__tier span b { color: var(--ink); }
+
+.mo__tiername { display: flex !important; align-items: center; gap: 8px; }

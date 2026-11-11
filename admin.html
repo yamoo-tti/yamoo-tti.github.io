@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261111j">
+  <link rel="stylesheet" href="admin.css?v=20261111k">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -204,7 +204,7 @@
         <form class="filters" id="filterForm">
           <input type="search" name="q" placeholder="이름 · 이메일 · 연락처 검색">
           <select name="status"><option value="">전체 상태</option><option value="active">정상</option><option value="suspended">정지</option><option value="withdrawn">탈퇴</option></select>
-          <select name="grade"><option value="">전체 등급</option><option value="basic">일반</option><option value="silver">실버</option><option value="gold">골드</option><option value="vip">VIP</option></select>
+          <select name="grade"><option value="">전체 등급</option><option value="basic">브론즈</option><option value="silver">실버</option><option value="gold">골드</option><option value="vip">VIP</option></select>
           <select name="role"><option value="">전체 권한</option><option value="member">회원</option><option value="admin">관리자</option></select>
           <button class="btn btn--dark" type="submit">검색</button>
         </form>
@@ -267,7 +267,18 @@
             <label class="inline"><input type="checkbox" name="review_event"> 후기 이벤트 켜기 <small>첫 화면 팝업 + 후기 쓰면 쿠폰 자동 지급</small></label>
             <label>후기 쿠폰 금액 (원)<input type="number" name="review_coupon" min="0" step="1000"></label>
             <label>쿠폰 쓸 수 있는 최소 상품 금액 (원) <small>골드바·실버바·카드형 골드바는 쿠폰 사용 불가</small><input type="number" name="coupon_min" min="0" step="10000"></label>
-            <label>쿠폰 유효기간 (개월) <small>받은 날부터</small><input type="number" name="coupon_months" min="1" max="36" step="1"></label>
+            <label>쿠폰 유효기간 (개월) <small>받은 날부터 · 모든 쿠폰 공통</small><input type="number" name="coupon_months" min="1" max="36" step="1"></label>
+          </fieldset>
+          <fieldset id="tierSet" hidden><legend>회원 등급 · 가입 쿠폰 <small>등급이 오르면 쿠폰 자동 지급 · 관리자 계정 제외</small></legend>
+            <label>가입 쿠폰 금액 (원) <small>0이면 안 줌</small><input type="number" name="signup_coupon" min="0" step="1000"></label>
+            <label>구매 1회로 치는 최소 상품 금액 (원) <small>입금 확인된 회원 주문 · 택배비 제외</small><input type="number" name="tier_min_order" min="0" step="10000"></label>
+            <label>등급·가입 쿠폰 최소 주문 = 쿠폰 금액 × <small>20이면 할인율 최대 5% (1만원 쿠폰 → 20만원 이상)</small><input type="number" name="coupon_x" min="0" max="100" step="1"></label>
+            <div class="tier-grid">
+              <span></span><b>몇 회 구매</b><b>등급업 쿠폰 (원)</b>
+              <span>실버</span><input type="number" name="t_silver_n" min="1" step="1"><input type="number" name="t_silver_amt" min="0" step="1000">
+              <span>골드</span><input type="number" name="t_gold_n" min="1" step="1"><input type="number" name="t_gold_amt" min="0" step="1000">
+              <span>VIP</span><input type="number" name="t_vip_n" min="1" step="1"><input type="number" name="t_vip_amt" min="0" step="1000">
+            </div>
           </fieldset>
           <div class="settings__foot">
             <p id="shopMeta" class="muted"></p>
@@ -296,7 +307,7 @@
         <label>이름<input name="name" maxlength="40"></label>
         <label>연락처<input name="phone" maxlength="20"></label>
         <div class="row2">
-          <label>등급<select name="grade"><option value="basic">일반</option><option value="silver">실버</option><option value="gold">골드</option><option value="vip">VIP</option></select></label>
+          <label>등급<select name="grade"><option value="basic">브론즈</option><option value="silver">실버</option><option value="gold">골드</option><option value="vip">VIP</option></select></label>
           <label>권한<select name="role"><option value="member">회원</option><option value="admin">관리자</option></select></label>
         </div>
         <label>상태
@@ -328,7 +339,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261104q"></script>
-  <script src="admin.js?v=20261111k"></script>
+  <script src="common.js?v=20261111a"></script>
+  <script src="admin.js?v=20261111m"></script>
 </body>
 </html>
