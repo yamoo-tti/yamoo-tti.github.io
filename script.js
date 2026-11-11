@@ -258,7 +258,8 @@ function beanStep(d) {
 function renderBars() {
   renderBean();
   $("#bars").innerHTML = ofKind("bar").map(barCard).join("");
-  const silver = ofKind("silver");
+  // 실버: 은 그래뉼을 앞에, 실버바를 맨 뒤에 (같은 종류끼리는 원래 순서 유지)
+  const silver = ofKind("silver").sort((a, b) => a.name.includes("그래뉼") ? (b.name.includes("그래뉼") ? 0 : -1) : (b.name.includes("그래뉼") ? 1 : 0));
   $("#silverBlock").hidden = !silver.length;
   $("#silverBars").innerHTML = silver.map(barCard).join("");
   refreshSearch();
