@@ -1393,6 +1393,8 @@
   let hasBnf = false;
   const TIER_FIELDS = ["signup_coupon", "tier_min_order", "coupon_x"];
   let hasTier = false;
+  const ANNIV_FIELDS = ["anniv_coupon", "anniv_min", "anniv_lead", "anniv_days"];
+  let hasAnniv = false;
   async function loadShop() {
     const f = $("#shopForm");
     const { data, error } = await sb.from("shop_info").select("*").eq("id", 1).maybeSingle();
@@ -1410,6 +1412,10 @@
       TIER_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; });
       (data.tier_rule || []).forEach(r => { if (f[`t_${r.g}_n`]) { f[`t_${r.g}_n`].value = r.n; f[`t_${r.g}_amt`].value = r.amt; } });
     }
+    // 생일·기념일 쿠폰 칸 (anniversary.sql 실행 전이면 숨김)
+    hasAnniv = "anniv_coupon" in data;
+    $("#annivSet").hidden = !hasAnniv;
+    if (hasAnniv) ANNIV_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; });
     $("#shopMeta").textContent = `최종 수정 ${fmtDate(data.updated_at)}`;
   }
   $("#shopForm").addEventListener("submit", async e => {
@@ -1427,6 +1433,11 @@
       row.coupon_x = Math.min(100, row.coupon_x);
       row.tier_rule = ["silver", "gold", "vip"].map(g => ({ g, n: Math.max(1, parseInt(f[`t_${g}_n`].value, 10) || 1), amt: Math.max(0, Number(f[`t_${g}_amt`].value) || 0) }));
       if (!(row.tier_rule[0].n < row.tier_rule[1].n && row.tier_rule[1].n < row.tier_rule[2].n)) return toast("구매 횟수는 실버 < 골드 < VIP 순서로 커져야 해요", true);
+    }
+    if (hasAnniv) {
+      ANNIV_FIELDS.forEach(k => { row[k] = Math.max(0, parseInt(f[k].value, 10) || 0); });
+      row.anniv_lead = Math.min(30, row.anniv_lead);
+      row.anniv_days = Math.min(365, Math.max(1, row.anniv_days));
     }
     btn.disabled = true;
     const { error } = await sb.from("shop_info").update(row).eq("id", 1);

@@ -1025,3 +1025,17 @@ ul, ol { padding: 0; list-style: none; }
 .mo__tier span b { color: var(--ink); }
 
 .mo__tiername { display: flex !important; align-items: center; gap: 8px; }
+
+/* 생일 · 기념일 쿠폰 등록 */
+.mo__anniv { margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; padding: 14px; background: #fff; }
+.mo__anniv h3 { font-size: 15px; font-weight: 700; margin: 0 0 4px; }
+.mo__anniv h3 small { display: block; font-size: 12px; font-weight: 500; color: var(--gold-2); margin-top: 2px; }
+.mo__anniv-desc { font-size: 12.5px; color: var(--ink-2); margin: 0 0 10px; line-height: 1.6; }
+.mo__anniv-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; margin-bottom: 8px; }
+.mo__anniv-row > span { width: 48px; font-weight: 600; }
+.mo__anniv-row select { padding: 6px 4px; border: 1px solid var(--line); border-radius: 6px; background: #fff; font-size: 14px; }
+.mo__anniv-row input { flex: 1 1 180px; min-width: 0; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; }
+.mo__anniv-ok { display: flex; gap: 6px; align-items: flex-start; font-size: 12px; color: var(--ink-2); line-height: 1.5; margin: 6px 0; }
+.mo__anniv-ok input { margin-top: 2px; flex: none; }
+.mo__anniv-btns { display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px; }
+.mo__anniv-msg { font-size: 12.5px; color: var(--gold-2); margin: 6px 0 0; min-height: 1em; }

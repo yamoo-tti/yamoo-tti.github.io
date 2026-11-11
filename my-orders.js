@@ -65,7 +65,61 @@
         <div><p>내 쿠폰</p><strong>${cps.length}<small>장</small></strong><span>후기를 쓰면 쿠폰을 드려요 · 홈페이지 주문 전용 · 골드바·실버바 제외</span></div>
       </div>
       ${cps.length ? `<ul class="mo__cps">${cps.map(c => `<li><b>${won(c.amount)}</b><span>${esc(c.name)}${c.min_order ? ` · 상품 ${won(c.min_order)} 이상` : ""}</span><em>${d(c.expires_at)}까지</em></li>`).join("")}</ul>` : ""}`;
+    renderAnniv(box);
     if (location.hash === "#benefits") box.scrollIntoView();
+  }
+
+  // 생일 · 기념일 등록 (anniversary.sql 실행 후) — 그날 7일 전에 쿠폰 자동 지급
+  async function renderAnniv(box) {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    const uid = session.user.id;
+    const [pf, si] = await Promise.all([
+      sb.from("profiles").select("birthday,anniv_name,anniv_date,anniv_agreed_at,marketing").eq("id", uid).maybeSingle(),
+      sb.from("shop_info").select("anniv_coupon,anniv_min,anniv_days,anniv_lead").eq("id", 1).maybeSingle(),
+    ]);
+    if (pf.error || si.error || !pf.data || !si.data || !(si.data.anniv_coupon > 0)) return; // SQL 실행 전이거나 꺼져 있으면 숨김
+    const p = pf.data, c = si.data;
+    const opts = (n, sel) => `<option value="">-</option>` + Array.from({ length: n }, (_, i) => { const v = p2(i + 1); return `<option value="${v}"${v === sel ? " selected" : ""}>${i + 1}</option>`; }).join("");
+    const md = s => (s || "-").split("-");
+    const [bm, bd] = md(p.birthday), [am, ad] = md(p.anniv_date);
+    const el = document.createElement("form");
+    el.className = "mo__anniv";
+    el.innerHTML = `
+      <h3>🎂 생일 · 기념일 쿠폰 <small>${won(c.anniv_coupon)} · 상품 ${won(c.anniv_min)} 이상 · 골드바·실버바 제외</small></h3>
+      <p class="mo__anniv-desc">날짜를 등록하면 그날 <b>${c.anniv_lead}일 전</b>에 쿠폰을 드려요 (${c.anniv_days}일 안에 사용). 생일·기념일 각각 1년에 1장이에요.</p>
+      <div class="mo__anniv-row"><span>생일</span><select name="bm" aria-label="생일 월">${opts(12, bm)}</select>월<select name="bd" aria-label="생일 일">${opts(31, bd)}</select>일</div>
+      <div class="mo__anniv-row"><input name="an" maxlength="20" placeholder="기념일 이름 (예: 결혼기념일)" value="${esc(p.anniv_name || "")}"><select name="am" aria-label="기념일 월">${opts(12, am)}</select>월<select name="ad" aria-label="기념일 일">${opts(31, ad)}</select>일</div>
+      <label class="mo__anniv-ok"><input type="checkbox" name="agree"${p.anniv_agreed_at ? " checked" : ""}> <span>[필수] 기념일 쿠폰 발급을 위해 생일·기념일(월·일)을 수집·이용하는 데 동의합니다. 삭제하거나 탈퇴하면 바로 지워요.</span></label>
+      <label class="mo__anniv-ok"><input type="checkbox" name="mkt"${p.marketing ? " checked" : ""}> <span>[선택] 쿠폰·이벤트 혜택 문자(광고)를 받겠습니다. 끄면 문자는 오지 않고 쿠폰은 그대로 드려요.</span></label>
+      <div class="mo__anniv-btns">${p.anniv_agreed_at ? `<button type="button" class="btn btn--line btn--sm" data-annivdel>날짜 삭제</button>` : ""}<button class="btn btn--dark btn--sm">저장</button></div>
+      <p class="mo__anniv-msg" role="status"></p>`;
+    box.appendChild(el);
+    const msg = el.querySelector(".mo__anniv-msg");
+    const save = async patch => {
+      const { error } = await sb.from("profiles").update(patch).eq("id", uid);
+      if (error) { msg.textContent = "저장하지 못했어요. 잠시 후 다시 시도해 주세요."; return false; }
+      return true;
+    };
+    el.addEventListener("submit", async e => {
+      e.preventDefault();
+      const f = el, val = (m, d) => f[m].value && f[d].value ? `${f[m].value}-${f[d].value}` : null;
+      const birthday = val("bm", "bd"), anniv_date = val("am", "ad");
+      if ((f.bm.value && !f.bd.value) || (!f.bm.value && f.bd.value) || (f.am.value && !f.ad.value) || (!f.am.value && f.ad.value)) { msg.textContent = "월과 일을 모두 골라 주세요."; return; }
+      const bad = s => s && new Date(2024, +s.slice(0, 2) - 1, +s.slice(3)).getMonth() !== +s.slice(0, 2) - 1; // 2월 30일 같은 날짜
+      if (bad(birthday) || bad(anniv_date)) { msg.textContent = "없는 날짜예요. 다시 골라 주세요."; return; }
+      const dated = birthday || anniv_date;
+      if (dated && !f.agree.checked) { msg.textContent = "날짜를 저장하려면 [필수] 수집·이용에 동의해 주세요."; return; }
+      const ok = await save({ birthday, anniv_date, anniv_name: anniv_date ? (f.an.value.trim() || null) : null, anniv_agreed_at: dated ? (p.anniv_agreed_at || new Date().toISOString()) : null, marketing: f.mkt.checked });
+      if (!ok) return;
+      const { data: n } = await sb.rpc("my_anniv_check");
+      if (n > 0) { loadBenefits(); return; } // 쿠폰이 바로 나왔으면 목록 새로 그림
+      msg.textContent = dated ? "저장했어요. 날짜가 다가오면 쿠폰을 드릴게요." : "저장했어요.";
+    });
+    el.addEventListener("click", async e => {
+      if (!e.target.closest("[data-annivdel]") || !confirm("등록한 생일·기념일을 지울까요?")) return;
+      if (await save({ birthday: null, anniv_date: null, anniv_name: null, anniv_agreed_at: null })) loadBenefits();
+    });
   }
 
   // 남은 시간 표시
