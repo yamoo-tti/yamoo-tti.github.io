@@ -221,9 +221,7 @@ function renderBean() {
       <b>${esc(Y.optLabel(o))}</b><span>${sub(o)}</span><em>${o.sold_out ? "품절" : won(priceOf(o))}</em>
     </button>`).join("");
   $("#beanSel").innerHTML = `<b>${esc(Y.optLabel(p))}</b> 선택 · ${/g$/.test(Y.optLabel(p)) ? sub(p) : `${w}g`}`;
-  $("#beanPrice").textContent = p.sold_out ? "품절" : won(price);
-  $("#beanPerG").textContent = p.sold_out || !price ? "" : `1g당 약 ${won(round100(price / w))}`;
-  const cart = $("#beanCart"), buy = $("#beanBuy");
+  $("#beanPrice").textContent = p.sold_out ? "품절" : won(price);  const cart = $("#beanCart"), buy = $("#beanBuy");
   cart.dataset.cart = orderKey(p); buy.dataset.order = orderKey(p); $("#beanInfo").dataset.info = orderKey(p);
   cart.disabled = buy.disabled = !!p.sold_out;
   buy.textContent = p.sold_out ? "품절" : "바로 구매";
