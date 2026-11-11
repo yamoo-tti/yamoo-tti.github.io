@@ -57,6 +57,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--g
 .side__me p { color: #fff; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
 .side__me a, .side__me button { color: #8f877a; text-align: left; text-decoration: none; }
 .side__me a:hover, .side__me button:hover { color: #fff; }
+.side__home { display: none; } /* 모바일 전용: 홈페이지로 돌아가는 버튼 */
 
 .main { padding: 28px clamp(16px, 3vw, 40px) 64px; min-width: 0; }
 .view { display: flex; flex-direction: column; gap: 20px; }
@@ -223,6 +224,8 @@ button.kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 20px -12px rgb
   .side { position: sticky; top: 0; z-index: 20; height: auto; flex-direction: row; align-items: center; gap: 12px; padding: 10px 12px; overflow-x: auto; }
   .side .brand { font-size: 16px; padding: 0; flex: none; }
   .side .brand span { display: none; }
+  .side__home { display: inline-flex; align-items: center; flex: none; padding: 7px 12px; border: 1px solid var(--gold-hi); border-radius: 999px; color: var(--gold-hi); font-size: 13px; font-weight: 500; text-decoration: none; white-space: nowrap; }
+  .side__home:active { background: #2b261c; }
   .side__nav { flex-direction: row; }
   .side__nav button { padding: 8px 10px; font-size: 13px; white-space: nowrap; }
   .side__nav svg { display: none; }
