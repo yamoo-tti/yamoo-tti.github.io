@@ -160,7 +160,10 @@ ul, ol { padding: 0; list-style: none; }
 .slide--product::before { background-position: 70% 60%; background-color: #0d0c09; }
 .slide--product::after { background: linear-gradient(90deg, #0d0c09 0%, #0d0c09 38%, rgba(13,12,9,.55) 58%, rgba(13,12,9,0) 80%); }
 .gold-rain { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-.slide--rain h1 { background: linear-gradient(180deg, #fff6dc 0%, #ecd08a 55%, #c09a45 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.slide--rain h1 { background: linear-gradient(180deg, #fffaf0 0%, #f7e3b0 50%, #ecd08a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 14px rgba(0,0,0,.75)); }
+@media (max-width: 760px) {
+  .slide.slide--rain::after { background: linear-gradient(180deg, rgba(10,9,7,.45) 0%, rgba(10,9,7,.8) 45%, rgba(10,9,7,.94) 75%); }
+}
 .slide__eyebrow { font-family: var(--serif-en); font-style: italic; font-size: 20px; color: var(--gold-hi); margin-bottom: 14px; }
 .slide h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(36px, 5.4vw, 68px); line-height: 1.22; letter-spacing: -.02em; }
 .slide__lead { margin: 22px 0 36px; font-size: clamp(15px, 1.3vw, 17px); color: #ddd5c6; font-weight: 300; }
