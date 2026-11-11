@@ -46,7 +46,7 @@
       return;
     }
     const admin = profile.role === "admin" ? `<a href="admin.html" class="util__admin">관리자</a>` : "";
-    const badge = profile.role === "admin" ? "" : `<a href="my-orders.html#benefits" class="util__grade" title="${GRADE_NAME[profile.grade] || "브론즈"} 등급 · 혜택 보기">${gradeBadge(profile.grade)}</a>`;
+    const badge = `<a href="my-orders.html#benefits" class="util__grade" title="${GRADE_NAME[profile.grade] || "브론즈"} 등급 · 혜택 보기">${gradeBadge(profile.grade)}</a>`;
     nav.innerHTML = `${badge}<span class="util__me"><b>${esc(profile.name || profile.email)}</b>님</span>${admin}<button type="button" id="logoutBtn">로그아웃</button><a href="my-orders.html">주문내역</a><a href="faq.html">고객센터</a>`;
   }
 
