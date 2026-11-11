@@ -160,7 +160,8 @@ ul, ol { padding: 0; list-style: none; }
 .slide--product::before { background-position: 70% 60%; background-color: #0d0c09; }
 .slide--product::after { background: linear-gradient(90deg, #0d0c09 0%, #0d0c09 38%, rgba(13,12,9,.55) 58%, rgba(13,12,9,0) 80%); }
 .gold-rain { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-.slide--rain h1 { background: linear-gradient(180deg, #fffaf0 0%, #f7e3b0 50%, #ecd08a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 14px rgba(0,0,0,.75)); }
+/* 단색 + 그림자: 아이폰 사파리에서 글씨 그라데이션(background-clip:text)이 흐리게 보이는 문제 때문에 단색 사용 */
+.slide--rain h1 { color: #f6e2ae; text-shadow: 0 2px 16px rgba(0,0,0,.8), 0 0 2px rgba(0,0,0,.5); }
 @media (max-width: 760px) {
   .slide.slide--rain::after { background: linear-gradient(180deg, rgba(10,9,7,.45) 0%, rgba(10,9,7,.8) 45%, rgba(10,9,7,.94) 75%); }
 }
