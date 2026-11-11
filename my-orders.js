@@ -37,7 +37,11 @@
       ? r.items.filter(i => i.product_id && !i.discount).map(i => ({ id: i.product_id, name: i.name }))
       : r.product_id ? [{ id: r.product_id, name: "" }] : [];
     if (!list.length) return "";
-    return `<div class="mo__rv">${list.map(i => `<a class="btn btn--line btn--sm" href="./?p=${encodeURIComponent(i.id)}&review=1">✎ 후기 쓰기${list.length > 1 ? ` <small>${esc(i.name.replace(/\s*\(.*\)$/, "").slice(0, 18))}</small>` : ""}</a>`).join("")}</div>`;
+    const short = n => esc(String(n || "").replace(/\s*\(.*\)$/, "").slice(0, 18));
+    // 이미 후기를 쓴 주문: 상품 화면에서 내 후기를 고칠 수 있게
+    if (r.reviewed) return `<div class="mo__rv"><span class="mo__rvdone">✓ 후기 작성 완료</span>${list.map(i => `<a class="btn btn--line btn--sm" href="./?p=${encodeURIComponent(i.id)}#pdReviews">내 후기 보기·수정${list.length > 1 ? ` <small>${short(i.name)}</small>` : ""}</a>`).join("")}</div>`;
+    // 주문 1건당 후기 1개: 여러 상품이면 하나를 골라서
+    return `<div class="mo__rv">${list.length > 1 ? `<span class="mo__rvdone">후기는 주문당 1개 · 상품을 하나 골라 주세요</span>` : ""}${list.map(i => `<a class="btn btn--line btn--sm" href="./?p=${encodeURIComponent(i.id)}&review=1">✎ 후기 쓰기${list.length > 1 ? ` <small>${short(i.name)}</small>` : ""}</a>`).join("")}</div>`;
   }
 
   // 내 쿠폰 · 포인트 (coupons-points.sql 실행 후)

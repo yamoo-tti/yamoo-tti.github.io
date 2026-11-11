@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261111g">
+  <link rel="stylesheet" href="admin.css?v=20261111h">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -268,7 +268,7 @@
             <label class="inline"><input type="checkbox" name="review_event"> 후기 이벤트 켜기 <small>첫 화면 팝업 + 후기 쓰면 쿠폰 자동 지급</small></label>
             <label>후기 쿠폰 금액 (원)<input type="number" name="review_coupon" min="0" step="1000"></label>
             <label>쿠폰 쓸 수 있는 최소 상품 금액 (원)<input type="number" name="coupon_min" min="0" step="10000"></label>
-            <label>쿠폰 유효기간 (일)<input type="number" name="coupon_days" min="1" max="3650" step="1"></label>
+            <label>쿠폰 유효기간 (개월) <small>받은 날부터</small><input type="number" name="coupon_months" min="1" max="36" step="1"></label>
           </fieldset>
           <div class="settings__foot">
             <p id="shopMeta" class="muted"></p>
@@ -330,6 +330,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="common.js?v=20261104q"></script>
-  <script src="admin.js?v=20261111g"></script>
+  <script src="admin.js?v=20261111h"></script>
 </body>
 </html>

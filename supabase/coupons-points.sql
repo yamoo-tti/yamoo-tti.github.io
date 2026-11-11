@@ -2,6 +2,7 @@
 -- 쿠폰 · 포인트 · 후기 이벤트 (회원 전용 · 홈페이지 주문에서만 사용)
 --   · 포인트: 입금 확인된 주문의 결제 금액(택배비 제외) × 적립률. 1포인트 = 1원
 --   · 후기 이벤트: 회원이 후기를 쓰면 쿠폰 자동 지급 (금액·최소 주문·유효기간은 관리자 > 시세 설정)
+--   · 후기는 주문 1건당 1개 · 쓴 후기는 본인이 고칠 수 있음
 --   · 주문이 취소되면 쓴 쿠폰·포인트는 돌려주고, 적립한 포인트는 회수
 --   reviews-restock.sql 실행 뒤에 실행하세요. 여러 번 실행해도 안전합니다.
 -- =========================================================
@@ -11,7 +12,8 @@ alter table public.shop_info add column if not exists point_rate   numeric not n
 alter table public.shop_info add column if not exists review_event boolean not null default true;
 alter table public.shop_info add column if not exists review_coupon int not null default 10000 check (review_coupon >= 0);
 alter table public.shop_info add column if not exists coupon_min   int not null default 200000 check (coupon_min >= 0);
-alter table public.shop_info add column if not exists coupon_days  int not null default 90 check (coupon_days between 1 and 3650);
+alter table public.shop_info add column if not exists coupon_days  int not null default 90 check (coupon_days between 1 and 3650); -- (예전 칸 · 안 씀)
+alter table public.shop_info add column if not exists coupon_months int not null default 3 check (coupon_months between 1 and 36); -- 쿠폰 유효기간: 받은 날부터 N개월
 
 -- 2) 쿠폰 · 포인트 내역
 create table if not exists public.coupons (
@@ -337,7 +339,10 @@ drop trigger if exists orders_benefits on public.orders;
 create trigger orders_benefits before update on public.orders for each row execute function public.orders_benefits();
 revoke all on function public.orders_benefits() from public, anon, authenticated;
 
--- 8) 후기 쓰기 — 로그인한 회원만 (비회원은 쓸 수 없음) + 후기 이벤트 쿠폰
+-- 8) 후기 — 로그인한 회원만 · 주문 1건당 후기 1개 · 본인 후기 수정 가능 + 후기 이벤트 쿠폰
+alter table public.reviews add column if not exists edited_at timestamptz;
+create unique index if not exists reviews_one_per_order on public.reviews (order_id);
+
 --    p_code · p_phone 은 예전 화면과 호환용으로 남겨 두고 쓰지 않음
 --    반환: 'ok' / 'ok_coupon:10000' (쿠폰 지급) / 안내 문구
 create or replace function public.submit_review(p_product uuid, p_rating int, p_body text, p_code text default null, p_phone text default null)
@@ -349,18 +354,21 @@ begin
   if char_length(trim(coalesce(p_body, ''))) < 10 then raise exception '후기는 10자 이상 써 주세요'; end if;
   if char_length(p_body) > 1000 then raise exception '후기는 1000자까지 쓸 수 있어요'; end if;
 
+  -- 이 상품이 들어 있고, 아직 후기를 안 쓴 내 주문 (주문 1건당 후기 1개)
   select x.* into o from public.orders x
    where x.user_id = auth.uid()
      and x.status in ('paid', 'ready', 'done')
      and (x.product_id = p_product
           or coalesce(x.items, '[]'::jsonb) @> jsonb_build_array(jsonb_build_object('product_id', p_product::text)))
-     and not exists (select 1 from public.reviews r where r.order_id = x.id and r.product_id = p_product)
+     and not exists (select 1 from public.reviews r where r.order_id = x.id)
    order by x.created_at desc limit 1;
 
   if o.id is null then
-    return case when exists (select 1 from public.reviews r join public.orders x on x.id = r.order_id
-                              where r.product_id = p_product and x.user_id = auth.uid())
-                then '이미 이 상품의 후기를 써 주셨어요. 감사합니다!'
+    return case when exists (select 1 from public.orders x
+                              where x.user_id = auth.uid() and x.status in ('paid', 'ready', 'done')
+                                and (x.product_id = p_product
+                                     or coalesce(x.items, '[]'::jsonb) @> jsonb_build_array(jsonb_build_object('product_id', p_product::text))))
+                then '이 주문의 후기는 이미 써 주셨어요. 후기는 주문 1건당 1개만 쓸 수 있어요. 쓴 후기는 목록에서 ''수정''을 눌러 고칠 수 있어요.'
                 else '이 계정으로 구매하신 기록을 찾지 못했어요. 후기는 회원으로 주문하고 입금이 확인된 뒤에 쓸 수 있어요.' end;
   end if;
 
@@ -371,11 +379,11 @@ begin
   values (p_product, o.id, auth.uid(), left(nm, 40), p_rating, trim(p_body), left(coalesce(opt, o.product_name), 120))
   returning id into rid;
 
-  -- 후기 이벤트: 쿠폰 지급
+  -- 후기 이벤트: 쿠폰 지급 (받은 날부터 N개월)
   select * into si from public.shop_info where id = 1;
   if si.review_event and si.review_coupon > 0 then
     insert into public.coupons (user_id, name, amount, min_order, expires_at, source)
-    values (auth.uid(), '후기 감사 쿠폰', si.review_coupon, si.coupon_min, now() + make_interval(days => si.coupon_days), 'review:' || rid)
+    values (auth.uid(), '후기 감사 쿠폰', si.review_coupon, si.coupon_min, now() + make_interval(months => si.coupon_months), 'review:' || rid)
     on conflict do nothing;
     return 'ok_coupon:' || si.review_coupon;
   end if;
@@ -384,26 +392,134 @@ end $$;
 revoke all on function public.submit_review(uuid, int, text, text, text) from public, anon;
 grant execute on function public.submit_review(uuid, int, text, text, text) to authenticated;
 
+-- 내 후기 고치기 (별점 · 내용)
+create or replace function public.update_my_review(p_id bigint, p_rating int, p_body text)
+returns text language plpgsql volatile security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception '로그인해 주세요'; end if;
+  if p_rating is null or p_rating not between 1 and 5 then raise exception '별점을 골라 주세요'; end if;
+  if char_length(trim(coalesce(p_body, ''))) < 10 then raise exception '후기는 10자 이상 써 주세요'; end if;
+  if char_length(p_body) > 1000 then raise exception '후기는 1000자까지 쓸 수 있어요'; end if;
+  update public.reviews set rating = p_rating, body = trim(p_body), edited_at = now()
+   where id = p_id and user_id = auth.uid();
+  if not found then raise exception '내가 쓴 후기만 고칠 수 있어요'; end if;
+  return 'ok';
+end $$;
+revoke all on function public.update_my_review(bigint, int, text) from public, anon;
+grant execute on function public.update_my_review(bigint, int, text) to authenticated;
+
+-- 손님 화면용 후기 목록: 내 후기 표시(mine) · 수정됨 표시(edited) 추가 (반환 칸이 바뀌어 다시 만듦)
+drop function if exists public.product_reviews(uuid[]);
+create function public.product_reviews(p_ids uuid[])
+returns table (id bigint, product_id uuid, name text, rating int, body text, option_label text, reply text, created_at timestamptz, mine boolean, edited boolean)
+language sql stable security definer set search_path = public as $$
+  select r.id, r.product_id,
+         case when char_length(r.name) <= 2 then left(r.name, 1) || '*'
+              else left(r.name, 1) || repeat('*', char_length(r.name) - 2) || right(r.name, 1) end,
+         r.rating, r.body, r.option_label, r.reply, r.created_at,
+         (auth.uid() is not null and r.user_id = auth.uid()), r.edited_at is not null
+    from public.reviews r
+   where r.visible and r.product_id = any(p_ids)
+   order by r.created_at desc
+   limit 200;
+$$;
+revoke all on function public.product_reviews(uuid[]) from public;
+grant execute on function public.product_reviews(uuid[]) to anon, authenticated;
+
 -- 9) 내 주문내역에 상품 번호 추가 (주문내역에서 '후기 쓰기' 버튼용)
 drop function if exists public.my_requests();
 create function public.my_requests()
 returns table (kind text, code text, title text, status text, amount numeric, shipping_fee numeric,
                deadline timestamptz, locked_at timestamptz, method text, created_at timestamptz, updated_at timestamptz,
-               items jsonb, courier text, tracking_no text, product_id uuid)
+               items jsonb, courier text, tracking_no text, product_id uuid, reviewed boolean)
 language sql stable security definer set search_path = public as $$
   select * from (
     select 'order'::text, o.code,
            case when jsonb_array_length(coalesce(o.items, '[]')) > 1 then o.product_name else o.product_name || ' × ' || o.qty end,
            o.status, o.final_price, o.shipping_fee, o.pay_deadline, o.price_locked_at, o.receive, o.created_at, o.updated_at,
-           o.items, o.courier, o.tracking_no, o.product_id
+           o.items, o.courier, o.tracking_no, o.product_id,
+           exists (select 1 from public.reviews r where r.order_id = o.id)
       from public.orders o where auth.uid() is not null and o.user_id = auth.uid()
     union all
     select 'sell'::text, s.code, s.items, s.status, s.final_amount, null::numeric,
-           null::timestamptz, null::timestamptz, s.method, s.created_at, s.updated_at, null::jsonb, null::text, null::text, null::uuid
+           null::timestamptz, null::timestamptz, s.method, s.created_at, s.updated_at, null::jsonb, null::text, null::text, null::uuid, false
       from public.sell_requests s where auth.uid() is not null and s.user_id = auth.uid()
   ) t order by t.created_at desc limit 100;
 $$;
 revoke all on function public.my_requests() from public, anon;
 grant execute on function public.my_requests() to authenticated;
 
+-- 10) 판매 분석에서 관리자 계정 기록 빼기
+--     관리자로 로그인한 상태의 방문 · 상품 조회 · 검색 · 검색어는 기록하지 않음, 관리자 계정 주문은 판매수(인기순)에 안 셈
+create or replace function public.track_visit(p_source text, p_device text)
+returns void language plpgsql security definer set search_path = public as $$
+declare src text := lower(coalesce(p_source, '')); dev text := lower(coalesce(p_device, ''));
+begin
+  if public.is_admin() then return; end if;
+  if src not in ('naver', 'google', 'daum', 'kakao', 'threads', 'instagram', 'facebook', 'youtube', 'email', 'direct', 'other') then src := 'other'; end if;
+  if dev not in ('mobile', 'pc') then dev := 'pc'; end if;
+  if (select coalesce(sum(visits), 0) from public.site_daily where day = public.kst_today()) >= 50000 then return; end if; -- 장난 방지
+  insert into public.site_daily (day, source, device, visits) values (public.kst_today(), src, dev, 1)
+  on conflict (day, source, device) do update set visits = public.site_daily.visits + 1;
+end $$;
+revoke all on function public.track_visit(text, text) from public;
+grant execute on function public.track_visit(text, text) to anon, authenticated;
+
+create or replace function public.bump_view(p_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if public.is_admin() then return; end if;
+  if not exists (select 1 from public.products where id = p_id and visible) then return; end if;
+  insert into public.product_stats (product_id, views) values (p_id, 1)
+  on conflict (product_id) do update set views = public.product_stats.views + 1, updated_at = now();
+  insert into public.product_daily (day, product_id, views) values (public.kst_today(), p_id, 1)
+  on conflict (day, product_id) do update set views = public.product_daily.views + 1;
+end $$;
+revoke all on function public.bump_view(uuid) from public;
+grant execute on function public.bump_view(uuid) to anon, authenticated;
+
+create or replace function public.bump_search(p_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if public.is_admin() then return; end if;
+  if not exists (select 1 from public.products where id = p_id and visible) then return; end if;
+  insert into public.product_stats (product_id, searches) values (p_id, 1)
+  on conflict (product_id) do update set searches = public.product_stats.searches + 1, updated_at = now();
+  insert into public.product_daily (day, product_id, searches) values (public.kst_today(), p_id, 1)
+  on conflict (day, product_id) do update set searches = public.product_daily.searches + 1;
+end $$;
+revoke all on function public.bump_search(uuid) from public;
+grant execute on function public.bump_search(uuid) to anon, authenticated;
+
+create or replace function public.track_search_term(p_term text, p_results int)
+returns void language plpgsql security definer set search_path = public as $$
+declare t text := lower(regexp_replace(trim(coalesce(p_term, '')), '\s+', ' ', 'g'));
+begin
+  if public.is_admin() then return; end if;
+  if char_length(t) not between 1 and 30 then return; end if;
+  if (select coalesce(sum(n), 0) from public.search_daily where day = public.kst_today()) >= 20000 then return; end if; -- 장난 방지
+  insert into public.search_daily (day, term, n, zero) values (public.kst_today(), t, 1, case when coalesce(p_results, 0) = 0 then 1 else 0 end)
+  on conflict (day, term) do update set n = public.search_daily.n + 1,
+    zero = public.search_daily.zero + case when coalesce(p_results, 0) = 0 then 1 else 0 end;
+end $$;
+revoke all on function public.track_search_term(text, int) from public;
+grant execute on function public.track_search_term(text, int) to anon, authenticated;
+
+create or replace function public.count_sold()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare d int; it jsonb;
+begin
+  if new.user_id is not null and exists (select 1 from public.profiles where id = new.user_id and role = 'admin') then return new; end if;
+  if new.status in ('paid', 'ready', 'done') and old.status not in ('paid', 'ready', 'done') then d := 1;
+  elsif new.status = 'canceled' and old.status in ('paid', 'ready', 'done') then d := -1;
+  else return new; end if;
+  if new.items is not null and jsonb_typeof(new.items) = 'array' and jsonb_array_length(new.items) > 0 then
+    for it in select value from jsonb_array_elements(new.items) loop
+      perform public.add_sold((it ->> 'product_id')::uuid, d * coalesce((it ->> 'qty')::int, 1));
+    end loop;
+  else
+    perform public.add_sold(new.product_id, d * coalesce(new.qty, 1));
+  end if;
+  return new;
+end $$;
 select '쿠폰 · 포인트 · 후기 이벤트 설정 완료' as result;

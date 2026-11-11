@@ -12,6 +12,13 @@
   // 주문내역의 '후기 쓰기'로 들어오면(?p=상품&review=1) 쓰기 칸을 바로 엶
   let autoWrite = new URLSearchParams(location.search).get("review") === "1";
 
+  // 로그인·로그아웃하면 "내 후기" 표시가 바뀌니 다시 불러옴
+  sb.auth.onAuthStateChange(ev => {
+    if (ev !== "SIGNED_IN" && ev !== "SIGNED_OUT") return;
+    Object.keys(cache).forEach(k => delete cache[k]);
+    if (cur && !box.hidden) window.renderReviews(cur, curOpts, true);
+  });
+
   async function load(ids) {
     const key = ids.join(",");
     if (cache[key]) return cache[key];
@@ -41,10 +48,10 @@
         ${n ? `<p class="rv__avg">${stars(avg)} <b>${avg.toFixed(1)}</b> / 5</p>` : ""}
         ${writing ? "" : `<button type="button" class="btn btn--line rv__write" data-rvwrite>후기 쓰기</button>`}
       </div>
-      ${writing ? formHtml() : ""}
+      ${writing ? formHtml(typeof writing === "object" ? writing : null) : ""}
       ${n ? `<ul class="rv__list">${list.map(r => `
         <li class="rv">
-          <div class="rv__top">${stars(r.rating)}<b>${esc(r.name)}</b><time>${fmtDate(r.created_at, false)}</time></div>
+          <div class="rv__top">${stars(r.rating)}<b>${esc(r.name)}</b><time>${fmtDate(r.created_at, false)}${r.edited ? " · 수정됨" : ""}</time>${r.mine ? `<span class="rv__mine">내 후기</span><button type="button" class="rv__edit" data-rvedit="${r.id}">수정</button>` : ""}</div>
           ${r.option_label ? `<p class="rv__opt">${esc(r.option_label)}</p>` : ""}
           <p class="rv__body">${esc(r.body)}</p>
           ${r.reply ? `<div class="rv__reply"><b>금비 GOLD 답글</b><p>${esc(r.reply)}</p></div>` : ""}
@@ -52,18 +59,19 @@
         : `<p class="rv__empty">아직 후기가 없어요. 구매하신 분은 첫 후기를 남겨 주세요.</p>`}`;
   };
 
-  function formHtml() {
-    const many = curOpts.length > 1;
+  // ed: 고칠 내 후기 (없으면 새 후기)
+  function formHtml(ed) {
+    const many = curOpts.length > 1, rate = ed ? ed.rating : 5;
     return `
-      <form class="rv__form auth-form" id="rvForm">
-        <p class="rv__for">${many ? `<b>${esc(window.YAMOO.optLabel(cur))}</b> 옵션의 후기를 써요. 다른 중량을 사셨다면 위에서 먼저 골라 주세요.` : `<b>${esc(cur.name)}</b>`}</p>
+      <form class="rv__form auth-form" id="rvForm"${ed ? ` data-edit="${ed.id}"` : ""}>
+        <p class="rv__for">${ed ? "<b>내 후기 수정</b> · 별점과 내용을 고칠 수 있어요." : many ? `<b>${esc(window.YAMOO.optLabel(cur))}</b> 옵션의 후기를 써요. 다른 중량을 사셨다면 위에서 먼저 골라 주세요. <small>(주문 1건당 후기 1개)</small>` : `<b>${esc(cur.name)}</b> <small>(주문 1건당 후기 1개)</small>`}</p>
         <p class="rv__label">별점</p>
         <fieldset class="rv__rate"><legend class="sr-only">별점</legend>
-          ${[5, 4, 3, 2, 1].map(v => `<input type="radio" name="rating" value="${v}" id="rv${v}" ${v === 5 ? "checked" : ""}><label for="rv${v}" title="${v}점">★</label>`).join("")}
+          ${[5, 4, 3, 2, 1].map(v => `<input type="radio" name="rating" value="${v}" id="rv${v}" ${v === rate ? "checked" : ""}><label for="rv${v}" title="${v}점">★</label>`).join("")}
         </fieldset>
-        <label>후기 <small>10자 이상 · 받아 보신 느낌, 실물·포장 상태 등</small><textarea name="body" rows="4" minlength="10" maxlength="1000" required></textarea></label>
+        <label>후기 <small>10자 이상 · 받아 보신 느낌, 실물·포장 상태 등</small><textarea name="body" rows="4" minlength="10" maxlength="1000" required>${ed ? esc(ed.body) : ""}</textarea></label>
         <p class="rv__msg" id="rvMsg" role="status"></p>
-        <div class="rv__btns"><button type="button" class="btn btn--line" data-rvcancel>취소</button><button type="submit" class="btn btn--dark">후기 등록</button></div>
+        <div class="rv__btns"><button type="button" class="btn btn--line" data-rvcancel>취소</button><button type="submit" class="btn btn--dark">${ed ? "수정 완료" : "후기 등록"}</button></div>
       </form>`;
   }
 
@@ -81,6 +89,15 @@
       writing = true; await window.renderReviews(cur, curOpts, true); const t = $("#rvForm textarea"); t && t.focus(); return;
     }
     if (e.target.closest("[data-rvcancel]")) { writing = false; window.renderReviews(cur, curOpts, true); }
+    const ed = e.target.closest("[data-rvedit]");
+    if (ed) {
+      const list = cache[curOpts.map(o => o.id).join(",")] || [];
+      const r = list.find(x => String(x.id) === ed.dataset.rvedit);
+      if (!r) return;
+      writing = r; await window.renderReviews(cur, curOpts, true);
+      box.scrollIntoView({ behavior: "smooth", block: "start" });
+      const t = $("#rvForm textarea"); t && t.focus();
+    }
   });
   starsBox.addEventListener("click", e => {
     if (!e.target.closest("[data-rvjump]")) return;
@@ -94,7 +111,10 @@
     const f = e.target, btn = f.querySelector("[type=submit]"), msg = $("#rvMsg");
     if (!(await loggedIn())) { askLogin(); return; }
     btn.disabled = true; msg.textContent = "확인 중…"; msg.classList.remove("is-error");
-    const { data, error } = await sb.rpc("submit_review", { p_product: cur.id, p_rating: +f.rating.value, p_body: f.body.value });
+    const editId = f.dataset.edit;
+    const { data, error } = editId
+      ? await sb.rpc("update_my_review", { p_id: +editId, p_rating: +f.rating.value, p_body: f.body.value })
+      : await sb.rpc("submit_review", { p_product: cur.id, p_rating: +f.rating.value, p_body: f.body.value });
     btn.disabled = false;
     if (error || !/^ok/.test(data || "")) {
       msg.textContent = error ? (/[가-힣]/.test(error.message || "") ? error.message : "등록하지 못했어요. 잠시 후 다시 시도해 주세요.") : data;
@@ -112,7 +132,7 @@
       toast(`후기 등록 완료! ${amt} 쿠폰을 드렸어요`);
       return;
     }
-    toast("후기를 등록했어요. 감사합니다!");
+    toast(editId ? "후기를 수정했어요" : "후기를 등록했어요. 감사합니다!");
     window.renderReviews(cur, curOpts, true);
   });
 

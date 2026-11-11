@@ -524,16 +524,21 @@
     const len = daysBetween(from, to), pFrom = addDays(from, -len), pTo = addDays(from, -1);
     const qStart = new Date(pFrom + "T00:00:00"); qStart.setDate(qStart.getDate() - 14);
     const qEnd = new Date(addDays(to, 1) + "T00:00:00");
-    const [o, cur, prev, pr, mem, hist] = await Promise.all([
-      sb.from("orders").select("id,status,final_price,shipping_fee,items,product_id,product_name,qty,phone,created_at,paid_at,receive")
+    const [o, cur, prev, pr, mem, hist, adm] = await Promise.all([
+      sb.from("orders").select("id,status,final_price,shipping_fee,items,product_id,product_name,qty,phone,created_at,paid_at,receive,user_id")
         .gte("created_at", qStart.toISOString()).lt("created_at", qEnd.toISOString()).order("created_at").limit(5000),
       sb.rpc("analytics_counts", { p_from: from, p_to: to }),
       sb.rpc("analytics_counts", { p_from: pFrom, p_to: pTo }),
       sb.from("products").select("id,name,kind,karat,category,weight_g,visible"),
       sb.from("profiles").select("created_at").gte("created_at", new Date(pFrom + "T00:00:00").toISOString()).lt("created_at", qEnd.toISOString()).limit(5000),
       sb.from("orders").select("phone").in("status", PAID).lt("created_at", new Date(from + "T00:00:00").toISOString()).limit(10000),
+      sb.from("profiles").select("id,phone").eq("role", "admin"),
     ]);
     for (const r of [o, pr, mem, hist]) if (r.error) return fail(r.error);
+    // 관리자 계정으로 한 주문은 판매 분석에서 뺌 (관리자 휴대폰 번호로 비회원 주문한 것도)
+    const admIds = new Set((adm.data || []).map(a => a.id));
+    const admPh = new Set((adm.data || []).map(a => String(a.phone || "").replace(/\D/g, "")).filter(p => p.length >= 10));
+    o.data = o.data.filter(r => !admIds.has(r.user_id) && !admPh.has(String(r.phone || "").replace(/\D/g, "")));
     if (cur.error || prev.error) { toast("판매 분석 SQL(analytics.sql)을 먼저 실행해 주세요", true); console.error(cur.error || prev.error); }
     an = { from, to, pFrom, pTo, orders: o.data, cur: cur.data || {}, prev: prev.data || {}, products: pr.data, members: mem.data, oldPhones: new Set(hist.data.map(r => r.phone)) };
     renderAnalytics();
@@ -1311,10 +1316,10 @@
     $("#mbCpBtn").onclick = async () => {
       const amt = parseInt($("#mbCp").value, 10);
       if (!(amt > 0)) return toast("쿠폰 금액을 입력해 주세요", true);
-      const { data: si } = await sb.from("shop_info").select("coupon_min,coupon_days").eq("id", 1).maybeSingle();
-      const days = (si && si.coupon_days) || 90;
-      if (!confirm(`${m.name || m.email} 회원에게 ${won(amt)} 쿠폰을 발급할까요? (${days}일 유효${si && si.coupon_min ? ` · 상품 ${won(si.coupon_min)} 이상` : ""})`)) return;
-      const { error } = await sb.from("coupons").insert({ user_id: m.id, name: "금비 감사 쿠폰", amount: amt, min_order: (si && si.coupon_min) || 0, expires_at: new Date(Date.now() + days * 864e5).toISOString(), source: "admin" });
+      const { data: si } = await sb.from("shop_info").select("coupon_min,coupon_months").eq("id", 1).maybeSingle();
+      const months = (si && si.coupon_months) || 3, exp = new Date(); exp.setMonth(exp.getMonth() + months);
+      if (!confirm(`${m.name || m.email} 회원에게 ${won(amt)} 쿠폰을 발급할까요? (${months}개월 유효${si && si.coupon_min ? ` · 상품 ${won(si.coupon_min)} 이상` : ""})`)) return;
+      const { error } = await sb.from("coupons").insert({ user_id: m.id, name: "금비 감사 쿠폰", amount: amt, min_order: (si && si.coupon_min) || 0, expires_at: exp.toISOString(), source: "admin" });
       if (error) return fail(error);
       toast("쿠폰을 발급했습니다"); loadMemberBnf(m);
     };
@@ -1389,7 +1394,7 @@
 
   // 주문 · 입금 · 문자 설정 (shop_info)
   const SHOP_FIELDS = ["bank_name", "bank_account", "bank_holder", "pay_minutes", "delivery_fee", "owner_phone", "sms_sender"];
-  const BNF_FIELDS = ["point_rate", "review_coupon", "coupon_min", "coupon_days"];
+  const BNF_FIELDS = ["point_rate", "review_coupon", "coupon_min", "coupon_months"];
   let hasBnf = false;
   async function loadShop() {
     const f = $("#shopForm");
@@ -1410,7 +1415,7 @@
     SHOP_FIELDS.forEach(k => { row[k] = ["pay_minutes", "delivery_fee"].includes(k) ? parseInt(f[k].value, 10) : f[k].value.trim(); });
     if (hasBnf) {
       BNF_FIELDS.forEach(k => { row[k] = Number(f[k].value) || 0; });
-      row.coupon_days = Math.max(1, row.coupon_days);
+      row.coupon_months = Math.min(36, Math.max(1, row.coupon_months));
       row.review_event = f.review_event.checked;
     }
     btn.disabled = true;
