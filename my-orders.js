@@ -44,21 +44,19 @@
     return `<div class="mo__rv">${list.length > 1 ? `<span class="mo__rvdone">후기는 주문당 1개 · 상품을 하나 골라 주세요</span>` : ""}${list.map(i => `<a class="btn btn--line btn--sm" href="./?p=${encodeURIComponent(i.id)}&review=1">✎ 후기 쓰기${list.length > 1 ? ` <small>${short(i.name)}</small>` : ""}</a>`).join("")}</div>`;
   }
 
-  // 내 쿠폰 · 포인트 (coupons-points.sql 실행 후)
+  // 내 쿠폰 (coupons-points.sql 실행 후)
   async function loadBenefits() {
     const box = $("#benefits");
     const { data, error } = await sb.rpc("my_benefits");
     if (error || !data) return;
-    const cps = data.coupons || [], logs = data.logs || [];
+    const cps = data.coupons || [];
     const d = s => fmtDate(s, false);
     box.hidden = false;
     box.innerHTML = `
-      <div class="mo__bnf-top">
-        <div><p>포인트</p><strong>${(Number(data.points) || 0).toLocaleString()}<small>P</small></strong><span>1P = 1원 · 홈페이지 주문에서 사용${Number(data.point_rate) > 0 ? ` · 결제 금액의 ${Number(data.point_rate)}% 적립` : ""}${data.point_months ? ` · 적립일부터 ${data.point_months}개월 안에 사용` : ""}</span>${Number(data.expiring) > 0 ? `<em class="mo__exp">30일 안에 사라질 포인트 ${Number(data.expiring).toLocaleString()}P</em>` : ""}</div>
-        <div><p>쿠폰</p><strong>${cps.length}<small>장</small></strong><span>후기를 쓰면 쿠폰을 드려요 · 골드바·실버바 제외</span></div>
+      <div class="mo__bnf-top mo__bnf-top--one">
+        <div><p>내 쿠폰</p><strong>${cps.length}<small>장</small></strong><span>후기를 쓰면 쿠폰을 드려요 · 홈페이지 주문 전용 · 골드바·실버바 제외</span></div>
       </div>
-      ${cps.length ? `<ul class="mo__cps">${cps.map(c => `<li><b>${won(c.amount)}</b><span>${esc(c.name)}${c.min_order ? ` · 상품 ${won(c.min_order)} 이상` : ""}</span><em>${d(c.expires_at)}까지</em></li>`).join("")}</ul>` : ""}
-      ${logs.length ? `<details class="mo__logs"><summary>포인트 내역</summary><ul>${logs.map(l => `<li><span>${d(l.created_at)}</span><span>${esc(l.reason)}</span><b class="${l.amount > 0 ? "is-plus" : "is-minus"}">${l.amount > 0 ? "+" : ""}${Number(l.amount).toLocaleString()}P</b></li>`).join("")}</ul></details>` : ""}`;
+      ${cps.length ? `<ul class="mo__cps">${cps.map(c => `<li><b>${won(c.amount)}</b><span>${esc(c.name)}${c.min_order ? ` · 상품 ${won(c.min_order)} 이상` : ""}</span><em>${d(c.expires_at)}까지</em></li>`).join("")}</ul>` : ""}`;
     if (location.hash === "#benefits") box.scrollIntoView();
   }
 

@@ -1016,4 +1016,4 @@ ul, ol { padding: 0; list-style: none; }
 /* 쿠폰 지급 후기 표시 (추천·보증 심사지침) · 소멸 예정 포인트 */
 .rv__giftTag { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
 .rv__disc { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 0 0 12px; }
-.mo__exp { display: block; margin-top: 6px; font-style: normal; font-size: 12px; font-weight: 600; color: #b4532a; }
+.mo__bnf-top--one { grid-template-columns: 1fr; }
