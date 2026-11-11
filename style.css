@@ -842,6 +842,8 @@ ul, ol { padding: 0; list-style: none; }
 .bean--dark .bean__cart { background: transparent; border-color: #f3ede2 !important; color: #f3ede2; }
 .bean--dark .bean__cart:hover { background: #f3ede2; color: var(--ink); }
 @media (max-width: 860px) { .bean--rev .bean__gallery { order: 0; } }
+/* 휴대폰: 중량 버튼이 4개면 2개씩 두 줄로 (가격이 줄바꿈되지 않게) */
+@media (max-width: 560px) { .bean__opts { grid-template-columns: repeat(min(var(--n, 3), 2), minmax(0, 1fr)); } }
 /* 사이즈 · 추가 옵션 */
 .product__opt { margin: -2px 0 6px; font-size: 12px; color: var(--muted); }
 .order-opts { display: grid; gap: 12px; }

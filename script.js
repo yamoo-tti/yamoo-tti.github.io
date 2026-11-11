@@ -197,6 +197,7 @@ const BANGLE_IDS = [
   "c0af80ee-ee48-4d47-bb3e-89255607332c", // 남성 팔각 광폭 체인 순금 팔찌 20돈
   "aff480e7-b89c-493c-9db9-679f7144221e", // 팔각 광폭 체인 순금 팔찌 30돈
   "f5c6247a-71d3-438e-89f5-7ff03a553b3b", // 팔각 체인 콤비 순금 팔찌 50돈
+  "77fd78d2-2c4a-45ce-b2a3-bdcef8dab42e", // 남성 팔각 광폭 체인 순금 팔찌 70돈
 ];
 const byWeight = (a, b) => a.weight_g - b.weight_g;
 const FEATURES = {
