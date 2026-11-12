@@ -354,3 +354,12 @@ fieldset.box .row2 { align-items: end; }
 /* 회원 등급 표 */
 .tier-grid { grid-column: 1 / -1; display: grid; grid-template-columns: 56px 1fr 1fr; gap: 8px; align-items: center; font-size: 13px; }
 .tier-grid b { font-weight: 600; color: var(--muted, #888); font-size: 12px; }
+/* 매장 휴무일 */
+.hol-form { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.hol-form input { height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 4px; }
+.hol-form input[name=name] { flex: 1 1 160px; }
+.hol-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.hol-list li { display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px 5px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; background: #fff; }
+.hol-list li.muted { border: 0; padding: 0; background: none; }
+.hol-list button { width: 24px; height: 24px; border-radius: 50%; color: var(--muted); font-size: 16px; }
+.hol-list button:hover { background: var(--tint); color: var(--ink); }

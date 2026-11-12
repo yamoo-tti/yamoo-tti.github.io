@@ -51,11 +51,17 @@
   const r100 = n => Math.round(n / 100) * 100;
   const r10 = n => Math.round(n / 10) * 10;
 
-  // 콩알금 주문 가능 시간: 평일(월~금) 9시~18시 (한국 시간) — 매장이 공급처에서 바로 매입할 수 있는 시간 (supabase bean_open 과 같은 규칙)
+  // 콩알금 주문 가능 시간: 평일(월~금, 공휴일·휴무일 제외) 9시~18시 (한국 시간) — 매장이 공급처에서 바로 매입할 수 있는 시간 (supabase bean_open 과 같은 규칙)
   const BEAN_GROUP = "순금 콩알금";
   const isBean = p => !!p && p.opt_group === BEAN_GROUP;
-  const beanOpen = () => { const k = new Date(Date.now() + 9 * 3600 * 1000), d = k.getUTCDay(), h = k.getUTCHours(); return d >= 1 && d <= 5 && h >= 9 && h < 18; };
-  const BEAN_HOURS = "평일 오전 9시~오후 6시";
+  let holidays = new Set(); // 'YYYY-MM-DD' (관리자 > 시세 설정 > 매장 휴무일, bean-hours.sql)
+  if (sb) sb.from("shop_holidays").select("day").gte("day", new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10))
+    .then(({ data }) => { if (data) holidays = new Set(data.map(r => r.day)); }, () => {});
+  const beanOpen = () => {
+    const k = new Date(Date.now() + 9 * 3600 * 1000), d = k.getUTCDay(), h = k.getUTCHours();
+    return d >= 1 && d <= 5 && h >= 9 && h < 18 && !holidays.has(k.toISOString().slice(0, 10));
+  };
+  const BEAN_HOURS = "평일(공휴일 제외) 오전 9시~오후 6시";
   // 지금 주문할 수 없으면 안내 문구, 아니면 null
   const orderClosed = p => isBean(p) && !beanOpen() ? `순금 콩알금은 ${BEAN_HOURS}에만 주문할 수 있어요` : null;
   // 상품 화면 안내 (콩알금만)

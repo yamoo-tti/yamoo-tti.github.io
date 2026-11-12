@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261112e">
+  <link rel="stylesheet" href="admin.css?v=20261112f">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -268,6 +268,13 @@
           </div>
         </div>
 
+        <h2 class="sub-head">매장 휴무일 (콩알금 주문 막힘)</h2>
+        <p class="desc">콩알금은 <b>평일 오전 9시~오후 6시</b>에만 주문을 받아요. 아래 날짜는 평일이어도 하루 종일 콩알금 주문이 막혀요. 2026~2027 공휴일은 미리 넣어 뒀어요. 임시 휴무일을 더하거나, 출근하는 공휴일은 × 로 빼 주세요.</p>
+        <div class="panel">
+          <form class="hol-form" id="holForm"><input type="date" name="day" required aria-label="날짜"><input name="name" maxlength="30" placeholder="이름 (예: 임시 휴무)" aria-label="이름"><button class="btn btn--gold" type="submit">휴무일 추가</button></form>
+          <ul class="hol-list" id="holList"></ul>
+        </div>
+
         <h2 class="sub-head">주문 · 입금 · 문자 설정</h2>
         <p class="desc">손님이 구매 신청을 하면 그 순간 시세로 금액이 확정되고, 아래 계좌와 입금 기한이 화면과 문자로 안내됩니다. 기한이 지나면 주문은 자동 취소됩니다.</p>
         <form class="panel settings" id="shopForm">
@@ -367,7 +374,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261112f"></script>
-  <script src="admin.js?v=20261112j"></script>
+  <script src="common.js?v=20261112g"></script>
+  <script src="admin.js?v=20261112k"></script>
 </body>
 </html>

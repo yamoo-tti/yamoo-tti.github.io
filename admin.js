@@ -1429,6 +1429,7 @@
     preview();
     loadShop();
     loadLoss();
+    loadHolidays();
   }
 
   // 적자 방지: 삼성금거래소 실시간 도매가(1분마다 서버가 받아 둠) × 1.1 = 원가 (samsung-cost.sql)
@@ -1458,6 +1459,32 @@
     }).join("") : `<tr><td class="muted">시세를 받아 오는 중이에요. 1분 뒤 새로고침해 주세요</td></tr>`;
   }
 
+
+  // 매장 휴무일 (콩알금 주문 막힘 · bean-hours.sql)
+  async function loadHolidays() {
+    const today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    const { data, error } = await sb.from("shop_holidays").select("*").gte("day", today).order("day");
+    const box = $("#holList");
+    if (error) { box.innerHTML = `<li class="muted">bean-hours.sql 을 먼저 실행해 주세요</li>`; $("#holForm").querySelector("button").disabled = true; return; }
+    $("#holForm").querySelector("button").disabled = false;
+    const W = "일월화수목금토";
+    box.innerHTML = data.length ? data.map(h => `<li><b>${esc(h.day)} (${W[new Date(h.day + "T00:00:00").getDay()]})</b> ${esc(h.name)}<button type="button" data-holdel="${esc(h.day)}" aria-label="빼기">×</button></li>`).join("")
+      : `<li class="muted">등록된 휴무일이 없어요</li>`;
+  }
+  $("#holForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = e.target;
+    const { error } = await sb.from("shop_holidays").upsert({ day: f.day.value, name: f.name.value.trim() || "휴무" });
+    if (error) return fail(error);
+    f.reset(); toast("휴무일을 추가했어요"); loadHolidays();
+  });
+  $("#holList").addEventListener("click", async e => {
+    const b = e.target.closest("[data-holdel]");
+    if (!b || !confirm(`${b.dataset.holdel} 휴무일을 뺄까요? 이날은 평일이면 콩알금 주문을 받아요.`)) return;
+    const { error } = await sb.from("shop_holidays").delete().eq("day", b.dataset.holdel);
+    if (error) return fail(error);
+    toast("휴무일에서 뺐어요"); loadHolidays();
+  });
   // 주문 · 입금 · 문자 설정 (shop_info)
   const SHOP_FIELDS = ["bank_name", "bank_account", "bank_holder", "pay_minutes", "delivery_fee", "owner_phone", "sms_sender"];
   const BNF_FIELDS = ["review_coupon", "coupon_min", "coupon_months"];
