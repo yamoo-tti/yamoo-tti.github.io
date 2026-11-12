@@ -278,6 +278,10 @@ fieldset.box .row2 { align-items: end; }
 .tabs button.sub.is-on { background: var(--gold-2, #9c7629); border-color: var(--gold-2, #9c7629); }
 
 /* 상품 관리: 돈 수 필터 · 정렬 */
+.psearch { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; }
+.psearch input { flex: 1; max-width: 420px; height: 38px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: 14px; }
+.psearch input:focus { outline: none; border-color: var(--ink); }
+.psearch__n { font-size: 13px; color: var(--muted); }
 .ptools { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .ptools__label { font-size: 12px; color: var(--muted); margin-right: 2px; }
 .ptools button { height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: 13px; color: var(--ink-2); }

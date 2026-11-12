@@ -756,7 +756,18 @@
   /* ---------- 상품 관리 ---------- */
   let products = [], productTab = "bar", productSub = "all";
   let picked = new Set(), shownProducts = []; // 가격 일괄 변경용 체크
-  let productW = "all", productSort = "sort";
+  let productW = "all", productSort = "name", productQ = "";
+  // 검색: 띄어쓰기·대소문자 무시, 여러 단어는 모두 들어간 상품만 (상품명·옵션 묶음·태그·종류·분류·중량에서 찾음)
+  const squash = s => String(s || "").toLowerCase().replace(/\s+/g, "");
+  const hayOf = p => squash([p.name, p.opt_group, p.opt_label, p.tag, kindLabel(p), CATEGORY[p.category], Number(p.weight_g) + "g", donTxt(p.weight_g)].join(" "));
+  const matchQ = p => !productQ || productQ.split(/\s+/).filter(Boolean).every(w => hayOf(p).includes(squash(w)));
+  const byName = (a, b) => String(a.name).localeCompare(String(b.name), "ko", { numeric: true });
+  let qTimer;
+  document.addEventListener("input", e => {
+    if (e.target.id !== "productSearch") return;
+    clearTimeout(qTimer);
+    qTimer = setTimeout(() => { productQ = e.target.value.trim(); renderProducts(); }, 150);
+  });
   // 돈 수 구간 [이상, 미만, 이름] (1돈 = 3.75g)
   const DON_RANGE = { all: [0, Infinity, "전체"], u1: [0, 1, "1돈 미만"], d1: [1, 3, "1~3돈"], d3: [3, 5, "3~5돈"], d5: [5, 10, "5~10돈"], d10: [10, Infinity, "10돈 이상"] };
   const donTxt = w => { const d = Number(w) / 3.75; return (Math.round(d * 100) / 100).toLocaleString("ko-KR") + "돈"; };
@@ -785,19 +796,21 @@
   }
   function renderProducts() {
     const tabs = [...Object.entries(PGROUP), ["all", "전체"]];
-    const inTab = productTab === "all" ? products : products.filter(p => groupOf(p) === productTab);
+    const found = products.filter(matchQ);
+    const inTab = productTab === "all" ? found : found.filter(p => groupOf(p) === productTab);
     const subs = PSUB[productTab] || [];
-    $("#productTabs").innerHTML = tabs.map(([k, v]) => `<button data-tab="products:${k}" class="${productTab === k ? "is-on" : ""}">${v} <span>${k === "all" ? products.length : products.filter(p => groupOf(p) === k).length}</span></button>`).join("")
+    $("#productTabs").innerHTML = tabs.map(([k, v]) => `<button data-tab="products:${k}" class="${productTab === k ? "is-on" : ""}">${v} <span>${k === "all" ? found.length : found.filter(p => groupOf(p) === k).length}</span></button>`).join("")
       + (subs.length ? `<span class="ptabs-sep" aria-hidden="true">›</span>` + [["all", "전체"], ...subs.map(c => [c, CATEGORY[c]])].map(([k, v]) =>
         `<button data-tab="psub:${k}" class="sub${productSub === k ? " is-on" : ""}">${v} <span>${k === "all" ? inTab.length : inTab.filter(p => p.category === k).length}</span></button>`).join("") : "");
     const inSub = productSub === "all" || !subs.length ? inTab : inTab.filter(p => p.category === productSub);
     // 돈 수 필터 · 정렬
     const wr = DON_RANGE[productW] || DON_RANGE.all;
     const list = inSub.filter(p => { const d = Number(p.weight_g) / 3.75; return d >= wr[0] && d < wr[1]; });
-    const SORTS = { w_asc: (a, b) => a.weight_g - b.weight_g, w_desc: (a, b) => b.weight_g - a.weight_g, p_asc: (a, b) => (a._price || 0) - (b._price || 0), p_desc: (a, b) => (b._price || 0) - (a._price || 0), pop: (a, b) => (b._sold * 30 + b._searches * 3 + b._views) - (a._sold * 30 + a._searches * 3 + a._views) };
-    if (SORTS[productSort]) list.sort((a, b) => SORTS[productSort](a, b) || a.sort - b.sort);
+    const SORTS = { name: byName, w_asc: (a, b) => a.weight_g - b.weight_g, w_desc: (a, b) => b.weight_g - a.weight_g, p_asc: (a, b) => (a._price || 0) - (b._price || 0), p_desc: (a, b) => (b._price || 0) - (a._price || 0), pop: (a, b) => (b._sold * 30 + b._searches * 3 + b._views) - (a._sold * 30 + a._searches * 3 + a._views) };
+    if (SORTS[productSort]) list.sort((a, b) => SORTS[productSort](a, b) || byName(a, b));
     $("#productTools").innerHTML = `<span class="ptools__label">중량</span>${Object.entries(DON_RANGE).map(([k, r]) => `<button type="button" data-pw="${k}" class="${productW === k ? "is-on" : ""}">${r[2]} <span>${inSub.filter(p => { const d = Number(p.weight_g) / 3.75; return d >= r[0] && d < r[1]; }).length}</span></button>`).join("")}
-      <select id="productSort" aria-label="정렬">${Object.entries({ sort: "기본 순서", w_asc: "돈 수 적은 순", w_desc: "돈 수 많은 순", p_asc: "판매가 낮은 순", p_desc: "판매가 높은 순", pop: "인기순" }).map(([k, v]) => `<option value="${k}"${productSort === k ? " selected" : ""}>${v}</option>`).join("")}</select>`;
+      <select id="productSort" aria-label="정렬">${Object.entries({ name: "이름순", sort: "순서 번호순", w_asc: "돈 수 적은 순", w_desc: "돈 수 많은 순", p_asc: "판매가 낮은 순", p_desc: "판매가 높은 순", pop: "인기순" }).map(([k, v]) => `<option value="${k}"${productSort === k ? " selected" : ""}>${v}</option>`).join("")}</select>`;
+    $("#productSearchN").textContent = productQ ? `검색 결과 ${found.length}개` : "";
     shownProducts = list;
     [...picked].forEach(id => { if (!list.some(p => p.id === id)) picked.delete(id); });
     const allOn = list.length && list.every(p => picked.has(p.id));
@@ -815,7 +828,7 @@
         <td><button class="switch ${p.visible ? "is-on" : ""}" data-toggle="${p.id}:visible" aria-label="노출">${p.visible ? "노출" : "숨김"}</button></td>
         <td><button class="switch switch--warn ${p.sold_out ? "is-on" : ""}" data-toggle="${p.id}:sold_out" aria-label="품절">${p.sold_out ? "품절" : "판매중"}</button></td>
         <td>${p.sort}</td>
-      </tr>`).join("") : `<tr><td class="empty" colspan="11">상품이 없습니다</td></tr>`) + "</tbody>";
+      </tr>`).join("") : `<tr><td class="empty" colspan="11">${productQ ? `'${esc(productQ)}' 검색 결과가 없어요. 탭을 '전체'로 바꾸거나 다른 말로 찾아보세요` : "상품이 없습니다"}</td></tr>`) + "</tbody>";
     $("#bulkPrice").textContent = picked.size ? `가격 일괄 변경 (${picked.size}개 선택)` : "가격 일괄 변경";
     $("#bulkDelete").hidden = !picked.size;
     $("#bulkDelete").textContent = `선택 삭제 (${picked.size}개)`;
