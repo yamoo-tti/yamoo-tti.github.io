@@ -41,6 +41,12 @@ const donLabel = g => { const d = g / DON; return Number.isInteger(Math.round(d 
 // 홈페이지 주문 창(shop.js)에서 쓰는 정보
 window.SHOP = { find: id => state.products.find(p => p.id === id), price: p => state.domestic ? priceOf(p) : null };
 
+// 콩알금 시간·휴무일, 금값 급등 품절 상태가 바뀌면 바로 다시 그림 (common.js)
+document.addEventListener("yamoo:avail", () => {
+  window.YAMOO.applyBeanHours(state.products);
+  if (state.domestic) { renderBars(); renderProducts(currentFilter); }
+});
+
 async function loadProducts() {
   const sb = window.YAMOO.sb;
   if (!sb) return;

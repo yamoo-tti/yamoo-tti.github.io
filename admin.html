@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=20261112f">
+  <link rel="stylesheet" href="admin.css?v=20261112g">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -275,6 +275,28 @@
           <ul class="hol-list" id="holList"></ul>
         </div>
 
+        <h2 class="sub-head">금값 급등 자동 품절</h2>
+        <p class="desc">국제 금 시세가 <b>최근 정해진 시간(기본 1시간) 안의 최저가보다 정해진 %(기본 1.5%) 이상</b> 오르면, 실버를 뺀 <b>모든 금 상품(골드바·콩알금·주얼리·순금선물)</b>이 손님 화면에서 자동으로 <b>품절</b>이 되고 주문도 서버에서 막혀요. 그 뒤 <b>더 오르지 않고 정해진 시간(기본 30분)</b>이 지나면 자동으로 다시 열려요. 1분마다 검사해요. 관리자가 상품마다 켠 품절은 그대로예요.</p>
+        <div class="grid2">
+          <div class="panel">
+            <h2>지금 상태 <small id="surgeTime"></small></h2>
+            <div id="surgeState" class="surge-state"></div>
+            <button class="btn btn--gold" type="button" id="surgeRelease" hidden>지금 바로 풀기</button>
+          </div>
+          <form class="panel settings" id="surgeForm" hidden>
+            <fieldset><legend>기준</legend>
+              <label class="check full"><input type="checkbox" name="surge_auto"> 자동 품절 켜기</label>
+              <label>오른 폭 (%)<input type="number" name="surge_pct" min="0.3" max="20" step="0.1"></label>
+              <label>비교 시간 (분) <small>이 시간 안의 최저가와 비교</small><input type="number" name="surge_window_min" min="10" max="360" step="5"></label>
+              <label>다시 여는 시간 (분) <small>더 오르지 않고 이만큼 지나면</small><input type="number" name="surge_hold_min" min="5" max="360" step="5"></label>
+            </fieldset>
+            <div class="settings__foot">
+              <p class="muted">끄면 새로 품절되지 않아요. 이미 걸린 품절은 '지금 바로 풀기'로 풀어 주세요.</p>
+              <button class="btn btn--gold" type="submit">저장</button>
+            </div>
+          </form>
+        </div>
+
         <h2 class="sub-head">주문 · 입금 · 문자 설정</h2>
         <p class="desc">손님이 구매 신청을 하면 그 순간 시세로 금액이 확정되고, 아래 계좌와 입금 기한이 화면과 문자로 안내됩니다. 기한이 지나면 주문은 자동 취소됩니다.</p>
         <form class="panel settings" id="shopForm">
@@ -308,11 +330,11 @@
               <span>VIP</span><input type="number" name="t_vip_n" min="1" step="1"><input type="number" name="t_vip_amt" min="0" step="1000">
             </div>
           </fieldset>
-          <fieldset id="annivSet" hidden><legend>생일 쿠폰 <small>회원이 주문내역에서 생일 등록 · 매일 오전 9시 자동 지급 · 1년 1장</small></legend>
+          <fieldset id="annivSet" hidden><legend>생일 쿠폰 <small>회원이 주문내역에서 생일 등록 · 생일 당일 오전 9시 자동 지급 · 1년 1장</small></legend>
             <label>등록 후 며칠 지나야 대상 <small>가입하자마자 생일을 넣는 꼼수 방지</small><input type="number" name="bday_wait" min="0" max="365" step="1"></label>
             <label>쿠폰 금액 (원) <small>0이면 안 줌</small><input type="number" name="anniv_coupon" min="0" step="1000"></label>
             <label>쓸 수 있는 최소 상품 금액 (원)<input type="number" name="anniv_min" min="0" step="10000"></label>
-            <label>며칠 전에 지급<input type="number" name="anniv_lead" min="0" max="30" step="1"></label>
+            <input type="hidden" name="anniv_lead" value="0">
             <label>유효기간 (일) <small>받은 날부터</small><input type="number" name="anniv_days" min="1" max="365" step="1"></label>
           </fieldset>
           <div class="settings__foot">
@@ -374,7 +396,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261112i"></script>
-  <script src="admin.js?v=20261112k"></script>
+  <script src="common.js?v=20261112j"></script>
+  <script src="admin.js?v=20261112l"></script>
 </body>
 </html>

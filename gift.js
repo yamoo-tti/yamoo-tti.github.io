@@ -112,6 +112,7 @@
     const { data, error } = await Y.sb.from("products").select("*").eq("visible", true).order("sort").order("created_at");
     if (!error && data) { products = Y.applyBeanHours(data); stats = await Y.loadStats(); render(); }
   }
+  document.addEventListener("yamoo:avail", () => { Y.applyBeanHours(products); render(); }); // 품절 상태가 바뀌면 다시 그림
   setCat(location.hash.slice(1));
   loadProducts();
   loadPrices();

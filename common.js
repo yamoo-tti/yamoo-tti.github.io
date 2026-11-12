@@ -56,19 +56,33 @@
   const BEAN_GROUP = "순금 콩알금";
   const isBean = p => !!p && p.opt_group === BEAN_GROUP;
   let holidays = new Set(); // 'YYYY-MM-DD' (관리자 > 시세 설정 > 매장 휴무일, bean-hours.sql)
+  const availChanged = () => document.dispatchEvent(new Event("yamoo:avail")); // 품절 표시를 다시 그리라고 알림 (script.js, gift.js)
   if (sb) sb.from("shop_holidays").select("day").gte("day", new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10))
-    .then(({ data }) => { if (data) holidays = new Set(data.map(r => r.day)); }, () => {});
+    .then(({ data }) => { if (data && data.length) { holidays = new Set(data.map(r => r.day)); availChanged(); } }, () => {});
+  // 금값 급등 자동 품절 (surge-guard.sql): 켜져 있으면 실버를 뺀 모든 금 상품을 품절로 보여 줌 — 1분마다 확인
+  let surge = false;
+  function loadSurge() {
+    if (!sb) return;
+    sb.from("shop_info").select("surge_on").eq("id", 1).maybeSingle().then(({ data, error }) => {
+      const on = !error && !!(data && data.surge_on);
+      if (on !== surge) { surge = on; availChanged(); }
+    }, () => {});
+  }
+  loadSurge();
+  setInterval(loadSurge, 60000);
   const beanOpen = () => {
     const k = new Date(Date.now() + 9 * 3600 * 1000), d = k.getUTCDay(), h = k.getUTCHours();
     return d >= 1 && d <= 5 && h >= 9 && h < 18 && !holidays.has(k.toISOString().slice(0, 10));
   };
   // 상품 목록의 콩알금 품절 표시를 지금 시간에 맞춤 (관리자가 직접 켠 품절은 그대로 유지) — 목록을 불러올 때와 1분마다 호출
+  //   + 금값 급등 자동 품절이 켜져 있으면 실버를 뺀 모든 상품을 품절로
   function applyBeanHours(list) {
     const open = beanOpen();
     (list || []).forEach(p => {
-      if (!isBean(p)) return;
+      const bean = isBean(p), gold = p.kind !== "silver";
+      if (!bean && !(gold && surge) && p._sold === undefined) return;
       if (p._sold === undefined) p._sold = !!p.sold_out;
-      p.sold_out = p._sold || !open;
+      p.sold_out = p._sold || (bean && !open) || (gold && surge);
     });
     return list;
   }

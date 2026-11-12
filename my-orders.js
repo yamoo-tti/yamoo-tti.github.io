@@ -69,7 +69,7 @@
     if (location.hash === "#benefits") box.scrollIntoView();
   }
 
-  // 생일 쿠폰 등록 (birthday.sql 실행 후) — 생일 7일 전에 쿠폰 자동 지급
+  // 생일 쿠폰 등록 (birthday.sql 실행 후) — 생일 당일 오전 9시에 쿠폰 자동 지급
   //   악용 방지: 등록 30일 뒤부터 대상 · 한 번 등록하면 본인이 못 바꿈 (서버에서도 막음)
   async function renderAnniv(box) {
     const { data: { session } } = await sb.auth.getSession();
@@ -91,7 +91,7 @@
     el.className = "mo__anniv";
     el.innerHTML = `
       <h3>🎂 생일 쿠폰 <small>${won(c.anniv_coupon)} · 상품 ${won(c.anniv_min)} 이상 · 골드바·실버바 제외</small></h3>
-      <p class="mo__anniv-desc">생일을 등록하면 매년 생일 <b>${c.anniv_lead}일 전</b>에 쿠폰을 드려요 (${c.anniv_days}일 안에 사용 · 1년에 1장).${wait ? ` 등록하고 ${wait}일이 지난 뒤부터 드려요.` : ""} 한 번 등록한 생일은 바꿀 수 없어요.</p>
+      <p class="mo__anniv-desc">생일을 등록하면 매년 <b>생일 당일</b>에 쿠폰을 드려요 (${c.anniv_days}일 안에 사용 · 1년에 1장).${wait ? ` 등록하고 ${wait}일이 지난 뒤부터 드려요.` : ""} 한 번 등록한 생일은 바꿀 수 없어요.</p>
       ${p.birthday
         ? `<div class="mo__anniv-row"><span>생일</span><b>${+p.birthday.slice(0, 2)}월 ${+p.birthday.slice(3)}일</b><small class="mo__anniv-note">등록 완료${ready} · 변경은 고객센터 문의</small></div>`
         : `<div class="mo__anniv-row"><span>생일</span><select name="bm" aria-label="생일 월">${opts(12)}</select>월<select name="bd" aria-label="생일 일">${opts(31)}</select>일</div>

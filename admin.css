@@ -363,3 +363,9 @@ fieldset.box .row2 { align-items: end; }
 .hol-list li.muted { border: 0; padding: 0; background: none; }
 .hol-list button { width: 24px; height: 24px; border-radius: 50%; color: var(--muted); font-size: 16px; }
 .hol-list button:hover { background: var(--tint); color: var(--ink); }
+
+/* 금값 급등 자동 품절 */
+.surge-state p { margin: 0 0 6px; }
+.surge-state .surge-on { font-weight: 700; color: #c0392b; }
+.surge-state .surge-off { font-weight: 700; color: #1e8449; }
+#surgeRelease { margin-top: 8px; }

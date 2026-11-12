@@ -1430,6 +1430,7 @@
     loadShop();
     loadLoss();
     loadHolidays();
+    loadSurge();
   }
 
   // 적자 방지: 삼성금거래소 실시간 도매가(1분마다 서버가 받아 둠) × 1.1 = 원가 (samsung-cost.sql)
@@ -1459,6 +1460,47 @@
     }).join("") : `<tr><td class="muted">시세를 받아 오는 중이에요. 1분 뒤 새로고침해 주세요</td></tr>`;
   }
 
+
+  // 금값 급등 자동 품절 (surge-guard.sql)
+  const SURGE_NUM = ["surge_pct", "surge_window_min", "surge_hold_min"];
+  async function loadSurge() {
+    const box = $("#surgeState"), f = $("#surgeForm"), btn = $("#surgeRelease");
+    const { data, error } = await sb.from("shop_info").select("surge_auto,surge_pct,surge_window_min,surge_hold_min,surge_on,surge_since,surge_low,surge_peak,surge_peak_at").eq("id", 1).maybeSingle();
+    if (error || !data) { box.innerHTML = `<p class="muted">surge-guard.sql 을 먼저 실행해 주세요</p>`; f.hidden = true; btn.hidden = true; return; }
+    f.hidden = false;
+    f.surge_auto.checked = !!data.surge_auto;
+    SURGE_NUM.forEach(k => { f[k].value = data[k]; });
+    const { data: lp } = await sb.from("live_prices").select("krw_per_oz,fetched_at").eq("symbol", "XAU").maybeSingle();
+    const cur = lp && Number(lp.krw_per_oz), don = v => won(Math.round(v / 31.1034768 * 3.75));
+    $("#surgeTime").textContent = lp ? fmtDate(lp.fetched_at) + " 시세" : "";
+    if (data.surge_on) {
+      const up = data.surge_low ? Math.round((data.surge_peak / data.surge_low - 1) * 1000) / 10 : 0;
+      const until = new Date(new Date(data.surge_peak_at).getTime() + data.surge_hold_min * 60000);
+      box.innerHTML = `<p class="surge-on">🔴 급등 품절 중 · 금 상품 주문 막힘</p>
+        <p class="muted">${fmtDate(data.surge_since)}부터 · 국제 금 1돈 ${don(data.surge_low)} → 최고 ${don(data.surge_peak)} (+${up}%)${cur ? ` · 지금 ${don(cur)}` : ""}</p>
+        <p class="muted">더 오르지 않으면 <b>${fmtDate(until.toISOString())}</b>에 자동으로 다시 열려요.</p>`;
+      btn.hidden = false;
+    } else {
+      box.innerHTML = `<p class="surge-off">🟢 정상 판매 중</p><p class="muted">${data.surge_auto ? `최근 ${data.surge_window_min}분 최저가보다 ${data.surge_pct}% 이상 오르면 자동 품절` : "자동 품절이 꺼져 있어요"}${cur ? ` · 국제 금 1돈 ${don(cur)}` : ""}</p>`;
+      btn.hidden = true;
+    }
+  }
+  $("#surgeRelease").addEventListener("click", async () => {
+    if (!confirm("급등 품절을 지금 풀까요? 금 상품 주문을 바로 다시 받아요.\n(푼 시점부터 다시 계산해요)")) return;
+    const { error } = await sb.rpc("surge_release");
+    if (error) return fail(error);
+    toast("급등 품절을 풀었어요"); loadSurge();
+  });
+  $("#surgeForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const f = e.target, row = { surge_auto: f.surge_auto.checked };
+    SURGE_NUM.forEach(k => { row[k] = Number(f[k].value); });
+    if (!(row.surge_pct >= 0.3 && row.surge_pct <= 20)) return toast("오른 폭은 0.3~20% 사이로 넣어 주세요", true);
+    if (!(row.surge_window_min >= 10 && row.surge_window_min <= 360 && row.surge_hold_min >= 5 && row.surge_hold_min <= 360)) return toast("시간은 비교 10~360분, 다시 여는 시간 5~360분 사이로 넣어 주세요", true);
+    const { error } = await sb.from("shop_info").update(row).eq("id", 1);
+    if (error) return fail(error);
+    toast("급등 품절 기준을 저장했어요"); loadSurge();
+  });
 
   // 매장 휴무일 (콩알금 주문 막힘 · bean-hours.sql)
   async function loadHolidays() {
@@ -1545,7 +1587,7 @@
     }
     if (hasAnniv) {
       ANNIV_FIELDS.forEach(k => { row[k] = Math.max(0, parseInt(f[k].value, 10) || 0); });
-      row.anniv_lead = Math.min(30, row.anniv_lead);
+      row.anniv_lead = 0; // 생일 당일 지급 (surge-guard.sql)
       row.anniv_days = Math.min(365, Math.max(1, row.anniv_days));
       row.bday_wait = Math.min(365, row.bday_wait);
     }
