@@ -3,8 +3,8 @@
   const Y = window.YAMOO;
   const $ = s => document.querySelector(s);
   const PHONE = "010-5287-8002";
-  const CATS = { all: "전체", goods: "순금 기념품", dol: "돌선물", key: "행운의 열쇠", memo: "기념 골드바", plaque: "감사패" };
-  const ALIAS = { bar: "memo" }; // 예전 주소(gift.html#bar) 호환
+  const CATS = { all: "전체", goods: "순금 기념품", dol: "돌선물", key: "행운의 열쇠", plaque: "감사패" };
+  const ALIAS = {}; // 기념 골드바는 없어짐(골드바 구매 때 무료 각인) → 예전 주소 gift.html#bar 는 전체로
 
   let products = [], stats = {}, domestic = null, cat = "all", sort = "rec";
   const imgSrc = p => /^https?:\/\//.test(p.img || "") ? p.img : `images/${p.img || "bar-close.jpg"}`;

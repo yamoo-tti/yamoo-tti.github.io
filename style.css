@@ -866,6 +866,16 @@ ul, ol { padding: 0; list-style: none; }
 .opt-addon { flex-direction: row !important; align-items: center; gap: 8px !important; padding: 12px 14px; border: 1px solid var(--line); border-radius: 4px; background: #fff; font-size: 14px !important; color: var(--ink) !important; cursor: pointer; }
 .opt-addon:has(input:checked) { border-color: var(--gold-2); box-shadow: 0 0 0 1px var(--gold-2); }
 .opt-addon b { color: var(--gold-2); margin-left: 4px; }
+/* 골드바 각인 (무료): 체크하면 문구 칸이 열림 */
+.engrave { display: grid; gap: 8px; }
+.engrave [hidden] { display: none !important; }
+.engrave__txt small { color: var(--muted); font-weight: 400; margin-left: 4px; }
+.engrave__note { margin: 0; font-size: 12.5px; color: var(--up); }
+.cart-row__eng { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 13px; }
+.cart-row__eng .check { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.cart-row__eng .check b { color: var(--gold-2); }
+.cart-row__eng input[data-cetext] { flex: 1 1 200px; min-width: 0; height: 36px; padding: 0 10px; border: 1px solid var(--line); border-radius: 3px; font-size: 14px; }
+.cart-row__eng small { flex-basis: 100%; color: var(--muted); font-size: 12px; }
 .opt-w { margin: -4px 0 0; padding: 10px 12px; border-radius: 4px; background: var(--tint); font-size: 13px; color: var(--ink-2); line-height: 1.6; }
 .opt-w small { color: var(--muted); }
 

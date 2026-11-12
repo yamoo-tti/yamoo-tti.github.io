@@ -99,14 +99,16 @@
   }
 
   // 선물로 보내기: 받는 분·메시지 카드·가격 서류 제외를 요청 사항 앞에 붙여 사장님이 보게 함 (최대 500자)
-  function noteOf(f) {
+  // eng: 골드바 각인 문구 줄 ([각인] …) — 맨 앞에 붙임
+  function noteOf(f, eng = []) {
     const note = (f.note.value || "").trim();
-    const box = f.querySelector(".giftopt");
-    if (!box || !f.gift_to) return note;
-    const to = f.gift_to.value.trim(), ph = f.gift_phone.value.trim(), msg = f.gift_msg.value.trim();
-    if (!to && !ph && !msg) return note;
-    const g = ["[선물]", to && `받는 분: ${to}`, ph && `연락처: ${ph}`, msg && `카드: "${msg}"`, f.gift_noprice.checked ? "가격 서류 빼기" : ""].filter(Boolean).join(" / ");
-    return (g + (note ? "\n" + note : "")).slice(0, 500);
+    const parts = [...eng];
+    if (f.querySelector(".giftopt") && f.gift_to) {
+      const to = f.gift_to.value.trim(), ph = f.gift_phone.value.trim(), msg = f.gift_msg.value.trim();
+      if (to || ph || msg) parts.push(["[선물]", to && `받는 분: ${to}`, ph && `연락처: ${ph}`, msg && `카드: "${msg}"`, f.gift_noprice.checked ? "가격 서류 빼기" : ""].filter(Boolean).join(" / "));
+    }
+    if (note) parts.push(note);
+    return parts.join("\n").slice(0, 500);
   }
 
   // [필수] 취소·반품 불가 동의 기록 남기기 (분쟁 대비 증거, 실패해도 주문은 그대로)
@@ -178,6 +180,23 @@
   };
   const addonOf = (p, pick) => pick && pick.addon && Y.hasAddon(p) ? Number(p.addon_price) : 0;
   const withPick = (name, p, pick) => { const l = pick ? Y.pickLabel(p, pick.size, pick.addon) : ""; return l ? `${name} (${l})` : name; };
+
+  /* ---------- 골드바 각인 (무료 · 체크하면 문구 칸이 열림 → 요청 사항 맨 앞에 [각인]으로 전달) ---------- */
+  const ENG_MAX = 20;
+  const canEngrave = p => !!p && p.kind === "bar";
+  const engraveHtml = () => `<div class="engrave">
+      <label class="check opt-addon"><input type="checkbox" name="eng_on"> <span>각인 추가 <b>무료</b></span></label>
+      <label class="engrave__txt" hidden>각인 문구 <small>최대 ${ENG_MAX}자</small><input name="eng_text" maxlength="${ENG_MAX}" placeholder="예: 2026.11.12 우리 딸 첫 생일" autocomplete="off"></label>
+      <p class="engrave__note" hidden>각인을 시작하면 취소·반품할 수 없어요. 글자와 숫자를 꼭 확인해 주세요.</p>
+    </div>`;
+  const syncEngrave = (box, focus) => {
+    const on = box.querySelector("[name=eng_on]");
+    if (!on) return;
+    const t = box.querySelector("[name=eng_text]");
+    box.querySelectorAll(".engrave__txt, .engrave__note").forEach(el => { el.hidden = !on.checked; });
+    t.required = on.checked;
+    if (on.checked && focus) t.focus();
+  };
 
   /* ---------- 쿠폰 (회원 · coupons-points.sql 실행 후) ---------- */
   let bnf = null, bnfCfg = null; // bnf: 내 쿠폰, bnfCfg: 후기 쿠폰 금액(비회원 안내용)
@@ -274,7 +293,10 @@
     $("#orderTotal").innerHTML = unit ? won(unit * qty - disc + fee) + [fee ? `택배비 ${won(fee)} 포함` : "", disc ? `할인 ${won(disc)} 적용` : ""].filter(Boolean).map(t => `<small>${t}</small>`).join("") : "매장 문의";
     return unit ? unit * qty - disc + fee : null;
   }
-  orderForm.addEventListener("change", e => { if (["receive", "opt_addon", "opt_size", "coupon"].includes(e.target.name)) updateTotal(); });
+  orderForm.addEventListener("change", e => {
+    if (e.target.name === "eng_on") return syncEngrave(orderOpts, true);
+    if (["receive", "opt_addon", "opt_size", "coupon"].includes(e.target.name)) updateTotal();
+  });
 
   window.openOrder = function (p) {
     if (!sb || !p.id) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
@@ -288,8 +310,8 @@
     $("#orderInfo").open = false;
     $("#orderInfoBody").innerHTML = infoTable(p);
     orderForm.reset();
-    orderOpts.innerHTML = optsHtml(p);
-    orderOpts.hidden = !Y.needsPick(p);
+    orderOpts.innerHTML = optsHtml(p) + (canEngrave(p) ? engraveHtml() : "");
+    orderOpts.hidden = !Y.needsPick(p) && !canEngrave(p);
     fillEmail(orderForm);
     syncReceive();
     syncOrderReceipt();
@@ -318,7 +340,8 @@
     btn.disabled = true;
     const { data, error } = await sb.rpc("submit_order", {
       p_product_id: current.id, p_qty: qty, p_name: f.name.value, p_phone: f.phone.value,
-      p_receive: f.receive.value, p_address: f.address.value, p_note: noteOf(f), p_quoted: updateTotal(),
+      p_receive: f.receive.value, p_address: f.address.value, p_quoted: updateTotal(),
+      p_note: noteOf(f, f.eng_on && f.eng_on.checked && f.eng_text.value.trim() ? [`[각인] "${f.eng_text.value.trim()}"${qty > 1 ? ` (${qty}개 모두)` : ""}`] : []),
       p_receipt: receipt,
       ...(Y.needsPick(current) ? { p_size: pickOf(f).size || null, p_addon: pickOf(f).addon } : {}),
       ...bnfArgs(f._bnf || {}),
@@ -449,6 +472,11 @@
           <div class="qty qty--sm"><button type="button" data-cq="${k}:-1" aria-label="빼기">−</button><input value="${r.qty}" readonly aria-label="수량"><button type="button" data-cq="${k}:1" aria-label="더하기">+</button></div>
           <p class="cart-row__sub">${unit != null ? won(unit * r.qty) : "-"}</p>
           <button type="button" class="cart-row__x" data-cdel="${k}" aria-label="삭제">×</button>
+          ${canEngrave(r.p) ? `<div class="cart-row__eng">
+            <label class="check"><input type="checkbox" data-ceng="${k}"${r.eng ? " checked" : ""}> <span>각인 추가 <b>무료</b></span></label>
+            ${r.eng ? `<input data-cetext="${k}" maxlength="${ENG_MAX}" value="${esc(r.etext || "")}" placeholder="각인 문구 (최대 ${ENG_MAX}자)" aria-label="각인 문구" autocomplete="off">
+            <small>${r.qty > 1 ? `${r.qty}개 모두 같은 문구로 각인돼요. ` : ""}각인을 시작하면 취소·반품할 수 없어요.</small>` : ""}
+          </div>` : ""}
         </div>`;
     }).join("");
     const fee = cartForm.receive.value === "delivery" ? Number(shopInfo.delivery_fee) || 0 : 0;
@@ -492,6 +520,22 @@
     if (x) { cartItems = cartItems.filter(i => keyOf(i) !== x.dataset.cdel); saveCart(); renderCart(); return; }
     if (e.target.closest("a[data-close]")) closeModal(cartModal);
   });
+  // 장바구니 골드바 각인: 체크하면 문구 칸이 열리고, 문구는 치는 대로 저장 (다시 그리지 않아 입력이 끊기지 않음)
+  cartModal.addEventListener("change", e => {
+    const c = e.target.closest("[data-ceng]");
+    if (!c) return;
+    const it = cartItems.find(i => keyOf(i) === c.dataset.ceng);
+    if (!it) return;
+    it.eng = c.checked;
+    saveCart(); renderCart();
+    if (c.checked) { const t = cartModal.querySelector(`[data-cetext="${CSS.escape(c.dataset.ceng)}"]`); if (t) t.focus(); }
+  });
+  cartModal.addEventListener("input", e => {
+    const t = e.target.closest("[data-cetext]");
+    if (!t) return;
+    const it = cartItems.find(i => keyOf(i) === t.dataset.cetext);
+    if (it) { it.etext = t.value.slice(0, ENG_MAX); saveCart(); }
+  });
   cartForm.addEventListener("change", e => { if (["receive", "coupon"].includes(e.target.name)) renderCart(); });
 
   cartForm.addEventListener("submit", async e => {
@@ -499,12 +543,20 @@
     const f = cartForm, btn = $("#cartSubmit");
     const items = cartItems.filter(i => window.SHOP.find(i.id)).map(i => ({ id: i.id, qty: i.qty, size: i.size || null, addon: !!i.addon }));
     if (!items.length) { renderCart(); return; }
+    const engs = cartItems.filter(i => i.eng && canEngrave(window.SHOP.find(i.id)));
+    const blank = engs.find(i => !String(i.etext || "").trim());
+    if (blank) {
+      toast("각인 문구를 적어 주세요 (각인이 필요 없으면 체크를 풀어 주세요)");
+      const t = cartModal.querySelector(`[data-cetext="${CSS.escape(keyOf(blank))}"]`); if (t) t.focus();
+      return;
+    }
+    const engLines = engs.map(i => `[각인] ${displayName(window.SHOP.find(i.id))}${i.qty > 1 ? ` ×${i.qty}` : ""}: "${String(i.etext).trim()}"`);
     let receipt;
     try { receipt = receiptOf(f); } catch (msg) { toast(msg); return; }
     btn.disabled = true;
     const { data, error } = await sb.rpc("submit_cart", {
       p_items: items, p_name: f.name.value, p_phone: f.phone.value,
-      p_receive: f.receive.value, p_address: f.address.value, p_note: noteOf(f), p_receipt: receipt,
+      p_receive: f.receive.value, p_address: f.address.value, p_note: noteOf(f, engLines), p_receipt: receipt,
       ...bnfArgs(f._bnf || {}),
     });
     btn.disabled = false;
