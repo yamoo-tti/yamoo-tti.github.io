@@ -559,6 +559,8 @@ function renderPd() {
   if (window.renderReviews) window.renderReviews(p, opts);
   pdWishBtn();
   pdSizeGuide(p);
+  const lt = Y.leadTime(p), ltEl = $("#pdLead");
+  if (ltEl) { ltEl.hidden = !lt; ltEl.className = "pd__lead" + (lt && lt.slow ? " is-slow" : ""); ltEl.textContent = lt ? lt.text : ""; }
   // 검색엔진·카톡 공유용 제목·설명·상품 정보
   document.title = `${pdTitle(p)} | 금비 GOLD`;
   if (pdMeta) pdMeta.content = `${pdTitle(p)} · ${kindTxt} · ${wLabel(Number(p.weight_g))} · 실시간 시세 ${won(priceOf(p))}. 서울 종로 금비 GOLD 010-5287-8002`;

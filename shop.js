@@ -306,7 +306,7 @@
     const name = p.kind === "zodiac" ? `GBK 카드형 골드바 1g (${p.name})` : p.name;
     $("#orderItem").innerHTML = `
       <img src="${esc(/^https?:/.test(p.img || "") ? p.img : "images/" + (p.img || "bar-close.jpg"))}" alt="">
-      <div><b>${esc(name)}</b><span>${unit ? won(unit) + " / 개 · 현재 시세 기준" : "가격 매장 문의"}</span></div>`;
+      <div><b>${esc(name)}</b><span>${unit ? won(unit) + " / 개 · 현재 시세 기준" : "가격 매장 문의"}</span>${(lt => lt ? `<em class="lead${lt.slow ? " is-slow" : ""}">${esc(lt.text)}</em>` : "")(Y.leadTime(p))}</div>`;
     $("#orderInfo").open = false;
     $("#orderInfoBody").innerHTML = infoTable(p);
     orderForm.reset();
@@ -467,7 +467,7 @@
           <img src="${esc(imgOf(r.p))}" alt="">
           <div class="cart-row__info">
             <b>${esc(withPick(displayName(r.p), r.p, r))}</b>
-            <span>${unit != null ? won(unit) + " / 개" : "가격 확인 중"}${r.p.sold_out ? ' · <em>품절</em>' : ""}${noSize(r) ? ' · <em>사이즈를 골라 다시 담아 주세요</em>' : ""}</span>
+            <span>${unit != null ? won(unit) + " / 개" : "가격 확인 중"}${(lt => lt && lt.slow ? ` · <i class="lead is-slow">${lt.short}</i>` : "")(Y.leadTime(r.p))}${r.p.sold_out ? ' · <em>품절</em>' : ""}${noSize(r) ? ' · <em>사이즈를 골라 다시 담아 주세요</em>' : ""}</span>
           </div>
           <div class="qty qty--sm"><button type="button" data-cq="${k}:-1" aria-label="빼기">−</button><input value="${r.qty}" readonly aria-label="수량"><button type="button" data-cq="${k}:1" aria-label="더하기">+</button></div>
           <p class="cart-row__sub">${unit != null ? won(unit * r.qty) : "-"}</p>
