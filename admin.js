@@ -1410,6 +1410,16 @@
   let hasTier = false;
   const ANNIV_FIELDS = ["anniv_coupon", "anniv_min", "anniv_lead", "anniv_days", "bday_wait"];
   let hasAnniv = false;
+  // 등급·가입 쿠폰마다 실제 최소 주문 금액 미리 보기 (쿠폰 금액 × 배수)
+  function tierHint() {
+    const f = $("#shopForm"), el = $("#tierHint");
+    if (!el || !f.coupon_x) return;
+    const x = Math.max(0, Number(f.coupon_x.value) || 0);
+    const list = [["가입", f.signup_coupon.value], ["실버", f.t_silver_amt.value], ["골드", f.t_gold_amt.value], ["VIP", f.t_vip_amt.value]]
+      .filter(([, a]) => Number(a) > 0).map(([n, a]) => `${n} ${won(Number(a))} → ${won(Number(a) * x)} 이상`);
+    el.textContent = list.length ? "지금 설정: " + list.join(" · ") : "";
+  }
+  ["coupon_x", "signup_coupon", "t_silver_amt", "t_gold_amt", "t_vip_amt"].forEach(k => { const i = $("#shopForm")[k]; if (i) i.addEventListener("input", tierHint); });
   async function loadShop() {
     const f = $("#shopForm");
     const { data, error } = await sb.from("shop_info").select("*").eq("id", 1).maybeSingle();
@@ -1426,6 +1436,7 @@
     if (hasTier) {
       TIER_FIELDS.forEach(k => { f[k].value = data[k] ?? ""; });
       (data.tier_rule || []).forEach(r => { if (f[`t_${r.g}_n`]) { f[`t_${r.g}_n`].value = r.n; f[`t_${r.g}_amt`].value = r.amt; } });
+      tierHint();
     }
     // 생일 쿠폰 칸 (birthday.sql 실행 전이면 숨김)
     hasAnniv = "bday_wait" in data;

@@ -266,13 +266,14 @@
           <fieldset id="bnfSet"><legend>후기 쿠폰 <small>회원 · 홈페이지 주문 전용</small></legend>
             <label class="inline"><input type="checkbox" name="review_event"> 후기 이벤트 켜기 <small>첫 화면 팝업 + 후기 쓰면 쿠폰 자동 지급</small></label>
             <label>후기 쿠폰 금액 (원)<input type="number" name="review_coupon" min="0" step="1000"></label>
-            <label>쿠폰 쓸 수 있는 최소 상품 금액 (원) <small>골드바·실버바·카드형 골드바는 쿠폰 사용 불가</small><input type="number" name="coupon_min" min="0" step="10000"></label>
+            <label>후기 쿠폰 최소 상품 금액 (원) <small>첫 화면 후기 이벤트 팝업에 표시 · 관리자가 직접 주는 쿠폰도 같음 · 골드바·실버바·카드형 골드바는 쿠폰 사용 불가</small><input type="number" name="coupon_min" min="0" step="10000"></label>
             <label>쿠폰 유효기간 (개월) <small>받은 날부터 · 모든 쿠폰 공통</small><input type="number" name="coupon_months" min="1" max="36" step="1"></label>
           </fieldset>
           <fieldset id="tierSet" hidden><legend>회원 등급 · 가입 쿠폰 <small>등급이 오르면 쿠폰 자동 지급 · 관리자 계정 제외</small></legend>
             <label>가입 쿠폰 금액 (원) <small>0이면 안 줌</small><input type="number" name="signup_coupon" min="0" step="1000"></label>
             <label>구매 1회로 치는 최소 상품 금액 (원) <small>입금 확인된 회원 주문 · 택배비 제외</small><input type="number" name="tier_min_order" min="0" step="10000"></label>
             <label>등급·가입 쿠폰 최소 주문 = 쿠폰 금액 × <small>20이면 할인율 최대 5% (1만원 쿠폰 → 20만원 이상)</small><input type="number" name="coupon_x" min="0" max="100" step="1"></label>
+            <p class="muted" id="tierHint" style="font-size:12px;margin:-4px 0 8px"></p>
             <div class="tier-grid">
               <span></span><b>몇 회 구매</b><b>등급업 쿠폰 (원)</b>
               <span>실버</span><input type="number" name="t_silver_n" min="1" step="1"><input type="number" name="t_silver_amt" min="0" step="1000">
@@ -347,6 +348,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="common.js?v=20261111b"></script>
-  <script src="admin.js?v=20261112a"></script>
+  <script src="admin.js?v=20261112b"></script>
 </body>
 </html>

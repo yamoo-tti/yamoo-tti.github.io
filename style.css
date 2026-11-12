@@ -975,7 +975,7 @@ ul, ol { padding: 0; list-style: none; }
 #cartDiscRow b { color: var(--up); }
 
 /* ---------- 후기 이벤트 팝업 ---------- */
-.evt-modal .modal__box.evt { max-width: 380px; padding: 0; overflow: hidden; border-radius: 14px; }
+.evt-modal .modal__box.evt { max-width: 480px; width: calc(100% - 24px); padding: 0; overflow: hidden; border-radius: 14px; }
 .evt__x { color: #f3e3b8; z-index: 2; }
 .evt__top { position: relative; padding: 34px 28px 28px; background: radial-gradient(120% 90% at 85% 0%, #3a2f17 0%, #14120d 60%); color: #fff; overflow: hidden; }
 .evt__eyebrow { font-family: var(--serif-en); font-style: italic; letter-spacing: .14em; color: var(--gold-hi); font-size: 14px; }
@@ -987,7 +987,11 @@ ul, ol { padding: 0; list-style: none; }
 .evt__steps li { display: flex; gap: 10px; align-items: flex-start; }
 .evt__steps b { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--dark); color: var(--gold-hi); font-size: 12px; display: grid; place-items: center; margin-top: 1px; }
 .evt__steps em { font-style: normal; font-weight: 700; color: var(--gold-2); }
-.evt__note { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.evt__note { font-size: 12.5px; color: var(--muted); line-height: 1.7; display: grid; gap: 1px; }
+.evt__note li { white-space: nowrap; }
+.evt__note li::before { content: "· "; }
+.evt__steps span { white-space: nowrap; }
+@media (max-width: 420px) { .evt__steps span, .evt__note li { white-space: normal; } }
 .evt__go { width: 100%; height: 50px; display: grid; place-items: center; font-weight: 700; }
 .evt__hide { font-size: 12.5px; color: var(--muted); justify-self: center; text-decoration: underline; text-underline-offset: 3px; }
 .rv__gift { margin-bottom: 14px; padding: 12px 14px; border-radius: 8px; background: #fffaf0; border: 1px solid var(--gold-hi); font-size: 14px; }
