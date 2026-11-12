@@ -112,7 +112,8 @@
     const don = Math.round(w / DON * 1000) / 1000;
     const gold = k === "bar" || k === "zodiac" || k === "gift";
     return {
-      material: k === "silver" ? "순은 (Ag 999.9)" : gold || p.karat === "24K" ? "순금 24K (Au 999.9)" : p.karat === "SV" ? "실버 925 (은 함량 92.5%)"
+      material: k === "silver" ? "순은 (Ag 999.9)" : k === "bar" || k === "zodiac" ? "순금 24K (Au 999.9)"
+        : k === "accessory" && p.karat === "24K" || p.opt_group === "순금 콩알금" ? "순금 24K (Au 999 · 순도 99.9%)" : gold || p.karat === "24K" ? "순금 24K (Au 999.9)" : p.karat === "SV" ? "실버 925 (은 함량 92.5%)"
         : p.karat === "18K" ? "18K 금 (금 함량 75%)" : p.karat === "14K" ? "14K 금 (금 함량 58.5%)" : String(p.karat || ""),
       weight: k === "accessory" ? `약 ${w}g (수작업 특성상 조금 차이가 날 수 있어요)`
         : (w >= 1000 && w % 1000 === 0 ? `${w / 1000}kg` : `${w}g`) + (gold ? ` (${don}돈)` : ""),

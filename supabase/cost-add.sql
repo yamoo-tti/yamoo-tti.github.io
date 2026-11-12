@@ -1,7 +1,7 @@
 -- 2026-11-12 적자 방지 원가에 더하는 금액(상품 1개당)을 관리자 > 시세 설정에서 바꿀 수 있게 함 (samsung-cost.sql 다음에 실행)
 --   원가 = 삼성금거래소 100% 기준가 × 함량 × 1.1 + 추가 금액
---   추가 금액: 포나인(99.99%) 기본 2,000원 = 골드바·카드형 1g·콩알금·실버바(그래뉼)
---             쓰리나인(99.9%) 기본 1,000원 = 그 밖의 상품 (주얼리·돌반지 등 순금선물·18K·14K·실버 주얼리)
+--   추가 금액: 포나인(99.99%) 기본 2,000원 = 골드바·카드형 1g·실버바(그래뉼)
+--             쓰리나인(99.9%) 기본 1,000원 = 그 밖의 상품 (콩알금·주얼리·돌반지 등 순금선물·18K·14K·실버 주얼리)
 -- 여러 번 실행해도 안전합니다.
 
 alter table public.price_settings add column if not exists cost_add_999  numeric not null default 1000;
@@ -10,7 +10,7 @@ alter table public.price_settings add column if not exists cost_add_9999 numeric
 -- 포나인(99.99%) 상품인지
 create or replace function public.is_four_nine(p public.products) returns boolean
 language sql immutable as $$
-  select p.kind in ('bar', 'zodiac', 'silver') or coalesce(p.opt_group, '') = '순금 콩알금'
+  select p.kind in ('bar', 'zodiac', 'silver')   -- 콩알금·주얼리·순금선물은 쓰리나인
 $$;
 
 create or replace function public.loss_info(p public.products, out price numeric, out cost numeric)
