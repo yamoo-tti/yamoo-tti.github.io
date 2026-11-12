@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261111o">
+  <link rel="stylesheet" href="style.css?v=20261112a">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -425,6 +425,7 @@
           <div id="pdOpts"></div>
           <p class="pd__price num" id="pdPrice"></p>
           <p class="pd__unit">실시간 시세 연동 · 주문하는 순간의 시세로 금액 확정</p>
+          <p class="pd__nocancel">주문 확인 후 매입(발주)하는 시세 상품이에요 · <b>입금 후 단순 변심 취소·반품 불가</b> <a href="terms.html#a11" target="_blank" class="u">자세히</a></p>
           <div class="pd__btns">
             <button type="button" class="cart-btn" id="pdCart">장바구니</button>
             <button type="button" class="buy-btn" id="pdBuy">바로 구매</button>
@@ -508,7 +509,7 @@
           <p class="rc-note" data-rc="none">10만원 이상 현금 거래는 법에 따라 국세청 지정번호로 현금영수증이 자동 발행돼요.</p>
           <p class="rc-note" data-rc="personal business invoice">입금이 확인되면 발행해 드려요.</p>
         </fieldset>
-        <label class="check"><input type="checkbox" required> <span>[필수] 금·은 시세 상품은 <b>최종 금액 확정·입금 후 단순 변심에 의한 취소·반품이 불가</b>함을 확인했습니다 <a href="terms.html#a11" target="_blank" class="u">자세히</a></span></label>
+        <label class="check"><input type="checkbox" name="nocancel" required> <span>[필수] 이 상품은 <b>주문을 확인한 뒤 공급처에서 매입(발주)해 보내 드리는 금·은 시세 상품</b>으로, <b>입금 후에는 단순 변심에 의한 취소·반품이 불가</b>함을 확인하고 동의합니다 <a href="terms.html#a11" target="_blank" class="u">자세히</a></span></label>
         <label class="check"><input type="checkbox" required> <span>[필수] <a href="privacy.html" target="_blank" class="u">개인정보 수집·이용</a>에 동의합니다</span></label>
         <p class="consent-sum">수집 항목: 이름·연락처·이메일(택배 시 주소, 영수증·계산서 신청 시 휴대폰 또는 사업자번호·상호·대표자·이메일) · 목적: 주문 안내(구매내역서 메일 발송)·상품 인도·현금영수증 및 세금계산서 발행 · 보관: 거래 시 5년(전자상거래법·국세기본법), 미거래 시 1년 · 동의하지 않으면 온라인 신청은 어렵고 전화(010-5287-8002)로 주문할 수 있어요</p>
         <label class="check"><input type="checkbox" name="mkt"> <span>[선택] 이벤트·할인·시세 소식을 문자로 받겠습니다 <small class="mkt-note">(마케팅 수신 동의 · 이름·휴대폰 · 동의 철회 시까지 보관 · 체크하지 않아도 주문할 수 있어요)</small></span></label>
@@ -555,7 +556,7 @@
           <p class="rc-note" data-rc="none">10만원 이상 현금 거래는 법에 따라 국세청 지정번호로 현금영수증이 자동 발행돼요.</p>
           <p class="rc-note" data-rc="personal business invoice">입금이 확인되면 발행해 드려요.</p>
         </fieldset>
-        <label class="check"><input type="checkbox" required> <span>[필수] 금·은 시세 상품은 <b>최종 금액 확정·입금 후 단순 변심에 의한 취소·반품이 불가</b>함을 확인했습니다 <a href="terms.html#a11" target="_blank" class="u">자세히</a></span></label>
+        <label class="check"><input type="checkbox" name="nocancel" required> <span>[필수] 이 상품은 <b>주문을 확인한 뒤 공급처에서 매입(발주)해 보내 드리는 금·은 시세 상품</b>으로, <b>입금 후에는 단순 변심에 의한 취소·반품이 불가</b>함을 확인하고 동의합니다 <a href="terms.html#a11" target="_blank" class="u">자세히</a></span></label>
         <label class="check"><input type="checkbox" required> <span>[필수] <a href="privacy.html" target="_blank" class="u">개인정보 수집·이용</a>에 동의합니다</span></label>
         <p class="consent-sum">수집 항목: 이름·연락처·이메일(택배 시 주소, 영수증·계산서 신청 시 휴대폰 또는 사업자번호·상호·대표자·이메일) · 목적: 주문 안내(구매내역서 메일 발송)·상품 인도·현금영수증 및 세금계산서 발행 · 보관: 거래 시 5년(전자상거래법·국세기본법), 미거래 시 1년 · 동의하지 않으면 온라인 신청은 어렵고 전화(010-5287-8002)로 주문할 수 있어요</p>
         <label class="check"><input type="checkbox" name="mkt"> <span>[선택] 이벤트·할인·시세 소식을 문자로 받겠습니다 <small class="mkt-note">(마케팅 수신 동의 · 이름·휴대폰 · 동의 철회 시까지 보관 · 체크하지 않아도 주문할 수 있어요)</small></span></label>
@@ -638,7 +639,7 @@
   <script src="common.js?v=20261111b"></script>
   <script src="script.js?v=20261111f"></script>
   <script src="auth.js?v=20261111b"></script>
-  <script src="shop.js?v=20261111k"></script>
+  <script src="shop.js?v=20261112a"></script>
   <script src="reviews.js?v=20261111k"></script>
   <script src="event.js?v=20261111k"></script>
   <script src="lightbox.js?v=20261111f"></script>

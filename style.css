@@ -899,6 +899,8 @@ ul, ol { padding: 0; list-style: none; }
 .pd__optlist button:disabled { opacity: .45; cursor: not-allowed; }
 .pd__price { font-size: clamp(26px, 3vw, 32px); font-weight: 700; letter-spacing: -.02em; margin-top: 4px; }
 .pd__unit { font-size: 12px; color: var(--muted); margin-top: -10px; }
+.pd__nocancel { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+.pd__nocancel b { color: #b3261e; font-weight: 600; }
 .pd__btns { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
 .pd__btns button { height: 52px; border-radius: 6px; font-weight: 700; font-size: 15px; }
 .pd__btns .cart-btn { border: 1px solid var(--ink); }

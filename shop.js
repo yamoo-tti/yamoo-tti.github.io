@@ -98,6 +98,13 @@
     try { await sb.rpc("add_marketing_contact", { p_name: f.name.value, p_phone: f.phone.value }); } catch { /* 무시 */ }
   }
 
+  // [필수] 취소·반품 불가 동의 기록 남기기 (분쟁 대비 증거, 실패해도 주문은 그대로)
+  async function saveConsent(f, code) {
+    if (!code || !f.nocancel || !f.nocancel.checked) return;
+    const notice = f.nocancel.closest("label").textContent.replace(/\s*자세히\s*$/, "").trim();
+    try { await sb.rpc("record_order_consent", { p_code: code, p_phone: f.phone.value, p_notice: notice, p_agent: navigator.userAgent.slice(0, 300) }); } catch { /* 무시 */ }
+  }
+
   // 회원이면 가입한 이메일을 미리 채움 (비회원은 직접 입력)
   async function fillEmail(f) {
     if (!sb || !f.email || f.email.value) return;
@@ -308,7 +315,7 @@
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }
     const r = typeof data === "string" ? { code: data } : (data || {});
-    await Promise.all([saveMarketing(f), sendReceipt(f, r.code)]);
+    await Promise.all([saveMarketing(f), sendReceipt(f, r.code), saveConsent(f, r.code)]);
     // 주문 완료 페이지로 이동 (정보는 이 브라우저 탭에만 잠시 보관)
     if (r.code) {
       const pname = withPick(current.kind === "zodiac" ? `GBK 카드형 골드바 1g (${current.name})` : current.name, current, pickOf(f));
@@ -492,7 +499,7 @@
     btn.disabled = false;
     if (error) { toast(rpcError(error)); return; }
     const r = data || {};
-    await Promise.all([saveMarketing(f), sendReceipt(f, r.code)]);
+    await Promise.all([saveMarketing(f), sendReceipt(f, r.code), saveConsent(f, r.code)]);
     const names = items.map(i => { const p = window.SHOP.find(i.id); return withPick(displayName(p), p, i); });
     try {
       sessionStorage.setItem("keumbi_order_" + r.code, JSON.stringify({
