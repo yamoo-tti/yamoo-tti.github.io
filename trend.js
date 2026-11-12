@@ -1,8 +1,7 @@
-/* 순금 시세 흐름 그래프 + 시세 알림 신청 (supabase/price-history-alerts.sql 실행 후 동작) */
+/* 순금 시세 흐름 그래프 (supabase/price-history.sql 실행 후 동작) */
 (function () {
-  const { sb, esc, won } = window.YAMOO;
+  const { sb, won } = window.YAMOO;
   const $ = s => document.querySelector(s);
-  const toast = m => window.toast && window.toast(m);
   const card = $("#trend");
   if (!card || !sb) return;
   let rows = [], days = 30;
@@ -51,30 +50,6 @@
     days = +t.dataset.days;
     card.querySelectorAll("[data-days]").forEach(b => b.classList.toggle("is-on", b === t));
     draw();
-  });
-
-  // 시세 알림 신청
-  const f = $("#alertForm");
-  const num = s => Number(String(s).replace(/[^\d]/g, ""));
-  f.goal.addEventListener("input", () => {
-    const n = num(f.goal.value);
-    f.goal.value = n ? n.toLocaleString("ko-KR") : "";
-  });
-  (async () => {
-    try {
-      const { data: { session } } = await sb.auth.getSession();
-      if (session && session.user && !f.email.value) f.email.value = session.user.email || "";
-    } catch { /* 무시 */ }
-  })();
-  f.addEventListener("submit", async e => {
-    e.preventDefault();
-    const btn = f.querySelector("[type=submit]");
-    btn.disabled = true;
-    const { error } = await sb.rpc("add_price_alert", { p_email: f.email.value, p_kind: f.kind.value, p_target: num(f.goal.value) });
-    btn.disabled = false;
-    if (error) { toast(/[가-힣]/.test(error.message || "") ? error.message : "신청하지 못했어요. 잠시 후 다시 시도해 주세요"); return; }
-    const kind = f.kind.value === "buy" ? "살 때 가격이 " + esc(f.goal.value) + "원 이하" : "팔 때 가격이 " + esc(f.goal.value) + "원 이상";
-    f.innerHTML = `<h3>시세 알림 받기</h3><p class="trend__done">✓ 신청했어요.<br>순금 1돈 ${kind}가 되면 <b>${esc(f.email.value)}</b>로 한 번 알려드릴게요.</p><p class="trend__sub">메일이 안 보이면 스팸함도 확인해 주세요.</p>`;
   });
 
   load();

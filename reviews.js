@@ -197,8 +197,10 @@
   });
 
   /* ---------- 재입고 알림 (품절 상품) ---------- */
+  // 재입고 알림은 문자 서비스 가입 전이라 꺼 둠 (다시 켜려면 아래 return 줄을 지우고 supabase에서 request_restock 권한 복구)
   function renderAlert(p) {
     if (!alertBox) return;
+    alertBox.innerHTML = ""; return;
     if (!p.sold_out) { alertBox.innerHTML = ""; return; }
     if (alertBox.dataset.pid === p.id && alertBox.innerHTML) return;
     alertBox.dataset.pid = p.id;

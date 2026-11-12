@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261112c">
+  <link rel="stylesheet" href="style.css?v=20261112d">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
 </head>
 <body>
@@ -255,25 +255,13 @@
           </div>
         </div>
 
-        <!-- 시세 흐름 · 시세 알림 (supabase/price-history-alerts.sql 실행 후 동작) -->
+        <!-- 시세 흐름 (supabase/price-history.sql 실행 후 동작) -->
         <div class="card trend" id="trend" hidden>
           <div class="trend__chart">
             <div class="trend__head"><h3>순금 시세 흐름 <small>1돈 · 살 때</small></h3><div class="trend__tabs" role="tablist"><button type="button" data-days="30" class="is-on">1개월</button><button type="button" data-days="90">3개월</button><button type="button" data-days="365">1년</button></div></div>
             <div id="trendSvg" class="trend__svg"></div>
             <p class="trend__note" id="trendNote"></p>
           </div>
-          <form class="trend__alert" id="alertForm">
-            <h3>시세 알림 받기</h3>
-            <p class="trend__sub">원하는 가격이 되면 이메일로 한 번 알려드려요.</p>
-            <div class="trend__kinds">
-              <label><input type="radio" name="kind" value="buy" checked> <span>살 때 가격이<br><b>이하</b>가 되면</span></label>
-              <label><input type="radio" name="kind" value="sell"> <span>팔 때 가격이<br><b>이상</b>이 되면</span></label>
-            </div>
-            <label class="trend__field">목표 가격 (순금 1돈)<span class="trend__won"><input name="goal" inputmode="numeric" required placeholder="예: 700,000" autocomplete="off"><em>원</em></span></label>
-            <label class="trend__field">받을 이메일<input name="email" type="email" required maxlength="100" placeholder="you@example.com"></label>
-            <label class="check"><input type="checkbox" required> <span>[필수] 시세 알림 발송을 위해 이메일을 수집·이용하는 데 동의해요 <small>(알림 1회 발송 후 30일, 미발송 시 최대 180일 보관 후 삭제)</small></span></label>
-            <button type="submit" class="btn btn--dark">알림 신청</button>
-          </form>
         </div>
       </div>
     </section>
@@ -496,7 +484,7 @@
         <label>휴대폰<input type="tel" name="phone" maxlength="20" placeholder="010-0000-0000" autocomplete="tel"></label>
         <label class="check"><input type="checkbox" name="terms" required> <span>[필수] <a href="terms.html" target="_blank" class="u">이용약관</a> 및 <a href="privacy.html" target="_blank" class="u">개인정보 수집·이용</a>에 동의합니다</span></label>
         <p class="consent-sum">수집 항목: 이메일·비밀번호·이름(필수), 휴대폰(선택) · 목적: 회원 관리 및 주문·매입 안내 · 보관: 탈퇴 시까지 · 동의하지 않으면 가입할 수 없어요 (비회원으로도 신청 가능)</p>
-        <label class="check"><input type="checkbox" name="marketing"> <span>[선택] 시세 알림·이벤트 소식을 받겠습니다</span></label>
+        <label class="check"><input type="checkbox" name="marketing"> <span>[선택] 이벤트·할인·시세 소식을 받겠습니다</span></label>
         <button class="btn btn--dark" type="submit">가입하기</button>
       </form>
       <p class="auth-msg" id="authMsg" role="status"></p>
@@ -686,8 +674,8 @@
   <script src="script.js?v=20261112a"></script>
   <script src="auth.js?v=20261111b"></script>
   <script src="shop.js?v=20261112b"></script>
-  <script src="reviews.js?v=20261112a"></script>
-  <script src="trend.js?v=20261112a"></script>
+  <script src="reviews.js?v=20261112b"></script>
+  <script src="trend.js?v=20261112b"></script>
   <script src="event.js?v=20261111k"></script>
   <script src="lightbox.js?v=20261112a"></script>
   <script src="kakao.js?v=20261104b"></script>
