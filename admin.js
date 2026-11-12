@@ -1422,44 +1422,35 @@
     try { liveCache = await fetchLive(); } catch { liveCache = null; }
     preview();
     loadShop();
-    loadLoss(data);
+    loadLoss();
   }
 
-  // 적자 방지: 삼성금거래소 1돈 가격 → '국제 시세 대비 %'로 바꿔 저장 (loss-guard.sql)
-  const goldDon = () => liveCache ? computeDomestic(liveCache, readSettings()).base.gold : null;
-  async function loadLoss(s) {
-    const f = $("#lossForm"), btn = f.querySelector("[type=submit]");
-    if (!s || !("supplier_gold_pct" in s)) {
-      $("#lossMeta").textContent = "loss-guard.sql 을 먼저 실행해 주세요";
-      btn.disabled = true; $("#lossTable").innerHTML = ""; return;
+  // 적자 방지: 삼성금거래소 실시간 도매가(1분마다 서버가 받아 둠) × 1.1 = 원가 (samsung-cost.sql)
+  async function loadLoss() {
+    const { data: sp, error: e1 } = await sb.from("supplier_prices").select("*");
+    if (e1) {
+      $("#lossBase").innerHTML = ""; $("#lossTable").innerHTML = "";
+      $("#lossMeta").textContent = "samsung-cost.sql 을 먼저 실행해 주세요";
+      return;
     }
-    btn.disabled = false;
-    const pct = s.supplier_gold_pct == null ? null : Number(s.supplier_gold_pct), g = goldDon();
-    $("#lossMeta").textContent = pct == null ? "기준이 없어 지금은 적자 검사를 하지 않아요"
-      : `저장된 기준: 국제 시세 ${pct >= 0 ? "+" : ""}${pct}% (+부가세)${g ? ` · 지금 시세로는 1돈 약 ${won(Math.round(g * (1 + pct / 100) * 1.1))}` : ""}`;
-    const { data, error } = await sb.rpc("loss_report", { p_limit: 10 });
+    const by = Object.fromEntries((sp || []).map(r => [r.metal, r]));
+    const t = (sp || []).map(r => new Date(r.fetched_at)).sort((a, b) => b - a)[0];
+    $("#lossTime").textContent = t ? fmtDate(t.toISOString()) + " 받음" : "";
+    $("#lossBase").innerHTML = `<tr><th></th><th>1돈 도매가</th><th>× 1.1 (1돈 원가)</th><th>1g 원가</th></tr>` + [["gold", "금 (순금)"], ["silver", "은"]].map(([k, n]) => {
+      const r = by[k], d = r && Number(r.don_price);
+      return `<tr><td>${n}</td>${d ? `<td>${won(d)}</td><td><b>${won(Math.round(d * 1.1))}</b></td><td>${won(Math.round(d * 1.1 / 3.75))}</td>` : `<td colspan="3" class="muted">받아 오는 중 (1분 뒤 새로고침)</td>`}</tr>`;
+    }).join("");
+    $("#lossMeta").textContent = !t ? "" : Date.now() - t > 10 * 60 * 1000
+      ? "⚠ 삼성 시세를 10분 넘게 못 받았어요. 마지막으로 받은 값으로 검사하고 있어요." : "1분마다 자동으로 새로 받아요.";
+    const { data, error } = await sb.rpc("loss_report", { p_limit: 50 });
     if (error) { $("#lossTable").innerHTML = `<tr><td class="muted">${esc(error.message)}</td></tr>`; return; }
-    $("#lossTable").innerHTML = (data || []).length ? `<tr><th>상품</th><th>판매가</th><th>원가</th><th>남는 금액</th></tr>` + data.map(r => {
+    const rows = data || [], loss = rows.filter(r => r.price < r.cost).length;
+    const show = rows.slice(0, loss + 5);
+    $("#lossTable").innerHTML = show.length ? `<tr><th>${loss ? `<b class="danger-text">적자 ${loss}개</b>` : "적자 없음"}</th><th>판매가</th><th>원가</th><th>남는 금액</th></tr>` + show.map(r => {
       const m = r.price - r.cost, pc = Math.round(m / r.cost * 1000) / 10;
       return `<tr${m < 0 ? ' class="is-loss"' : ""}><td>${esc(r.name)}</td><td>${won(r.price)}</td><td>${won(r.cost)}</td><td><b>${m < 0 ? "−" + won(-m) : won(m)}</b> <small>(${pc}%)</small></td></tr>`;
-    }).join("") : `<tr><td class="muted">시세를 받아 오는 중이거나 검사할 상품이 없어요</td></tr>`;
+    }).join("") : `<tr><td class="muted">시세를 받아 오는 중이에요. 1분 뒤 새로고침해 주세요</td></tr>`;
   }
-  $("#lossForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    const v = Number(e.target.samsung_don.value), g = goldDon();
-    if (!(v > 0)) return toast("삼성금거래소 1돈 가격을 넣어 주세요", true);
-    if (!g) return toast("국제 시세를 불러오지 못했어요. 잠시 뒤 다시 해 주세요", true);
-    const pct = Math.round((v / 1.1 / g - 1) * 100 * 10000) / 10000;
-    if ((pct < -3 || pct > 8) && !confirm(`입력한 가격은 국제 시세보다 ${pct}% (부가세 별도) 차이가 나요. 금액이 맞나요?`)) return;
-    const btn = e.target.querySelector("[type=submit]");
-    btn.disabled = true;
-    const { error } = await sb.from("price_settings").update({ supplier_gold_pct: pct }).eq("id", 1);
-    btn.disabled = false;
-    if (error) return fail(error);
-    e.target.samsung_don.value = "";
-    toast(`적자 방지 기준을 저장했어요 (국제 시세 ${pct >= 0 ? "+" : ""}${pct}%)`);
-    loadPrice();
-  });
 
   // 주문 · 입금 · 문자 설정 (shop_info)
   const SHOP_FIELDS = ["bank_name", "bank_account", "bank_holder", "pay_minutes", "delivery_fee", "owner_phone", "sms_sender"];

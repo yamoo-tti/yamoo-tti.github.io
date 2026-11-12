@@ -250,17 +250,13 @@
         </div>
 
         <h2 class="sub-head">적자 방지 (삼성금거래소 기준)</h2>
-        <p class="desc">삼성금거래소의 <b>지금 1돈 살 때 가격(부가세 포함)</b>을 원가로 보고, 판매가가 원가보다 낮아지는 저장은 <b>막혀요</b>. 상품 수정, 가격 일괄 변경, 위 시세 마진 저장이 모두 해당돼요. 원가는 국제 시세를 따라 함께 움직여요. 18K·14K는 금 함량만큼만 원가로 치고, 은 상품과 숨김 상품은 검사하지 않아요. 쿠폰 할인, 택배비, 케이스 비용은 계산에 넣지 않아요.</p>
+        <p class="desc">삼성금거래소 홈페이지의 <b>실시간 1돈 도매가 × 1.1(부가세)</b>를 1분마다 받아 와서 원가로 써요. 모든 노출 상품(골드바·콩알금·주얼리·순금선물·실버)을 검사하고, 판매가가 원가보다 낮은데 가격을 <b>내리는</b> 저장은 <b>막혀요</b>. 상품 수정, 가격 일괄 변경, 위 시세 마진 낮추기가 모두 해당돼요. 이미 적자인 상품의 가격을 올리는 저장은 돼요. 18K·14K는 금 함량(75%·58.5%)만큼 원가로 쳐요. 쿠폰 할인, 택배비, 케이스 비용은 계산에 넣지 않아요.</p>
         <div class="grid2">
-          <form class="panel settings" id="lossForm">
-            <fieldset><legend>삼성금거래소 기준</legend>
-              <label>지금 1돈 살 때 가격 (부가세 포함, 원)<input type="number" name="samsung_don" min="100000" step="1" placeholder="예: 705837"></label>
-            </fieldset>
-            <div class="settings__foot">
-              <p id="lossMeta" class="muted"></p>
-              <button class="btn btn--gold" type="submit">기준 저장</button>
-            </div>
-          </form>
+          <div class="panel">
+            <h2>삼성금거래소 실시간 원가 <small id="lossTime"></small></h2>
+            <table class="mini-table" id="lossBase"></table>
+            <p class="muted" id="lossMeta"></p>
+          </div>
           <div class="panel">
             <h2>남는 금액이 가장 적은 상품 <small>노출 상품 · 지금 시세</small></h2>
             <table class="mini-table" id="lossTable"></table>
@@ -367,6 +363,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
   <script src="common.js?v=20261112b"></script>
-  <script src="admin.js?v=20261112d"></script>
+  <script src="admin.js?v=20261112e"></script>
 </body>
 </html>
