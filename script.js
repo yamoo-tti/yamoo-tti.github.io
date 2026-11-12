@@ -237,12 +237,13 @@ function renderFeature(key) {
     </button>`).join("");
   f("sel").innerHTML = `<b>${esc(Y.optLabel(p))}</b> 선택 · ${/g$/.test(Y.optLabel(p)) ? sub(p) : `${w}g`}${cfg.showName ? `<br><small>${esc(p.name)}</small>` : ""}`;
   f("price").textContent = p.sold_out ? "품절" : won(price);
-  const nn = Y.nightNote(p), ft = box.querySelector(".bean__foot span");
-  if (ft) { ft.textContent = nn ? `${nn.short} · 1분마다 갱신` : "오늘 시세 기준 · 1분마다 갱신"; ft.classList.toggle("is-night", !!(nn && nn.on)); }
+  const nn = Y.beanNote(p), ft = box.querySelector(".bean__foot span");
+  if (ft) { ft.textContent = nn ? `${nn.short} · 1분마다 갱신` : "오늘 시세 기준 · 1분마다 갱신"; ft.classList.toggle("is-night", !!(nn && !nn.open)); }
   const cart = f("cart"), buy = f("buy");
   cart.dataset.cart = orderKey(p); buy.dataset.order = orderKey(p); f("info").dataset.info = orderKey(p);
-  cart.disabled = buy.disabled = !!p.sold_out;
-  buy.textContent = p.sold_out ? "품절" : "바로 구매";
+  const shut = Y.orderClosed(p);
+  cart.disabled = buy.disabled = !!p.sold_out || !!shut;
+  buy.textContent = p.sold_out ? "품절" : shut ? "주문 시간 아님" : "바로 구매";
 }
 const renderFeatures = () => Object.keys(FEATURES).forEach(renderFeature);
 const featKey = el => { const b = el.closest("[data-feature]"); return b && b.dataset.feature; };
@@ -555,14 +556,15 @@ function renderPd() {
   $("#pdFacts").innerHTML = pdFacts(p).map(([k, v]) => `<li><span>${esc(k)}</span><b>${esc(v)}</b></li>`).join("");
   const cart = $("#pdCart"), buy = $("#pdBuy");
   cart.dataset.cart = buy.dataset.order = p.id;
-  cart.disabled = buy.disabled = !!p.sold_out;
-  buy.textContent = p.sold_out ? "품절" : "바로 구매";
+  const shut = Y.orderClosed(p);
+  cart.disabled = buy.disabled = !!p.sold_out || !!shut;
+  buy.textContent = p.sold_out ? "품절" : shut ? "주문 시간 아님" : "바로 구매";
   $("#pdInfo").innerHTML = `<table class="pinfo__tbl"><tbody>${Y.productInfo(p).map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join("")}</tbody></table>`;
   if (window.renderReviews) window.renderReviews(p, opts);
   pdWishBtn();
   pdSizeGuide(p);
-  const nn = Y.nightNote(p), nEl = $("#pdNight");
-  if (nEl) { nEl.hidden = !nn; nEl.className = "pd__night" + (nn && nn.on ? " is-on" : ""); nEl.textContent = nn ? nn.text : ""; }
+  const nn = Y.beanNote(p), nEl = $("#pdNight");
+  if (nEl) { nEl.hidden = !nn; nEl.className = "pd__night" + (nn && !nn.open ? " is-on" : ""); nEl.textContent = nn ? nn.text : ""; }
   const lt = Y.leadTime(p), ltEl = $("#pdLead");
   if (ltEl) { ltEl.hidden = !lt; ltEl.className = "pd__lead" + (lt && lt.slow ? " is-slow" : ""); ltEl.textContent = lt ? lt.text : ""; }
   // 검색엔진·카톡 공유용 제목·설명·상품 정보

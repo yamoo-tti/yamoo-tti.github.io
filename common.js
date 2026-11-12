@@ -13,7 +13,6 @@
   const DEFAULT_SETTINGS = {
     gold_buy_pct: 7.2, gold_sell_pct: 0, k18_factor: 0.735, k14_factor: 0.57,
     pt_buy_pct: 6.8, pt_sell_pct: -4.6, ag_buy_pct: 2.9, ag_sell_pct: -3.8,
-    night_pct: 0, // 야간(18시~다음 날 9시) 콩알금 할증 % (서버 price_settings.night_pct, night-premium.sql)
   };
 
   async function getJSON(url) {
@@ -52,23 +51,23 @@
   const r100 = n => Math.round(n / 100) * 100;
   const r10 = n => Math.round(n / 10) * 10;
 
-  // 야간 할증: 매장이 금을 바로 사 올 수 없는 18시~다음 날 9시(한국 시간)에는 콩알금에 % 를 더함 (supabase quote_price 와 같은 규칙)
-  const NIGHT_GROUP = "순금 콩알금";
-  const isNightKST = () => { const h = (new Date().getUTCHours() + 9) % 24; return h >= 18 || h < 9; };
-  let nightCfg = 0; // 마지막으로 불러온 설정의 할증 %
-  const nightOf = p => !!p && p.opt_group === NIGHT_GROUP && nightCfg > 0;
-  // 안내 문구 (해당 없으면 null)
-  const nightNote = p => !nightOf(p) ? null : isNightKST()
-    ? { on: true, short: `야간 주문 +${nightCfg}% 적용 중 (18시~9시)`, text: `지금은 야간(18시~다음 날 9시)이라 밤사이 금 시세 변동에 대비해 ${nightCfg}%가 더해진 가격이에요. 오전 9시부터는 원래 가격으로 돌아가요.` }
-    : { on: false, short: `18시~다음 날 9시 주문은 +${nightCfg}%`, text: `18시~다음 날 9시에 주문하면 밤사이 금 시세 변동에 대비해 ${nightCfg}%가 더해져요.` };
+  // 콩알금 주문 가능 시간: 평일(월~금) 9시~18시 (한국 시간) — 매장이 공급처에서 바로 매입할 수 있는 시간 (supabase bean_open 과 같은 규칙)
+  const BEAN_GROUP = "순금 콩알금";
+  const isBean = p => !!p && p.opt_group === BEAN_GROUP;
+  const beanOpen = () => { const k = new Date(Date.now() + 9 * 3600 * 1000), d = k.getUTCDay(), h = k.getUTCHours(); return d >= 1 && d <= 5 && h >= 9 && h < 18; };
+  const BEAN_HOURS = "평일 오전 9시~오후 6시";
+  // 지금 주문할 수 없으면 안내 문구, 아니면 null
+  const orderClosed = p => isBean(p) && !beanOpen() ? `순금 콩알금은 ${BEAN_HOURS}에만 주문할 수 있어요` : null;
+  // 상품 화면 안내 (콩알금만)
+  const beanNote = p => !isBean(p) ? null : beanOpen()
+    ? { open: true, short: `주문 가능 시간 ${BEAN_HOURS}`, text: `콩알금은 매장이 바로 매입할 수 있는 ${BEAN_HOURS}에만 주문을 받아요.` }
+    : { open: false, short: `지금은 주문 시간이 아니에요 · ${BEAN_HOURS} 주문 가능`, text: `콩알금은 시세 변동 위험 때문에 ${BEAN_HOURS}에만 주문을 받아요. 지금은 가격 확인과 찜만 할 수 있어요.` };
 
   // 국내 시세 (3.75g 기준, 원)
   function computeDomestic(live, s) {
     const gold = perDon(live, "XAU"), pt = perDon(live, "XPT"), ag = perDon(live, "XAG");
     const goldSell = gold * (1 + s.gold_sell_pct / 100);
-    nightCfg = Number(s.night_pct) || 0;
     return {
-      nightPct: isNightKST() ? nightCfg : 0,
       base: { gold, pt, ag },
       items: [
         { key: "24k", name: "순금 24K", sub: "99.99%", buy: r100(gold * (1 + s.gold_buy_pct / 100) * VAT), sell: r100(goldSell) },
@@ -88,7 +87,7 @@
   function productPrice(p, d) {
     const g = key => d.items.find(i => i.key === key);
     const w = Number(p.weight_g), l = Number(p.labor || 0);
-    const k = (1 + Number(p.premium_pct || 0) / 100) * (p.opt_group === NIGHT_GROUP && d.nightPct ? 1 + d.nightPct / 100 : 1);
+    const k = 1 + Number(p.premium_pct || 0) / 100;
     if (p.kind === "silver") return up1000(g("ag").buy / DON * w * k + l);
     if (p.kind === "accessory" || p.kind === "gift") {
       const kt = String(p.karat).toUpperCase();
@@ -310,5 +309,5 @@
     </svg>`;
   }
 
-  window.YAMOO = { gradeBadge, GRADE_NAME, sizeUnit, sizeList, hasAddon, needsPick, leadTime, nightNote, isNightKST, pickLabel, sized, loadStats, rankProducts, groupOptions, optLabel, optPick, optTitle,trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
+  window.YAMOO = { gradeBadge, GRADE_NAME, sizeUnit, sizeList, hasAddon, needsPick, leadTime, beanNote, orderClosed, isBean, pickLabel, sized, loadStats, rankProducts, groupOptions, optLabel, optPick, optTitle,trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
 })();
