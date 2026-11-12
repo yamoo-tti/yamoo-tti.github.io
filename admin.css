@@ -102,6 +102,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--g
 .table .empty { text-align: center; color: var(--muted); padding: 40px 16px; }
 .mini-table td, .mini-table th { padding: 9px 0; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
 .mini-table th { font-size: 12px; color: var(--muted); font-weight: 500; }
+.mini-table td:first-child, .mini-table th:first-child { text-align: left; padding-right: 10px; }
+.mini-table tr.is-loss td { color: #b3261e; }
+.mini-table td small { color: var(--muted); }
 .mini-table td:first-child, .mini-table th:first-child { text-align: left; }
 .mini-table tr:last-child td { border-bottom: 0; }
 

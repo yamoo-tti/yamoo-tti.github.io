@@ -54,7 +54,12 @@
     toastTimer = setTimeout(() => t.classList.remove("is-show"), 2600);
   }
   const pill = (map, key, prefix) => `<span class="pill ${prefix}-${esc(key)}">${esc(map[key] || key)}</span>`;
-  function fail(error) { console.error(error); toast("오류: " + (error.message || error), true); }
+  function fail(error) {
+    console.error(error);
+    const m = error.message || String(error);
+    if (m.startsWith("적자")) { alert(m); return; } // 적자 방지: 긴 안내라 창으로 보여 줌
+    toast("오류: " + m, true);
+  }
   const isToday = d => new Date(d).toDateString() === new Date().toDateString();
   const opts = (map, sel) => Object.entries(map).map(([k, v]) => `<option value="${esc(k)}" ${k === sel ? "selected" : ""}>${esc(v)}</option>`).join("");
   const num = v => (v === "" || v == null ? null : Number(v));
@@ -913,7 +918,11 @@
       save: async f => {
         if (!confirm(`${targets.length}개 상품의 가격 기준을 바꿀까요? 홈페이지에 바로 반영돼요.`)) return false;
         for (let i = 0; i < targets.length; i += 8) {
-          await Promise.all(targets.slice(i, i + 8).map(async p => must(await sb.from("products").update(calc(p, f)).eq("id", p.id))));
+          await Promise.all(targets.slice(i, i + 8).map(async p => {
+            const r = await sb.from("products").update(calc(p, f)).eq("id", p.id);
+            if (r.error && String(r.error.message).startsWith("적자")) throw new Error(r.error.message + "\n\n※ 이 상품 앞쪽의 상품들은 이미 바뀌었을 수 있어요. 목록에서 확인해 주세요.");
+            must(r);
+          }));
         }
         picked.clear();
         toast(`${targets.length}개 상품 가격을 바꿨어요`);
@@ -1413,7 +1422,44 @@
     try { liveCache = await fetchLive(); } catch { liveCache = null; }
     preview();
     loadShop();
+    loadLoss(data);
   }
+
+  // 적자 방지: 삼성금거래소 1돈 가격 → '국제 시세 대비 %'로 바꿔 저장 (loss-guard.sql)
+  const goldDon = () => liveCache ? computeDomestic(liveCache, readSettings()).base.gold : null;
+  async function loadLoss(s) {
+    const f = $("#lossForm"), btn = f.querySelector("[type=submit]");
+    if (!s || !("supplier_gold_pct" in s)) {
+      $("#lossMeta").textContent = "loss-guard.sql 을 먼저 실행해 주세요";
+      btn.disabled = true; $("#lossTable").innerHTML = ""; return;
+    }
+    btn.disabled = false;
+    const pct = s.supplier_gold_pct == null ? null : Number(s.supplier_gold_pct), g = goldDon();
+    $("#lossMeta").textContent = pct == null ? "기준이 없어 지금은 적자 검사를 하지 않아요"
+      : `저장된 기준: 국제 시세 ${pct >= 0 ? "+" : ""}${pct}% (+부가세)${g ? ` · 지금 시세로는 1돈 약 ${won(Math.round(g * (1 + pct / 100) * 1.1))}` : ""}`;
+    const { data, error } = await sb.rpc("loss_report", { p_limit: 10 });
+    if (error) { $("#lossTable").innerHTML = `<tr><td class="muted">${esc(error.message)}</td></tr>`; return; }
+    $("#lossTable").innerHTML = (data || []).length ? `<tr><th>상품</th><th>판매가</th><th>원가</th><th>남는 금액</th></tr>` + data.map(r => {
+      const m = r.price - r.cost, pc = Math.round(m / r.cost * 1000) / 10;
+      return `<tr${m < 0 ? ' class="is-loss"' : ""}><td>${esc(r.name)}</td><td>${won(r.price)}</td><td>${won(r.cost)}</td><td><b>${m < 0 ? "−" + won(-m) : won(m)}</b> <small>(${pc}%)</small></td></tr>`;
+    }).join("") : `<tr><td class="muted">시세를 받아 오는 중이거나 검사할 상품이 없어요</td></tr>`;
+  }
+  $("#lossForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const v = Number(e.target.samsung_don.value), g = goldDon();
+    if (!(v > 0)) return toast("삼성금거래소 1돈 가격을 넣어 주세요", true);
+    if (!g) return toast("국제 시세를 불러오지 못했어요. 잠시 뒤 다시 해 주세요", true);
+    const pct = Math.round((v / 1.1 / g - 1) * 100 * 10000) / 10000;
+    if ((pct < -3 || pct > 8) && !confirm(`입력한 가격은 국제 시세보다 ${pct}% (부가세 별도) 차이가 나요. 금액이 맞나요?`)) return;
+    const btn = e.target.querySelector("[type=submit]");
+    btn.disabled = true;
+    const { error } = await sb.from("price_settings").update({ supplier_gold_pct: pct }).eq("id", 1);
+    btn.disabled = false;
+    if (error) return fail(error);
+    e.target.samsung_don.value = "";
+    toast(`적자 방지 기준을 저장했어요 (국제 시세 ${pct >= 0 ? "+" : ""}${pct}%)`);
+    loadPrice();
+  });
 
   // 주문 · 입금 · 문자 설정 (shop_info)
   const SHOP_FIELDS = ["bank_name", "bank_account", "bank_holder", "pay_minutes", "delivery_fee", "owner_phone", "sms_sender"];
