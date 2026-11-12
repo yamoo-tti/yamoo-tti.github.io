@@ -98,6 +98,17 @@
     try { await sb.rpc("add_marketing_contact", { p_name: f.name.value, p_phone: f.phone.value }); } catch { /* 무시 */ }
   }
 
+  // 선물로 보내기: 받는 분·메시지 카드·가격 서류 제외를 요청 사항 앞에 붙여 사장님이 보게 함 (최대 500자)
+  function noteOf(f) {
+    const note = (f.note.value || "").trim();
+    const box = f.querySelector(".giftopt");
+    if (!box || !f.gift_to) return note;
+    const to = f.gift_to.value.trim(), ph = f.gift_phone.value.trim(), msg = f.gift_msg.value.trim();
+    if (!to && !ph && !msg) return note;
+    const g = ["[선물]", to && `받는 분: ${to}`, ph && `연락처: ${ph}`, msg && `카드: "${msg}"`, f.gift_noprice.checked ? "가격 서류 빼기" : ""].filter(Boolean).join(" / ");
+    return (g + (note ? "\n" + note : "")).slice(0, 500);
+  }
+
   // [필수] 취소·반품 불가 동의 기록 남기기 (분쟁 대비 증거, 실패해도 주문은 그대로)
   async function saveConsent(f, code) {
     if (!code || !f.nocancel || !f.nocancel.checked) return;
@@ -307,7 +318,7 @@
     btn.disabled = true;
     const { data, error } = await sb.rpc("submit_order", {
       p_product_id: current.id, p_qty: qty, p_name: f.name.value, p_phone: f.phone.value,
-      p_receive: f.receive.value, p_address: f.address.value, p_note: f.note.value, p_quoted: updateTotal(),
+      p_receive: f.receive.value, p_address: f.address.value, p_note: noteOf(f), p_quoted: updateTotal(),
       p_receipt: receipt,
       ...(Y.needsPick(current) ? { p_size: pickOf(f).size || null, p_addon: pickOf(f).addon } : {}),
       ...bnfArgs(f._bnf || {}),
@@ -493,7 +504,7 @@
     btn.disabled = true;
     const { data, error } = await sb.rpc("submit_cart", {
       p_items: items, p_name: f.name.value, p_phone: f.phone.value,
-      p_receive: f.receive.value, p_address: f.address.value, p_note: f.note.value, p_receipt: receipt,
+      p_receive: f.receive.value, p_address: f.address.value, p_note: noteOf(f), p_receipt: receipt,
       ...bnfArgs(f._bnf || {}),
     });
     btn.disabled = false;

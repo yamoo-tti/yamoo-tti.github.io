@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261112b">
+  <link rel="stylesheet" href="style.css?v=20261112c">
   <link rel="stylesheet" href="legal.css?v=20261104a">
   <link rel="stylesheet" href="gift.css?v=20261104a">
   <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="images/apple-touch-icon.png">
@@ -85,6 +85,14 @@
           <label><input type="radio" name="receive" value="delivery"> 안심 택배</label>
         </fieldset>
         <label data-when="delivery" hidden>배송 주소<input name="address" maxlength="200" autocomplete="street-address"></label>
+        <details class="giftopt"><summary>🎁 선물로 보내기 <small>선택 · 무료</small></summary>
+          <div class="giftopt__body">
+            <p class="giftopt__tip">택배 주소에 <b>받는 분 주소</b>를 적어 주세요. 주문자 정보로 입금·안내가 나가요.</p>
+            <div class="row2"><label>받는 분 이름<input name="gift_to" maxlength="30" autocomplete="off"></label><label>받는 분 연락처<input name="gift_phone" inputmode="tel" maxlength="20" placeholder="배송 연락용" autocomplete="off"></label></div>
+            <label>메시지 카드 문구 <small>최대 100자 · 손글씨 카드에 적어 드려요</small><textarea name="gift_msg" rows="2" maxlength="100"></textarea></label>
+            <label class="check"><input type="checkbox" name="gift_noprice" checked> <span>상자 안에 가격이 적힌 서류를 넣지 않아요</span></label>
+          </div>
+        </details>
         <label>요청 사항 <small>선택</small><textarea name="note" rows="2" maxlength="500"></textarea></label>
         <fieldset class="rc-field"><legend>현금영수증 · 세금계산서</legend>
           <select name="rc_type" aria-label="발행 종류">
@@ -132,6 +140,14 @@
           <label><input type="radio" name="receive" value="delivery"> 안심 택배</label>
         </fieldset>
         <label data-when="delivery" hidden>배송 주소<input name="address" maxlength="200" autocomplete="street-address"></label>
+        <details class="giftopt"><summary>🎁 선물로 보내기 <small>선택 · 무료</small></summary>
+          <div class="giftopt__body">
+            <p class="giftopt__tip">택배 주소에 <b>받는 분 주소</b>를 적어 주세요. 주문자 정보로 입금·안내가 나가요.</p>
+            <div class="row2"><label>받는 분 이름<input name="gift_to" maxlength="30" autocomplete="off"></label><label>받는 분 연락처<input name="gift_phone" inputmode="tel" maxlength="20" placeholder="배송 연락용" autocomplete="off"></label></div>
+            <label>메시지 카드 문구 <small>최대 100자 · 손글씨 카드에 적어 드려요</small><textarea name="gift_msg" rows="2" maxlength="100"></textarea></label>
+            <label class="check"><input type="checkbox" name="gift_noprice" checked> <span>상자 안에 가격이 적힌 서류를 넣지 않아요</span></label>
+          </div>
+        </details>
         <label>요청 사항 <small>선택</small><textarea name="note" rows="2" maxlength="500"></textarea></label>
         <fieldset class="rc-field"><legend>현금영수증 · 세금계산서</legend>
           <select name="rc_type" aria-label="발행 종류">
@@ -234,8 +250,8 @@
   <script src="config.js"></script>
   <script src="common.js?v=20261111b"></script>
   <script src="gift.js?v=20261104j"></script>
-  <script src="shop.js?v=20261112a"></script>
-  <script src="lightbox.js?v=20261111f"></script>
+  <script src="shop.js?v=20261112b"></script>
+  <script src="lightbox.js?v=20261112a"></script>
   <script src="kakao.js?v=20261104b"></script>
 </body>
 </html>

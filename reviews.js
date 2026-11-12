@@ -55,10 +55,49 @@
           <div class="rv__top">${stars(r.rating)}<b>${esc(r.name)}</b><time>${fmtDate(r.created_at, false)}${r.edited ? " · 수정됨" : ""}</time>${r.gift ? `<span class="rv__giftTag" title="후기 작성 후 쿠폰을 받은 후기예요">쿠폰 지급 후기</span>` : ""}${r.mine ? `<span class="rv__mine">내 후기</span><button type="button" class="rv__edit" data-rvedit="${r.id}">수정</button>` : ""}</div>
           ${r.option_label ? `<p class="rv__opt">${esc(r.option_label)}</p>` : ""}
           <p class="rv__body">${esc(r.body)}</p>
+          ${(r.photos || []).length ? `<div class="rv__photos">${r.photos.map(p => `<img src="${esc(photoUrl(p))}" alt="후기 사진" loading="lazy">`).join("")}</div>` : ""}
           ${r.reply ? `<div class="rv__reply"><b>금비 GOLD 답글</b><p>${esc(r.reply)}</p></div>` : ""}
         </li>`).join("")}</ul>`
         : `<p class="rv__empty">아직 후기가 없어요. 구매하신 분은 첫 후기를 남겨 주세요.</p>`}`;
+    if (writing) drawThumbs();
   };
+
+  /* ---------- 사진 후기 (최대 3장, 올리기 전에 긴 변 1600px JPEG로 줄임) ---------- */
+  let photoState = []; // { path?: 이미 올린 사진, file?: 새로 고른 사진, url: 미리보기 }
+  const photoUrl = p => sb.storage.from("review-photos").getPublicUrl(p).data.publicUrl;
+  function drawThumbs() {
+    const el = $("#rvThumbs");
+    if (!el) return;
+    el.innerHTML = photoState.map((p, i) => `<span class="rv__thumb"><img src="${esc(p.url)}" alt="첨부 사진 ${i + 1}"><button type="button" data-rvrm="${i}" aria-label="사진 ${i + 1} 빼기">×</button></span>`).join("")
+      + (photoState.length < 3 ? `<button type="button" class="rv__add" data-rvadd aria-label="사진 추가">＋<small>${photoState.length}/3</small></button>` : "");
+  }
+  async function shrink(file) {
+    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(file); });
+    const s = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(img.src);
+    return await new Promise((ok, no) => c.toBlob(b => b ? ok(b) : no(new Error("blob")), "image/jpeg", 0.85));
+  }
+  // 새 사진을 올리고, 남길 사진 전체의 경로 목록을 돌려줌
+  async function uploadPhotos(msg) {
+    if (!photoState.some(p => p.file)) return photoState.map(p => p.path);
+    const { data: { session } } = await sb.auth.getSession();
+    const uid = session.user.id, out = [];
+    for (let i = 0; i < photoState.length; i++) {
+      const p = photoState[i];
+      if (p.path) { out.push(p.path); continue; }
+      msg.textContent = `사진 올리는 중… (${i + 1}/${photoState.length})`;
+      const blob = await shrink(p.file);
+      const path = `${uid}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+      const { error } = await sb.storage.from("review-photos").upload(path, blob, { contentType: "image/jpeg", upsert: false });
+      if (error) throw error;
+      p.path = path; delete p.file;
+      out.push(path);
+    }
+    return out;
+  }
 
   // ed: 고칠 내 후기 (없으면 새 후기)
   function formHtml(ed) {
@@ -71,6 +110,9 @@
           ${[5, 4, 3, 2, 1].map(v => `<input type="radio" name="rating" value="${v}" id="rv${v}" ${v === rate ? "checked" : ""}><label for="rv${v}" title="${v}점">★</label>`).join("")}
         </fieldset>
         <label>후기 <small>10자 이상 · 받아 보신 느낌, 실물·포장 상태 등</small><textarea name="body" rows="4" minlength="10" maxlength="1000" required>${ed ? esc(ed.body) : ""}</textarea></label>
+        <div class="rv__photoField"><p class="rv__label">사진 <small>선택 · 최대 3장 · 실물·착용 사진을 올려 주시면 다른 손님께 큰 도움이 돼요</small></p>
+          <div class="rv__thumbs" id="rvThumbs"></div>
+          <input type="file" id="rvFile" accept="image/*" multiple hidden></div>
         <p class="rv__msg" id="rvMsg" role="status"></p>
         <div class="rv__btns"><button type="button" class="btn btn--line" data-rvcancel>취소</button><button type="submit" class="btn btn--dark">${ed ? "수정 완료" : "후기 등록"}</button></div>
       </form>`;
@@ -87,18 +129,31 @@
   box.addEventListener("click", async e => {
     if (e.target.closest("[data-rvwrite]")) {
       if (!(await loggedIn())) { askLogin(); return; }
-      writing = true; await window.renderReviews(cur, curOpts, true); const t = $("#rvForm textarea"); t && t.focus(); return;
+      photoState = []; writing = true; await window.renderReviews(cur, curOpts, true); const t = $("#rvForm textarea"); t && t.focus(); return;
     }
     if (e.target.closest("[data-rvcancel]")) { writing = false; window.renderReviews(cur, curOpts, true); }
+    if (e.target.closest("[data-rvadd]")) { $("#rvFile").click(); return; }
+    const rm = e.target.closest("[data-rvrm]");
+    if (rm) { photoState.splice(+rm.dataset.rvrm, 1); drawThumbs(); return; }
     const ed = e.target.closest("[data-rvedit]");
     if (ed) {
       const list = cache[curOpts.map(o => o.id).join(",")] || [];
       const r = list.find(x => String(x.id) === ed.dataset.rvedit);
       if (!r) return;
+      photoState = (r.photos || []).map(path => ({ path, url: photoUrl(path) }));
       writing = r; await window.renderReviews(cur, curOpts, true);
       box.scrollIntoView({ behavior: "smooth", block: "start" });
       const t = $("#rvForm textarea"); t && t.focus();
     }
+  });
+  box.addEventListener("change", e => {
+    if (e.target.id !== "rvFile") return;
+    const files = [...e.target.files].filter(f => /^image\//.test(f.type));
+    const room = 3 - photoState.length;
+    if (files.length > room) toast("사진은 3장까지 올릴 수 있어요");
+    files.slice(0, Math.max(0, room)).forEach(file => photoState.push({ file, url: URL.createObjectURL(file) }));
+    e.target.value = "";
+    drawThumbs();
   });
   starsBox.addEventListener("click", e => {
     if (!e.target.closest("[data-rvjump]")) return;
@@ -113,9 +168,13 @@
     if (!(await loggedIn())) { askLogin(); return; }
     btn.disabled = true; msg.textContent = "확인 중…"; msg.classList.remove("is-error");
     const editId = f.dataset.edit;
+    let paths;
+    try { paths = await uploadPhotos(msg); }
+    catch { btn.disabled = false; msg.textContent = "사진을 올리지 못했어요. 사진을 빼고 다시 시도하거나 잠시 후 다시 해 주세요."; msg.classList.add("is-error"); return; }
+    msg.textContent = "등록 중…";
     const { data, error } = editId
-      ? await sb.rpc("update_my_review", { p_id: +editId, p_rating: +f.rating.value, p_body: f.body.value })
-      : await sb.rpc("submit_review", { p_product: cur.id, p_rating: +f.rating.value, p_body: f.body.value });
+      ? await sb.rpc("update_my_review", { p_id: +editId, p_rating: +f.rating.value, p_body: f.body.value, p_photos: paths })
+      : await sb.rpc("submit_review", { p_product: cur.id, p_rating: +f.rating.value, p_body: f.body.value, p_photos: paths });
     btn.disabled = false;
     if (error || !/^ok/.test(data || "")) {
       msg.textContent = error ? (/[가-힣]/.test(error.message || "") ? error.message : "등록하지 못했어요. 잠시 후 다시 시도해 주세요.") : data;

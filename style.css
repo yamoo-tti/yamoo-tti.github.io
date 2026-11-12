@@ -1070,3 +1070,59 @@ ul, ol { padding: 0; list-style: none; }
 .mine__item.is-soldout { opacity: .55; }
 .mine__empty { font-size: 13px; color: var(--muted); padding: 12px 0; }
 @media (max-width: 760px) { .mine { padding: 28px 0 4px; } .mine__item { flex-basis: 120px; } }
+
+/* ---------- 사진 후기 ---------- */
+.rv__photos { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.rv__photos img { width: 84px; height: 84px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); cursor: zoom-in; background: var(--tint); }
+.rv__photoField { margin-top: 4px; }
+.rv__thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.rv__thumb { position: relative; width: 72px; height: 72px; }
+.rv__thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+.rv__thumb button { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 14px; line-height: 22px; }
+.rv__add { width: 72px; height: 72px; border: 1px dashed var(--muted); border-radius: 6px; color: var(--ink-2); font-size: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card); }
+.rv__add small { font-size: 11px; color: var(--muted); }
+
+/* ---------- 시세 흐름 그래프 · 시세 알림 ---------- */
+.trend { margin-top: 20px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+.trend__chart { padding: 22px 24px; border-right: 1px solid var(--line); }
+.trend__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.trend h3 { font-family: var(--serif); font-weight: 500; font-size: 19px; }
+.trend h3 small { font-family: var(--sans); font-size: 12px; color: var(--muted); margin-left: 4px; }
+.trend__tabs { display: flex; gap: 4px; }
+.trend__tabs button { font-size: 12px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); background: #fff; }
+.trend__tabs button.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.trend__svg svg { width: 100%; height: auto; display: block; overflow: visible; }
+.trend__lab { font-size: 12px; fill: var(--ink-2); font-weight: 500; }
+.trend__axis { font-size: 11px; fill: var(--muted); }
+.trend__empty { height: 160px; display: grid; place-items: center; text-align: center; color: var(--ink-2); font-size: 14px; background: var(--tint); border-radius: 4px; line-height: 1.7; }
+.trend__empty small { color: var(--muted); }
+.trend__note { margin-top: 8px; font-size: 13px; color: var(--ink-2); }
+.trend__note .up { color: var(--up); } .trend__note .down { color: var(--down); }
+.trend__alert { padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; background: linear-gradient(160deg, #fff, #fbf4e4); }
+.trend__sub { font-size: 13px; color: var(--muted); margin-top: -4px; }
+.trend__kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.trend__kinds label { position: relative; cursor: pointer; }
+.trend__kinds input { position: absolute; opacity: 0; }
+.trend__kinds span { display: block; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); text-align: center; }
+.trend__kinds input:checked + span { border-color: var(--gold-2); box-shadow: 0 0 0 1px var(--gold-2); color: var(--ink); }
+.trend__kinds input:focus-visible + span { outline: 2px solid var(--gold); }
+.trend__field { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
+.trend__field input { height: 44px; border: 1px solid var(--line); border-radius: 3px; padding: 0 12px; font-size: 15px; color: var(--ink); background: #fff; min-width: 0; width: 100%; }
+.trend__won { position: relative; display: block; }
+.trend__won em { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-style: normal; color: var(--ink-2); font-size: 14px; }
+.trend__alert .check { font-size: 12px; }
+.trend__alert .btn { width: 100%; }
+.trend__done { font-size: 14px; line-height: 1.7; color: var(--ink); }
+@media (max-width: 860px) {
+  .trend { grid-template-columns: minmax(0, 1fr); }
+  .trend__chart { border-right: 0; border-bottom: 1px solid var(--line); padding: 18px 16px; }
+  .trend__alert { padding: 18px 16px; }
+}
+
+/* ---------- 선물로 보내기 ---------- */
+.giftopt { border: 1px solid var(--line); border-radius: 6px; background: #fffdf8; }
+.giftopt summary { padding: 11px 14px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--ink); }
+.giftopt summary small { font-weight: 400; color: var(--muted); margin-left: 4px; }
+.giftopt[open] summary { border-bottom: 1px solid var(--line); }
+.giftopt__body { padding: 12px 14px; display: grid; gap: 10px; }
+.giftopt__tip { font-size: 12.5px; color: var(--ink-2); background: var(--tint); padding: 8px 10px; border-radius: 4px; }

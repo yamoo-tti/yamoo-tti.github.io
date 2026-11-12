@@ -1075,7 +1075,7 @@
         <td style="color:#c09a45;white-space:nowrap">${starTxt(r.rating)}</td>
         <td class="ellipsis">${esc((r.products && r.products.name) || r.option_label || "-")}</td>
         <td>${esc(r.name)}</td>
-        <td class="ellipsis">${r.visible ? "" : '<span class="muted">[숨김] </span>'}${esc(r.body)}</td>
+        <td class="ellipsis">${r.visible ? "" : '<span class="muted">[숨김] </span>'}${(r.photos || []).length ? `📷${r.photos.length} ` : ""}${esc(r.body)}</td>
         <td>${r.reply ? "✓" : '<span class="muted">-</span>'}</td>
         <td>${fmtDate(r.created_at)}</td>
       </tr>`).join("") : `<tr><td class="empty" colspan="6">아직 후기가 없어요</td></tr>`) + "</tbody>";
@@ -1096,6 +1096,7 @@
       <p><b style="color:#c09a45">${starTxt(r.rating)}</b> · ${esc(r.name)} · ${fmtDate(r.created_at)}</p>
       <p class="muted">${esc((r.products && r.products.name) || "")}${r.option_label ? " · 주문 옵션: " + esc(r.option_label) : ""}</p>
       <div class="box" style="white-space:pre-wrap;padding:12px;border:1px solid #e7e0d4;border-radius:6px">${esc(r.body)}</div>
+      ${(r.photos || []).length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${r.photos.map(p => { const u = sb.storage.from("review-photos").getPublicUrl(p).data.publicUrl; return `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="후기 사진" style="width:96px;height:96px;object-fit:cover;border-radius:6px;border:1px solid #e7e0d4"></a>`; }).join("")}</div><p class="muted" style="font-size:12px">부적절한 사진이 있으면 '홈페이지에 노출'을 끄거나 후기를 삭제하세요.</p>` : ""}
       <label>답글 <small>손님 화면에 '금비 GOLD 답글'로 보여요 · 비우면 답글 없음</small><textarea name="reply" rows="4" maxlength="1000">${esc(r.reply || "")}</textarea></label>
       <label class="inline"><input type="checkbox" name="visible" ${r.visible ? "checked" : ""}> 홈페이지에 노출</label>`;
     openEdit("후기 관리", html, {
