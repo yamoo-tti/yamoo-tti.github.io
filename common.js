@@ -170,9 +170,10 @@
   const sizeList = p => String(p.sizes || "").split(",").map(s => s.trim()).filter(Boolean);
   const hasAddon = p => !!String(p.addon_name || "").trim() && Number(p.addon_price) > 0;
   const needsPick = p => sizeList(p).length > 0 || hasAddon(p);
-  // 발송까지 걸리는 시간 안내: 주얼리는 주문 후 제작(보통 2주), 골드바·실버바·콩알금은 재고 상품이라 빠르게 발송
+  // 발송까지 걸리는 시간 안내: 주얼리는 주문 후 제작(보통 2주) · 골드바·실버바·콩알금·돌반지는 빠르게 발송 · 그 밖의 순금선물은 재고에 따라 다름
   const leadTime = p => !p ? null : p.kind === "accessory" ? { slow: true, short: "제작 약 2주", text: "주문 후 제작하는 주얼리예요 · 발송까지 보통 2주 정도 걸려요" }
-    : (["bar", "zodiac", "silver"].includes(p.kind) || p.opt_group === "순금 콩알금") ? { slow: false, short: "빠른 발송", text: "입금 확인 후 빠르게 발송해요" } : null;
+    : (["bar", "zodiac", "silver"].includes(p.kind) || p.opt_group === "순금 콩알금" || p.category === "dol") ? { slow: false, short: "빠른 발송", text: "입금 확인 후 빠르게 발송해요" }
+    : p.kind === "gift" ? { slow: false, short: "재고 확인", text: "재고 상황에 따라 발송일이 달라요 · 입금 확인 후 발송일을 알려 드려요" } : null;
   // 고른 사이즈만큼 중량·공임을 바꾼 상품 (supabase size_scaled와 같은 식: 중량 소수 둘째 자리, 공임 원 단위)
   const sized = (p, size) => {
     const b = Number(p.base_size), s = Number(size);
