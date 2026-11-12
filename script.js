@@ -437,6 +437,70 @@ document.addEventListener("click", e => {
   if (p && window.addToCart) window.addToCart(p);
 });
 
+/* ---------- 찜한 상품 · 최근 본 상품 (이 기기 브라우저에만 저장) ---------- */
+const MINE_MAX = { wish: 50, recent: 12 };
+const mineGet = k => { try { const a = JSON.parse(localStorage.getItem("keumbi_" + k) || "[]"); return Array.isArray(a) ? a : []; } catch { return []; } };
+const mineSet = (k, a) => { try { localStorage.setItem("keumbi_" + k, JSON.stringify(a.slice(0, MINE_MAX[k]))); } catch { /* 저장 막힌 브라우저 */ } };
+const mineAdd = (k, id) => mineSet(k, [id, ...mineGet(k).filter(x => x !== id)]);
+let mineTab = mineGet("wish").length ? "wish" : "recent";
+function renderMine() {
+  const box = $("#mine");
+  if (!box || !state.domestic) return;
+  const live = k => mineGet(k).map(id => state.products.find(p => p.id === id)).filter(Boolean);
+  const lists = { wish: live("wish"), recent: live("recent") };
+  box.hidden = !lists.wish.length && !lists.recent.length;
+  if (box.hidden) return;
+  $("#wishCount").textContent = lists.wish.length || "";
+  box.querySelectorAll("[data-mine]").forEach(b => { const on = b.dataset.mine === mineTab; b.classList.toggle("is-on", on); b.setAttribute("aria-selected", on); });
+  $("#mineList").innerHTML = lists[mineTab].length ? lists[mineTab].map(p => {
+    const ph = photosOf(p)[0] || "bar-close.jpg";
+    return `<button type="button" class="mine__item${p.sold_out ? " is-soldout" : ""}" data-mineopen="${esc(p.id)}"><img src="${esc(photoSrc(ph))}" alt="" loading="lazy"><b>${esc(pdTitle(p))}</b><em>${p.sold_out ? "품절" : won(priceOf(p))}</em></button>`;
+  }).join("") : `<p class="mine__empty">${mineTab === "wish" ? "아직 찜한 상품이 없어요. 상품 화면에서 ♡ 찜하기를 눌러 보세요." : "최근 본 상품이 없어요."}</p>`;
+}
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-mine]");
+  if (t) { mineTab = t.dataset.mine; renderMine(); return; }
+  const o = e.target.closest("[data-mineopen]");
+  if (o) openPd(o.dataset.mineopen);
+});
+function pdWishBtn() {
+  const b = $("#pdWish");
+  if (!b || !pd.id) return;
+  const on = mineGet("wish").includes(pd.id);
+  b.textContent = on ? "♥ 찜한 상품" : "♡ 찜하기";
+  b.classList.toggle("is-on", on);
+  b.setAttribute("aria-pressed", on);
+}
+function toggleWish() {
+  if (!pd.id) return;
+  const on = mineGet("wish").includes(pd.id);
+  if (on) mineSet("wish", mineGet("wish").filter(x => x !== pd.id));
+  else { mineAdd("wish", pd.id); mineTab = "wish"; }
+  pdWishBtn();
+  renderMine();
+}
+
+/* ---------- 사이즈 재는 법 (반지는 호, 팔찌·목걸이는 cm) ---------- */
+function sizeGuideHtml(p) {
+  if (p.category === "ring") {
+    const rows = [5, 7, 9, 11, 13, 15, 17, 19, 21].map(n => `<tr><td>${n}호</td><td>약 ${40 + n}mm</td><td>약 ${((40 + n) / Math.PI).toFixed(1)}mm</td></tr>`).join("");
+    return `<ol><li>실이나 얇은 종이띠를 손가락 <b>마디의 가장 굵은 곳</b>에 한 바퀴 감아요.</li><li>겹치는 곳에 표시하고 펴서 자로 길이(둘레)를 재요.</li><li>아래 표에서 가장 가까운 호수를 고르세요. 두 호수 사이면 <b>큰 쪽</b>을 추천해요.</li></ol>
+      <table class="sizeguide__tbl"><thead><tr><th>호수</th><th>손가락 둘레</th><th>반지 안지름</th></tr></thead><tbody>${rows}</tbody></table>
+      <p>가지고 계신 반지의 안지름을 재도 돼요. 손가락은 아침보다 저녁에 조금 굵어져요. 가게마다 1호 정도 차이가 날 수 있어요.</p>`;
+  }
+  if (p.category === "necklace") {
+    return `<ul><li><b>40cm</b> 쇄골 위쪽에 오는 길이 (가장 많이 찾는 길이)</li><li><b>45cm</b> 쇄골 바로 아래, 펜던트와 잘 어울려요</li><li><b>50cm 이상</b> 가슴 위쪽까지 내려와요</li></ul><p>목이 굵은 편이거나 옷 위로 보이게 하려면 한 단계 긴 길이를 추천해요.</p>`;
+  }
+  return `<ol><li>줄자나 실로 <b>손목뼈 바로 아래</b> 둘레를 재요.</li><li>잰 둘레에 <b>1~1.5cm</b>를 더한 길이를 고르세요. 꼭 맞게는 +1cm, 여유 있게는 +2cm예요.</li></ol>
+    <table class="sizeguide__tbl"><thead><tr><th>손목 둘레</th><th>추천 길이</th></tr></thead><tbody>${[14, 15, 16, 17, 18].map(n => `<tr><td>${n}cm</td><td>${n + 1}~${n + 1.5}cm</td></tr>`).join("")}</tbody></table>`;
+}
+function pdSizeGuide(p) {
+  const box = $("#pdSizeGuide");
+  if (!box) return;
+  box.hidden = !window.YAMOO.sizeList(p).length;
+  if (!box.hidden) $("#pdSizeBody").innerHTML = sizeGuideHtml(p) + `<p class="sizeguide__free">사이즈 조절은 <b>무료</b>예요. 잘 모르겠으면 010-5287-8002로 물어봐 주세요. 사이즈 작업을 시작한 뒤에는 취소·반품이 안 돼요.</p>`;
+}
+
 /* ---------- 상품 상세 (주소: ?p=상품번호 → 링크 공유·검색 노출용) ---------- */
 const pdModal = $("#pdModal");
 const pd = { id: null, photo: null, gallery: [], pushed: false, title: document.title, desc: "" };
@@ -493,6 +557,8 @@ function renderPd() {
   buy.textContent = p.sold_out ? "품절" : "바로 구매";
   $("#pdInfo").innerHTML = `<table class="pinfo__tbl"><tbody>${Y.productInfo(p).map(([k, v]) => `<tr><th scope="row">${esc(k)}</th><td>${esc(v)}</td></tr>`).join("")}</tbody></table>`;
   if (window.renderReviews) window.renderReviews(p, opts);
+  pdWishBtn();
+  pdSizeGuide(p);
   // 검색엔진·카톡 공유용 제목·설명·상품 정보
   document.title = `${pdTitle(p)} | 금비 GOLD`;
   if (pdMeta) pdMeta.content = `${pdTitle(p)} · ${kindTxt} · ${wLabel(Number(p.weight_g))} · 실시간 시세 ${won(priceOf(p))}. 서울 종로 금비 GOLD 010-5287-8002`;
@@ -509,6 +575,8 @@ function openPd(id, push = true) {
   if (!p || !pdModal) return;
   pd.id = id; pd.photo = null;
   window.YAMOO.trackView(id);
+  mineAdd("recent", id);
+  renderMine();
   if (push && new URLSearchParams(location.search).get("p") !== id) {
     history[pdModal.hidden ? "pushState" : "replaceState"]({ pd: id }, "", `${location.pathname}?p=${encodeURIComponent(id)}`);
     if (pdModal.hidden) pd.pushed = true;
@@ -541,6 +609,7 @@ window.addEventListener("popstate", () => {
 // 주소에 ?p= 가 있으면 상품·시세가 준비된 뒤 상세를 엶 (renderBars 끝에서 부름)
 let pdBoot = new URLSearchParams(location.search).get("p");
 function bootPd() {
+  renderMine();
   if (!pdBoot || !state.domestic || !state.products.some(x => x.id === pdBoot)) return;
   const id = pdBoot; pdBoot = null;
   openPd(id, false);
@@ -555,6 +624,7 @@ if (pdModal) {
     const nv = e.target.closest("[data-pdnav]");
     if (nv) return pdStep(+nv.dataset.pdnav);
     if (e.target.closest("#pdShare")) return sharePd();
+    if (e.target.closest("#pdWish")) return toggleWish();
   });
   const m = pdModal.querySelector(".pd__main");
   let x0 = null;

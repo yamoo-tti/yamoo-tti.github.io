@@ -915,7 +915,7 @@ ul, ol { padding: 0; list-style: none; }
 @media (max-width: 760px) {
   .pd-modal { padding: 0; place-items: end stretch; }
   .modal__box.pd { max-height: 100dvh; height: 100dvh; border-radius: 0; }
-  .pd__grid { grid-template-columns: 1fr; }
+  .pd__grid { grid-template-columns: minmax(0, 1fr); }
   .pd__media { padding: 0; }
   .pd__main { border-radius: 0; }
   .pd__thumbs { padding: 0 16px; }
@@ -1042,3 +1042,31 @@ ul, ol { padding: 0; list-style: none; }
 .mo__anniv-btns { display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px; }
 .mo__anniv-msg { font-size: 12.5px; color: var(--gold-2); margin: 6px 0 0; min-height: 1em; }
 .mo__anniv-note { font-size: 11.5px; color: var(--muted); }
+
+/* ---------- 찜하기 · 사이즈 안내 · 내 관심 상품 ---------- */
+.pd__tools { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.pd__wish { font-size: 13px; padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); background: var(--card); }
+.pd__wish.is-on { border-color: var(--up); color: var(--up); }
+.sizeguide { padding: 12px 14px; font-size: 13px; line-height: 1.7; color: var(--ink-2); max-height: none !important; }
+.sizeguide ol, .sizeguide ul { padding-left: 18px; margin: 0 0 8px; }
+.sizeguide ol { list-style: decimal; }
+.sizeguide ul { list-style: disc; }
+.sizeguide p { margin: 6px 0; }
+.sizeguide__tbl { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12.5px; }
+.sizeguide__tbl th, .sizeguide__tbl td { border: 1px solid var(--line); padding: 5px 8px; text-align: center; }
+.sizeguide__tbl th { background: var(--tint); font-weight: 500; }
+.sizeguide__free { background: var(--tint); padding: 8px 10px; border-radius: 4px; }
+.mine { padding: 40px 0 8px; }
+.mine__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.mine__head h2 { font-family: var(--serif); font-size: 22px; font-weight: 600; }
+.mine__tabs { display: flex; gap: 6px; }
+.mine__tabs button { font-size: 13px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); background: var(--card); }
+.mine__tabs button.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.mine__list { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x mandatory; }
+.mine__item { flex: 0 0 140px; scroll-snap-align: start; text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.mine__item img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; background: var(--tint); }
+.mine__item b { font-size: 12.5px; font-weight: 500; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mine__item em { font-style: normal; font-size: 13px; color: var(--gold-2); font-weight: 600; }
+.mine__item.is-soldout { opacity: .55; }
+.mine__empty { font-size: 13px; color: var(--muted); padding: 12px 0; }
+@media (max-width: 760px) { .mine { padding: 28px 0 4px; } .mine__item { flex-basis: 120px; } }
