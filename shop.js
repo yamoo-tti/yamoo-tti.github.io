@@ -69,7 +69,7 @@
   }
 
   // 입금 계좌 · 입금 기한 (관리자 페이지 > 시세 설정에서 수정)
-  let shopInfo = { bank_name: "", bank_account: "", bank_holder: "", pay_minutes: 30, delivery_fee: 3000 };
+  let shopInfo = { bank_name: "", bank_account: "", bank_holder: "", pay_minutes: 30, delivery_fee: 3500 };
   if (sb) sb.from("shop_info").select("bank_name,bank_account,bank_holder,pay_minutes,delivery_fee").eq("id", 1).maybeSingle()
     .then(({ data }) => {
       if (!data) return;

@@ -6,7 +6,7 @@
 insert into public.products (kind, name, weight_g, karat, category, premium_pct, labor, img, photos, sort, visible, sold_out, info,
                              opt_group, opt_label, addon_name, addon_price)
 select 'gift', v.name, v.weight_g, '24K', 'goods', 0, 0, 'store/12553693981.jpg', E'store/bean-pile.jpg\nstore/bean-tray.jpg',
-       v.sort, true, false, '{}'::jsonb, '순금 콩알금', v.opt_label, '유리케이스', 5000
+       v.sort, true, false, '{}'::jsonb, '순금 콩알금', v.opt_label, '유리케이스', 6000
   from (values
     ('순금 콩알금 0.1g', 0.1::numeric,   48, '0.1g'),
     ('순금 콩알금 반돈', 1.875::numeric, 50, '반돈'),
