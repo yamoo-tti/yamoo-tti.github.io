@@ -268,8 +268,8 @@
           </div>
         </div>
 
-        <h2 class="sub-head">매장 휴무일 (콩알금 주문 막힘)</h2>
-        <p class="desc">콩알금은 <b>평일 오전 9시~오후 6시</b>에만 주문을 받아요. 아래 날짜는 평일이어도 하루 종일 콩알금 주문이 막혀요. 2026~2027 공휴일은 미리 넣어 뒀어요. 임시 휴무일을 더하거나, 출근하는 공휴일은 × 로 빼 주세요.</p>
+        <h2 class="sub-head">매장 휴무일 (콩알금 품절 처리)</h2>
+        <p class="desc">콩알금은 <b>평일 오전 9시~오후 6시</b>에만 팔고, 그 밖의 시간에는 손님 화면에 자동으로 <b>품절</b>로 보여요 (판매 시간은 손님에게 따로 알리지 않아요). 아래 날짜는 평일이어도 하루 종일 품절이에요. 2026~2027 공휴일은 미리 넣어 뒀어요. 임시 휴무일을 더하거나, 출근하는 공휴일은 × 로 빼 주세요.</p>
         <div class="panel">
           <form class="hol-form" id="holForm"><input type="date" name="day" required aria-label="날짜"><input name="name" maxlength="30" placeholder="이름 (예: 임시 휴무)" aria-label="이름"><button class="btn btn--gold" type="submit">휴무일 추가</button></form>
           <ul class="hol-list" id="holList"></ul>
@@ -374,7 +374,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
-  <script src="common.js?v=20261112h"></script>
+  <script src="common.js?v=20261112i"></script>
   <script src="admin.js?v=20261112k"></script>
 </body>
 </html>

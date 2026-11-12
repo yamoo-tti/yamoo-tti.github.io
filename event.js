@@ -1,24 +1,19 @@
 /* 후기 이벤트 팝업 (첫 화면) — 관리자 > 시세 설정 '후기 이벤트'를 끄면 안 뜸 · '오늘 하루 보지 않기' */
 (function () {
-  const { sb, won, beanPopup } = window.YAMOO;
+  const { sb, won } = window.YAMOO;
   if (!sb) return;
-  if (new URLSearchParams(location.search).get("p")) return; // 상품 링크로 들어온 손님은 방해하지 않음
   const KEY = "keumbi_evt_hide";
   const today = new Date().toDateString();
-  // 후기 이벤트 팝업을 닫은 뒤(또는 이벤트가 없으면) 콩알금 주문 가능 시간 팝업
-  const busy = () => document.querySelector(".modal:not([hidden]), #searchPanel:not([hidden])");
-  const bean = () => { if (beanPopup && !busy()) beanPopup({ entry: true }); };
-  let hidden = false;
-  try { hidden = localStorage.getItem(KEY) === today; } catch { /* 저장이 막혀 있으면 그냥 보여줌 */ }
-  if (hidden) { setTimeout(bean, 1200); return; }
+  try { if (localStorage.getItem(KEY) === today) return; } catch { /* 저장이 막혀 있으면 그냥 보여줌 */ }
+  if (new URLSearchParams(location.search).get("p")) return; // 상품 링크로 들어온 손님은 방해하지 않음
 
   sb.from("shop_info").select("review_event,review_coupon,coupon_min,coupon_months").eq("id", 1).maybeSingle().then(({ data, error }) => {
-    if (error || !data || !data.review_event || !(data.review_coupon > 0)) { setTimeout(bean, 1200); return; }
+    if (error || !data || !data.review_event || !(data.review_coupon > 0)) return;
     setTimeout(() => show(data), 1200);
-  }, () => setTimeout(bean, 1200));
+  }, () => {});
 
   function show(c) {
-    if (busy()) return; // 다른 창을 보고 있으면 띄우지 않음
+    if (document.querySelector(".modal:not([hidden]), #searchPanel:not([hidden])")) return; // 다른 창을 보고 있으면 띄우지 않음
     const m = document.createElement("div");
     m.className = "modal evt-modal";
     m.innerHTML = `
@@ -42,7 +37,7 @@
       </div>`;
     document.body.appendChild(m);
     document.body.style.overflow = "hidden";
-    const close = () => { m.remove(); document.body.style.overflow = document.querySelector(".modal:not([hidden])") ? "hidden" : ""; document.removeEventListener("keydown", esc); setTimeout(bean, 300); };
+    const close = () => { m.remove(); document.body.style.overflow = document.querySelector(".modal:not([hidden])") ? "hidden" : ""; document.removeEventListener("keydown", esc); };
     const esc = e => { if (e.key === "Escape") close(); };
     document.addEventListener("keydown", esc);
     m.addEventListener("click", e => {

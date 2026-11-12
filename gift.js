@@ -103,13 +103,14 @@
     try {
       const [live, s] = await Promise.all([Y.fetchLive(), Y.fetchSettings()]);
       domestic = Y.computeDomestic(live, s);
+      Y.applyBeanHours(products); // 콩알금: 판매 시간 밖이면 품절
       render();
     } catch (e) { /* 시세를 못 받으면 '시세 확인 중' 표시 */ }
   }
   async function loadProducts() {
     if (!Y.sb) return;
     const { data, error } = await Y.sb.from("products").select("*").eq("visible", true).order("sort").order("created_at");
-    if (!error && data) { products = data; stats = await Y.loadStats(); render(); }
+    if (!error && data) { products = Y.applyBeanHours(data); stats = await Y.loadStats(); render(); }
   }
   setCat(location.hash.slice(1));
   loadProducts();
