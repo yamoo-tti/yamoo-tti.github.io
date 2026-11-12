@@ -1412,12 +1412,18 @@
 
   /* ---------- 시세 설정 ---------- */
   let liveCache = null;
+  const COST_ADD = ["cost_add_999", "cost_add_9999"];
+  let hasCostAdd = false, costAdd = { 999: 1000, 9999: 2000 };
   async function loadPrice() {
     const f = $("#settingsForm");
     const { data, error } = await sb.from("price_settings").select("*").eq("id", 1).maybeSingle();
     if (error) return fail(error);
     const s = { ...DEFAULT_SETTINGS, ...(data || {}) };
     Object.keys(DEFAULT_SETTINGS).forEach(k => { f[k].value = s[k]; });
+    // 적자 방지 원가 추가 금액 (cost-add.sql 실행 전이면 칸을 숨김)
+    hasCostAdd = !!data && "cost_add_999" in data;
+    $("#costAddSet").hidden = !hasCostAdd;
+    if (hasCostAdd) { COST_ADD.forEach(k => { f[k].value = data[k]; }); costAdd = { 999: Number(data.cost_add_999), 9999: Number(data.cost_add_9999) }; }
     $("#settingsMeta").textContent = data ? `최종 수정 ${fmtDate(data.updated_at)}` : "";
     try { liveCache = await fetchLive(); } catch { liveCache = null; }
     preview();
@@ -1436,9 +1442,9 @@
     const by = Object.fromEntries((sp || []).map(r => [r.metal, r]));
     const t = (sp || []).map(r => new Date(r.fetched_at)).sort((a, b) => b - a)[0];
     $("#lossTime").textContent = t ? fmtDate(t.toISOString()) + " 받음" : "";
-    $("#lossBase").innerHTML = `<tr><th></th><th>100% 기준 1g</th><th>1돈 원가 (×1.1 +1,000)</th><th>1g 원가 (×1.1)</th></tr>` + [["gold", "금 (순금)"], ["silver", "은"]].map(([k, n]) => {
+    $("#lossBase").innerHTML = `<tr><th></th><th>100% 기준 1g</th><th>1g 원가 (×1.1)</th><th>1돈 원가 (쓰리나인 +${won(costAdd[999])} · 포나인 +${won(costAdd[9999])})</th></tr>` + [["gold", "금 (순금)"], ["silver", "은"]].map(([k, n]) => {
       const r = by[k], d = r && Number(r.don_price);
-      return `<tr><td>${n}</td>${d ? `<td>${won(Math.round(d / 3.75))}</td><td><b>${won(Math.round(d * 1.1) + 1000)}</b></td><td>${won(Math.round(d / 3.75 * 1.1))}</td>` : `<td colspan="3" class="muted">받아 오는 중 (1분 뒤 새로고침)</td>`}</tr>`;
+      return `<tr><td>${n}</td>${d ? `<td>${won(Math.round(d / 3.75))}</td><td>${won(Math.round(d / 3.75 * 1.1))}</td><td><b>${won(Math.round(d * 1.1) + costAdd[999])} · ${won(Math.round(d * 1.1) + costAdd[9999])}</b></td>` : `<td colspan="3" class="muted">받아 오는 중 (1분 뒤 새로고침)</td>`}</tr>`;
     }).join("");
     $("#lossMeta").textContent = !t ? "" : Date.now() - t > 10 * 60 * 1000
       ? "⚠ 삼성 시세를 10분 넘게 못 받았어요. 마지막으로 받은 값으로 검사하고 있어요." : "1분마다 자동으로 새로 받아요.";
@@ -1540,7 +1546,9 @@
     e.preventDefault();
     const btn = e.target.querySelector("[type=submit]");
     btn.disabled = true;
-    const { error } = await sb.from("price_settings").update({ ...readSettings(), updated_at: new Date().toISOString(), updated_by: me.id }).eq("id", 1);
+    const f = e.target, extra = {};
+    if (hasCostAdd) COST_ADD.forEach(k => { const v = parseFloat(f[k].value); extra[k] = isNaN(v) || v < 0 ? (k === "cost_add_999" ? 1000 : 2000) : Math.round(v); });
+    const { error } = await sb.from("price_settings").update({ ...readSettings(), ...extra, updated_at: new Date().toISOString(), updated_by: me.id }).eq("id", 1);
     btn.disabled = false;
     if (error) return fail(error);
     domCache = null;
