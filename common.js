@@ -315,5 +315,43 @@
     </svg>`;
   }
 
-  window.YAMOO = { gradeBadge, GRADE_NAME, sizeUnit, sizeList, hasAddon, needsPick, leadTime, beanNote, orderClosed, isBean, pickLabel, sized, loadStats, rankProducts, groupOptions, optLabel, optPick, optTitle,trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
+  // 콩알금 주문 가능 시간 안내 팝업 (첫 화면 진입 · 주문 시간이 아닐 때 주문하려 할 때)
+  //   entry: true 면 '오늘 하루 보지 않기'를 보여 주고, 오늘 이미 숨겼으면 띄우지 않음
+  const BEAN_HIDE = "keumbi_bean_hide";
+  function beanPopup({ entry = false, onClose } = {}) {
+    const today = new Date().toDateString();
+    if (entry) { try { if (localStorage.getItem(BEAN_HIDE) === today) { if (onClose) onClose(); return; } } catch {} }
+    if (document.querySelector(".bean-pop")) return;
+    const open = beanOpen();
+    const m = document.createElement("div");
+    m.className = "modal evt-modal bean-pop";
+    m.innerHTML = `
+      <div class="modal__backdrop" data-bpx></div>
+      <div class="modal__box evt" role="dialog" aria-modal="true" aria-labelledby="beanPopTitle">
+        <button class="modal__x evt__x" data-bpx aria-label="닫기">×</button>
+        <div class="evt__top">
+          <p class="evt__eyebrow">GOLD BEAN</p>
+          <h2 id="beanPopTitle">순금 콩알금<br><b>주문 가능 시간</b></h2>
+        </div>
+        <div class="evt__body">
+          <p class="bean-pop__time">평일 오전 9시 ~ 오후 6시</p>
+          <p class="bean-pop__now${open ? " is-open" : ""}">${open ? "지금 주문할 수 있어요" : "지금은 주문 시간이 아니에요 · 가격 확인과 찜은 할 수 있어요"}</p>
+          <ul class="evt__note"><li>토·일요일과 공휴일·매장 휴무일은 주문을 받지 않아요</li><li>주문이 들어오면 그 시세로 바로 매입하는 방식이라</li><li>매장이 매입할 수 없는 시간에는 주문이 닫혀요</li></ul>
+          ${entry ? `<a class="btn btn--dark evt__go" href="./#bean" data-bpx>콩알금 보러 가기</a><button type="button" class="evt__hide" data-bphide>오늘 하루 보지 않기</button>`
+                  : `<button type="button" class="btn btn--dark evt__go" data-bpx>확인</button>`}
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+    document.body.style.overflow = "hidden";
+    const close = () => { m.remove(); document.body.style.overflow = document.querySelector(".modal:not([hidden])") ? "hidden" : ""; document.removeEventListener("keydown", key); if (onClose) onClose(); };
+    const key = e => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", key);
+    m.addEventListener("click", e => {
+      if (e.target.closest("[data-bphide]")) { try { localStorage.setItem(BEAN_HIDE, today); } catch {} close(); return; }
+      if (e.target.closest("[data-bpx]")) close();
+    });
+    m.querySelector(".evt__go").focus();
+  }
+
+  window.YAMOO = { gradeBadge, GRADE_NAME, sizeUnit, sizeList, hasAddon, needsPick, leadTime, beanNote, orderClosed, isBean, beanPopup, pickLabel, sized, loadStats, rankProducts, groupOptions, optLabel, optPick, optTitle,trackView, trackSearch, trackTerm, sb, OZ, DON, VAT, DEFAULT_SETTINGS, fetchLive, perDon, fetchSettings, computeDomestic, productPrice, ORDER_STATUS, SELL_STATUS, fmtPhone, fmtBiz, RECEIPT, COURIERS, trackUrl, esc, won, fmtDate, INFO_FIELDS, infoDefaults, productInfo };
 })();

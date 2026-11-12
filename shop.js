@@ -300,7 +300,7 @@
 
   window.openOrder = function (p) {
     if (!sb || !p.id) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
-    { const shut = Y.orderClosed(p); if (shut) { toast(shut); return; } }
+    if (Y.orderClosed(p)) { Y.beanPopup(); return; }
     window.YAMOO.trackView(p.id);
     current = p;
     const unit = window.SHOP.price(p);
@@ -395,7 +395,7 @@
   const keyOf = i => [i.id, i.size || "", i.addon ? 1 : 0].join("|");
   window.addToCart = function (p, pick) {
     if (!sb || !p.id) { toast(`전화로 주문해 주세요 · ${PHONE}`); return; }
-    { const shut = Y.orderClosed(p); if (shut) { toast(shut); return; } }
+    if (Y.orderClosed(p)) { Y.beanPopup(); return; }
     if (p.sold_out) { toast("품절된 상품이에요"); return; }
     if (!pick && Y.needsPick(p)) { openPick(p); return; }
     window.YAMOO.trackView(p.id);
@@ -546,7 +546,7 @@
     const items = cartItems.filter(i => window.SHOP.find(i.id)).map(i => ({ id: i.id, qty: i.qty, size: i.size || null, addon: !!i.addon }));
     if (!items.length) { renderCart(); return; }
     const shutP = cartItems.map(i => window.SHOP.find(i.id)).find(p => Y.orderClosed(p));
-    if (shutP) { toast(Y.orderClosed(shutP) + " · 콩알금을 빼면 다른 상품은 지금 주문할 수 있어요"); return; }
+    if (shutP) { Y.beanPopup(); toast("콩알금을 빼면 다른 상품은 지금 주문할 수 있어요"); return; }
     const engs = cartItems.filter(i => i.eng && canEngrave(window.SHOP.find(i.id)));
     const blank = engs.find(i => !String(i.etext || "").trim());
     if (blank) {
