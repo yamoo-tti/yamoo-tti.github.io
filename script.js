@@ -237,6 +237,8 @@ function renderFeature(key) {
     </button>`).join("");
   f("sel").innerHTML = `<b>${esc(Y.optLabel(p))}</b> 선택 · ${/g$/.test(Y.optLabel(p)) ? sub(p) : `${w}g`}${cfg.showName ? `<br><small>${esc(p.name)}</small>` : ""}`;
   f("price").textContent = p.sold_out ? "품절" : won(price);
+  const nn = Y.nightNote(p), ft = box.querySelector(".bean__foot span");
+  if (ft) { ft.textContent = nn ? `${nn.short} · 1분마다 갱신` : "오늘 시세 기준 · 1분마다 갱신"; ft.classList.toggle("is-night", !!(nn && nn.on)); }
   const cart = f("cart"), buy = f("buy");
   cart.dataset.cart = orderKey(p); buy.dataset.order = orderKey(p); f("info").dataset.info = orderKey(p);
   cart.disabled = buy.disabled = !!p.sold_out;
@@ -559,6 +561,8 @@ function renderPd() {
   if (window.renderReviews) window.renderReviews(p, opts);
   pdWishBtn();
   pdSizeGuide(p);
+  const nn = Y.nightNote(p), nEl = $("#pdNight");
+  if (nEl) { nEl.hidden = !nn; nEl.className = "pd__night" + (nn && nn.on ? " is-on" : ""); nEl.textContent = nn ? nn.text : ""; }
   const lt = Y.leadTime(p), ltEl = $("#pdLead");
   if (ltEl) { ltEl.hidden = !lt; ltEl.className = "pd__lead" + (lt && lt.slow ? " is-slow" : ""); ltEl.textContent = lt ? lt.text : ""; }
   // 검색엔진·카톡 공유용 제목·설명·상품 정보

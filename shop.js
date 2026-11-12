@@ -306,7 +306,7 @@
     const name = p.kind === "zodiac" ? `GBK 카드형 골드바 1g (${p.name})` : p.name;
     $("#orderItem").innerHTML = `
       <img src="${esc(/^https?:/.test(p.img || "") ? p.img : "images/" + (p.img || "bar-close.jpg"))}" alt="">
-      <div><b>${esc(name)}</b><span>${unit ? won(unit) + " / 개 · 현재 시세 기준" : "가격 매장 문의"}</span>${(lt => lt ? `<em class="lead${lt.slow ? " is-slow" : ""}">${esc(lt.text)}</em>` : "")(Y.leadTime(p))}</div>`;
+      <div><b>${esc(name)}</b><span>${unit ? won(unit) + " / 개 · 현재 시세 기준" : "가격 매장 문의"}</span>${(lt => lt ? `<em class="lead${lt.slow ? " is-slow" : ""}">${esc(lt.text)}</em>` : "")(Y.leadTime(p))}${(nn => nn && nn.on ? `<em class="lead is-night">${esc(nn.short)}</em>` : "")(Y.nightNote(p))}</div>`;
     $("#orderInfo").open = false;
     $("#orderInfoBody").innerHTML = infoTable(p);
     orderForm.reset();
