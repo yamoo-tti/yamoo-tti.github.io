@@ -1,7 +1,7 @@
--- 2026-11-12 적자 방지 원가를 '삼성금거래소 실시간 도매가 × 1.1(부가세)'로 바꿈 (loss-guard.sql 다음에 실행)
---   · 1분마다 https://www.samsunggold.co.kr 의 실시간 시세(금·은 1돈 도매가, 부가세 별도)를 받아 둠
---   · 원가: 금 상품 = 삼성 금 1돈 × 1.1 ÷ 3.75 × 금 함량(g)  (24K·골드바·카드형 100%, 18K 75%, 14K 58.5%)
---           은 상품 = 삼성 은 1돈 × 1.1 ÷ 3.75 × 중량(g)      (실버바·실버 주얼리)
+-- 2026-11-12 적자 방지 원가 = 삼성금거래소 실시간 '100% 기준' 시세 × 1.1(부가세) + 1,000원 (상품 1개당) (loss-guard.sql 다음에 실행)
+--   · 1분마다 https://www.samsunggold.co.kr 의 실시간 100% 기준가(금·은 1g)를 받아 1돈(×3.75)으로 저장
+--   · 원가: 금 상품 = 삼성 금 100% 1g × 금 함량(g) × 1.1 + 1,000원  (24K·골드바·카드형 100%, 18K 75%, 14K 58.5%)
+--           은 상품 = 삼성 은 100% 1g × 중량(g) × 1.1 + 1,000원      (실버바·실버 주얼리)
 --   · 모든 노출 상품(골드바·콩알금·주얼리·순금선물·실버)을 검사. 숨김 상품은 검사 안 함
 --   · 막는 것: 저장 결과가 적자인데 가격을 '내리는' 변경 (새 상품·숨김→노출·시세 대비 %·공임·중량 낮추기, 시세 마진 낮추기)
 --     이미 적자인 상품의 가격을 '올리는' 저장은 허용 (조금씩 고쳐 나갈 수 있게)
@@ -9,7 +9,7 @@
 
 create table if not exists public.supplier_prices (
   metal      text primary key,          -- 'gold' / 'silver'
-  don_price  numeric not null,          -- 삼성금거래소 1돈(3.75g) 도매가, 부가세 별도
+  don_price  numeric not null,          -- 삼성금거래소 100% 기준가 1돈(3.75g), 부가세 별도
   src_date   text,                      -- 삼성 쪽 기준 날짜
   fetched_at timestamptz not null
 );
@@ -31,9 +31,9 @@ begin
   for r in select f.id, h.status_code, h.content from public.supplier_fetches f join net._http_response h on h.id = f.id loop
     begin
       if r.status_code = 200 then
-        j := r.content::jsonb -> 'domesticData';
-        g := nullif(replace(j ->> 'gold375', ',', ''), '')::numeric;
-        s := nullif(replace(j ->> 'silver375', ',', ''), '')::numeric;
+        j := r.content::jsonb #> '{data,hundredPercentStandardPriceDTO}';   -- 100% 기준가 (1g, 부가세 별도)
+        g := nullif(replace(j ->> 'gold', ',', ''), '')::numeric * 3.75;
+        s := nullif(replace(j ->> 'silver', ',', ''), '')::numeric * 3.75;
         if g > 100000 then
           insert into public.supplier_prices values ('gold', g, j ->> 'date', now())
           on conflict (metal) do update set don_price = excluded.don_price, src_date = excluded.src_date, fetched_at = excluded.fetched_at;
@@ -54,6 +54,11 @@ revoke all on function public.refresh_supplier_prices() from public, anon, authe
 
 select cron.unschedule('keumbi-samsung-price') where exists (select 1 from cron.job where jobname = 'keumbi-samsung-price');
 select cron.schedule('keumbi-samsung-price', '* * * * *', 'select public.refresh_supplier_prices()');
+-- 예전(도매가)으로 받아 둔 값이 있으면 지금 바로 100% 기준가로 바꿔 둠 (실행 시점 값 · 이후 1분마다 자동 갱신)
+insert into public.supplier_prices values
+  ('gold', 170280 * 3.75, '2026-11-12', now() - interval '1 hour'),
+  ('silver', 2208 * 3.75, '2026-11-12', now() - interval '1 hour')
+on conflict (metal) do update set don_price = excluded.don_price, src_date = excluded.src_date, fetched_at = excluded.fetched_at;
 select public.refresh_supplier_prices();
 
 -- 상품 1개의 지금 판매가와 삼성금거래소 기준 원가 (계산할 수 없으면 null)
@@ -69,7 +74,7 @@ begin
   if don is null then return; end if;
   price := public.quote_price(p);           -- 우리 시세가 10분 넘게 안 들어왔으면 null → 검사 건너뜀
   if price is null then return; end if;
-  cost := round(don * 1.1 / 3.75 * pure);
+  cost := round(don / 3.75 * pure * 1.1) + 1000;   -- 100% 기준가 × 함량 × 1.1 + 1,000원
 end $$;
 revoke all on function public.loss_info(public.products) from public, anon, authenticated;
 

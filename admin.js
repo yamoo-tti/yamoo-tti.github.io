@@ -1436,9 +1436,9 @@
     const by = Object.fromEntries((sp || []).map(r => [r.metal, r]));
     const t = (sp || []).map(r => new Date(r.fetched_at)).sort((a, b) => b - a)[0];
     $("#lossTime").textContent = t ? fmtDate(t.toISOString()) + " 받음" : "";
-    $("#lossBase").innerHTML = `<tr><th></th><th>1돈 도매가</th><th>× 1.1 (1돈 원가)</th><th>1g 원가</th></tr>` + [["gold", "금 (순금)"], ["silver", "은"]].map(([k, n]) => {
+    $("#lossBase").innerHTML = `<tr><th></th><th>100% 기준 1g</th><th>1돈 원가 (×1.1 +1,000)</th><th>1g 원가 (×1.1)</th></tr>` + [["gold", "금 (순금)"], ["silver", "은"]].map(([k, n]) => {
       const r = by[k], d = r && Number(r.don_price);
-      return `<tr><td>${n}</td>${d ? `<td>${won(d)}</td><td><b>${won(Math.round(d * 1.1))}</b></td><td>${won(Math.round(d * 1.1 / 3.75))}</td>` : `<td colspan="3" class="muted">받아 오는 중 (1분 뒤 새로고침)</td>`}</tr>`;
+      return `<tr><td>${n}</td>${d ? `<td>${won(Math.round(d / 3.75))}</td><td><b>${won(Math.round(d * 1.1) + 1000)}</b></td><td>${won(Math.round(d / 3.75 * 1.1))}</td>` : `<td colspan="3" class="muted">받아 오는 중 (1분 뒤 새로고침)</td>`}</tr>`;
     }).join("");
     $("#lossMeta").textContent = !t ? "" : Date.now() - t > 10 * 60 * 1000
       ? "⚠ 삼성 시세를 10분 넘게 못 받았어요. 마지막으로 받은 값으로 검사하고 있어요." : "1분마다 자동으로 새로 받아요.";
