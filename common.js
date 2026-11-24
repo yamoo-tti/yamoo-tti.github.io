@@ -229,16 +229,23 @@
   };
   const optPick = (opts, id) => opts.find(p => p.id === id) || opts.find(p => !p.sold_out) || opts[0];
   const optTitle = (opts, p) => opts.length > 1 ? String(p.opt_group).trim() : p.name;
+  // 사장님 기기: 관리자 페이지에 한 번이라도 들어간 기기는 방문·조회·검색 기록에서 빠짐
+  const isOwner = (() => {
+    try {
+      if (/admin/.test(location.pathname)) localStorage.setItem("keumbi_owner", "1");
+      return localStorage.getItem("keumbi_owner") === "1";
+    } catch { return false; }
+  })();
   // 조회 1번 기록 (같은 상품은 이 브라우저에서 하루 1번만)
   function trackView(id) {
-    if (!sb || !id || String(id).startsWith("idx:")) return;
+    if (isOwner || !sb || !id || String(id).startsWith("idx:")) return;
     const k = "keumbi_v_" + id, today = new Date().toDateString();
     try { if (localStorage.getItem(k) === today) return; localStorage.setItem(k, today); } catch { /* 저장이 막혀 있으면 그냥 기록 */ }
     sb.rpc("bump_view", { p_id: id }).then(() => {}, () => {});
   }
   // 검색 결과에서 상품을 누름 1번 기록 (같은 상품은 이 브라우저에서 하루 1번만)
   function trackSearch(id) {
-    if (!sb || !id || String(id).startsWith("idx:")) return;
+    if (isOwner || !sb || !id || String(id).startsWith("idx:")) return;
     const k = "keumbi_s_" + id, today = new Date().toDateString();
     try { if (localStorage.getItem(k) === today) return; localStorage.setItem(k, today); } catch { /* 저장이 막혀 있으면 그냥 기록 */ }
     sb.rpc("bump_search", { p_id: id }).then(() => {}, () => {});
@@ -248,14 +255,14 @@
   const loggedTerms = new Set();
   function trackTerm(term, results) {
     const t = String(term || "").trim().toLowerCase().replace(/\s+/g, " ");
-    if (!sb || t.length < 1 || t.length > 30 || loggedTerms.has(t)) return;
+    if (isOwner || !sb || t.length < 1 || t.length > 30 || loggedTerms.has(t)) return;
     loggedTerms.add(t);
     sb.rpc("track_search_term", { p_term: t, p_results: results | 0 }).then(() => {}, () => {});
   }
 
   // 방문자 기록: 하루·유입경로·기기별 숫자만 (같은 브라우저는 하루 1번, 개인정보 없음)
   function trackVisit() {
-    if (!sb || /admin/.test(location.pathname)) return;
+    if (isOwner || !sb || /admin/.test(location.pathname)) return;
     const today = new Date().toDateString();
     try { if (localStorage.getItem("keumbi_visit") === today) return; localStorage.setItem("keumbi_visit", today); } catch { return; }
     const q = new URLSearchParams(location.search);
