@@ -395,7 +395,7 @@ ul, ol { padding: 0; list-style: none; }
   .steps { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 860px) {
-  .util__links a:nth-child(n+3) { display: none; }
+  .util__links a:nth-child(n+3):not(.util__admin) { display: none; }
   .util__call span { display: none; }
   .nav { display: none; }
   .menu-toggle { display: grid; margin-left: -10px; }
