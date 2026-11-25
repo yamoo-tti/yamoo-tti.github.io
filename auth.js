@@ -104,6 +104,30 @@
     else setMsg("가입 확인 메일을 보냈습니다. 메일의 링크를 눌러 인증을 완료해 주세요.");
   });
 
+  // 카카오로 시작하기 — 카카오 로그인 후 이 페이지로 돌아옴
+  $("#kakaoBtn").addEventListener("click", async () => {
+    try { sessionStorage.setItem("kakaoLogin", new URLSearchParams(location.search).get("next") || "1"); } catch (_) {}
+    setMsg("카카오로 이동 중…");
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: "kakao",
+      options: { redirectTo: location.origin + location.pathname },
+    });
+    if (error) setMsg("카카오 로그인을 시작하지 못했어요. 잠시 후 다시 시도해 주세요.", true);
+  });
+
+  // 카카오에서 돌아온 직후 처리
+  async function afterKakao(session, ok) {
+    let flag = null;
+    try { flag = sessionStorage.getItem("kakaoLogin"); sessionStorage.removeItem("kakaoLogin"); } catch (_) {}
+    if (!flag) return;
+    const q = new URLSearchParams(location.search + "&" + location.hash.slice(1));
+    if (q.get("error")) { toast("카카오 로그인이 취소되었거나 실패했어요"); return; }
+    if (!session || !ok) return;
+    sb.from("profiles").update({ last_login_at: new Date().toISOString() }).eq("id", session.user.id).then(() => {});
+    toast("로그인되었습니다");
+    if (flag === "my-orders") location.href = "my-orders.html";
+  }
+
   $("#resetBtn").addEventListener("click", async () => {
     const email = $("#loginForm").email.value.trim();
     if (!email) { setMsg("이메일을 먼저 입력해 주세요.", true); return; }
@@ -112,7 +136,7 @@
   });
 
   if (sb) {
-    sb.auth.getSession().then(({ data }) => sync(data.session));
+    sb.auth.getSession().then(async ({ data }) => afterKakao(data.session, await sync(data.session)));
     if (location.hash === "#login") open("login"); // 주문내역 페이지에서 로그인하러 온 경우
     sb.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_OUT") renderNav(null);

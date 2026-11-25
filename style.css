@@ -130,6 +130,11 @@ ul, ol { padding: 0; list-style: none; }
 .auth-form .check input { margin-top: 3px; accent-color: var(--gold-2); }
 .auth-form .btn { margin-top: 6px; height: 50px; }
 .auth-form .btn:disabled { opacity: .6; cursor: wait; }
+.auth-sns { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.auth-or { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+.auth-or::before, .auth-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.btn-kakao { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border: 0; border-radius: 6px; background: #FEE500; color: rgba(0,0,0,.85); font-size: 15px; font-weight: 600; cursor: pointer; }
+.btn-kakao:hover { filter: brightness(.97); }
 .auth-link { font-size: 13px; color: var(--muted); text-decoration: underline; align-self: center; }
 .auth-msg { margin-top: 14px; font-size: 13px; color: var(--gold-2); min-height: 18px; text-align: center; }
 .auth-msg.is-error { color: var(--up); }
