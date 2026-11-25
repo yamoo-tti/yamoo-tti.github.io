@@ -860,6 +860,7 @@
   const perDonOf = p => Number(p.weight_g) > 0 ? Number(p.labor || 0) / Number(p.weight_g) * 3.75 : 0;
   function adjLabel(p) {
     const a = [];
+    if (p.margin_pct != null) return "원가 기준 이익 " + Number(p.margin_pct) + "%";
     if (Number(p.premium_pct)) a.push("+" + Number(p.premium_pct) + "%");
     if (Number(p.labor)) a.push(Number(p.weight_g) < 3.75 ? "공임 " + won(Number(p.labor)) : "돈당 " + won(Math.round(perDonOf(p) / 100) * 100));
     return a.join(" · ") || "-";
@@ -950,6 +951,7 @@
       </div>
       <div class="row2">
         <label>시세 대비 더하기 (%) <small>금·은 시세 금액에 더할 비율</small><input type="number" name="premium_pct" step="any" value="${p.premium_pct}"></label>
+        ${products.some(x => "margin_pct" in x) ? `<label>원가 기준 이익률 (%) <small>넣으면 삼성 원가 ÷ (1 − 이익률)로 가격을 정해요 · 비우면 안 씀 (지금은 콩알금)</small><input type="number" name="margin_pct" min="0" max="89" step="any" value="${p.margin_pct ?? ""}" placeholder="예) 3"></label>` : ""}
         <label>공임 (원) <small id="laborDon">손님 화면엔 안 보여요</small>
           <span class="labor-in"><select name="labor_mode" aria-label="공임 입력 방식"><option value="don"${laborMode() === "don" ? " selected" : ""}>1돈당</option><option value="total"${laborMode() === "total" ? " selected" : ""}>총 공임</option></select><input type="number" name="labor_in" min="0" step="100" value="${laborMode() === "don" ? perDonOf(p) ? Math.round(perDonOf(p) / 100) * 100 : 0 : Number(p.labor) || 0}" aria-label="공임 금액"></span>
           <input type="hidden" name="labor" value="${Number(p.labor) || 0}"></label>
@@ -1032,7 +1034,7 @@
           try {
             const d = await domestic();
             const w = Number(f.weight_g.value);
-            $("#pricePreview").textContent = w > 0 ? won(productPrice({ kind: k, weight_g: w, karat: f.karat.value, premium_pct: f.premium_pct.value, labor: f.labor.value }, d)) : "-";
+            $("#pricePreview").textContent = w > 0 ? won(productPrice({ kind: k, weight_g: w, karat: f.karat.value, premium_pct: f.premium_pct.value, labor: f.labor.value, margin_pct: f.margin_pct ? f.margin_pct.value : null }, d)) : "-";
           } catch { $("#pricePreview").textContent = "시세 확인 불가"; }
         };
         f.labor_mode.dataset.prev = f.labor_mode.value;
@@ -1064,6 +1066,8 @@
           tag: f.tag.value.trim() || null, sort: parseInt(f.sort.value, 10) || 0,
           visible: f.visible.checked, sold_out: f.sold_out.checked,
           sizes: f.sizes.value.split(",").map(s => s.trim()).filter(Boolean).join(",") || null,
+          // bean-margin.sql 실행 전에는 칸이 없으니 보내지 않음
+          ...(f.margin_pct ? { margin_pct: f.margin_pct.value === "" ? null : Number(f.margin_pct.value) } : {}),
           // size-weight.sql 실행 전에는 칸이 없으니 보내지 않음
           ...(products.some(x => "base_size" in x) ? { base_size: Number(f.base_size.value) > 0 ? Number(f.base_size.value) : null } : {}),
           // reviews-restock.sql 실행 전에는 칸이 없으니 보내지 않음

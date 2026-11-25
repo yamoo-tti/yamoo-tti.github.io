@@ -24,7 +24,10 @@
   // 국제 시세 — 원화(KRW/oz)로 바로 받음. 실시간 원/달러 환율 포함
   async function fetchLive() {
     const syms = ["XAU", "XAG", "XPT", "XPD"];
-    const metals = await Promise.all(syms.map(s => getJSON(`https://api.gold-api.com/price/${s}/KRW`)));
+    const [metals, sup] = await Promise.all([
+      Promise.all(syms.map(s => getJSON(`https://api.gold-api.com/price/${s}/KRW`))),
+      fetchSupplier(),
+    ]);
     let krw = Number(metals[0].exchangeRate);
     if (!krw) {
       const fx = await getJSON("https://open.er-api.com/v6/latest/USD");
@@ -33,7 +36,18 @@
     const usd = {};
     metals.forEach(m => { usd[m.symbol] = Number(m.price) / (Number(m.exchangeRate) || krw); });
     if (!usd.XAU || !krw) throw new Error("시세 응답 형식 오류");
-    return { usd, krw, updatedAt: new Date(metals[0].updatedAt) };
+    return { usd, krw, sup, updatedAt: new Date(metals[0].updatedAt) };
+  }
+
+  // 삼성금거래소 100% 기준가 1돈(부가세 별도) — 원가 기준 이익률 상품(콩알금)에 씀. 30분 넘게 안 바뀌었으면 안 씀 (supabase quote_price 와 같은 규칙)
+  async function fetchSupplier() {
+    if (!sb) return null;
+    try {
+      const { data } = await sb.from("supplier_prices").select("metal,don_price,fetched_at");
+      const sup = {};
+      (data || []).forEach(r => { if (Date.now() - new Date(r.fetched_at) < 30 * 60000) sup[r.metal] = Number(r.don_price); });
+      return sup.gold || sup.silver ? sup : null;
+    } catch { return null; }
   }
 
   // 국제 시세를 원화 1돈(3.75g) 가격으로 환산
@@ -45,6 +59,8 @@
     if (error || !data) return { ...DEFAULT_SETTINGS };
     const s = { ...DEFAULT_SETTINGS };
     Object.keys(DEFAULT_SETTINGS).forEach(k => { if (data[k] != null) s[k] = Number(data[k]); });
+    if (data.cost_add_999 != null) s.cost_add_999 = Number(data.cost_add_999);
+    if (data.cost_add_9999 != null) s.cost_add_9999 = Number(data.cost_add_9999);
     return s;
   }
 
@@ -92,6 +108,8 @@
     const gold = perDon(live, "XAU"), pt = perDon(live, "XPT"), ag = perDon(live, "XAG");
     const goldSell = gold * (1 + s.gold_sell_pct / 100);
     return {
+      sup: live.sup || null,
+      costAdd: { 999: s.cost_add_999 ?? 1000, 9999: s.cost_add_9999 ?? 2000 },
       base: { gold, pt, ag },
       items: [
         { key: "24k", name: "순금 24K", sub: "99.99%", buy: r100(gold * (1 + s.gold_buy_pct / 100) * VAT), sell: r100(goldSell) },
@@ -107,10 +125,23 @@
   //   시세: 골드바·카드형·순금 24K = 순금 살 때 / 실버바·실버 주얼리 = 은 살 때 / 18K·14K = 해당 함량 팔 때 × 1.3
   //   끝자리: 골드바·카드형·실버바(그래뉼) 1,000원 단위 올림, 주얼리·순금선물 1,000원 단위 반올림
   //  ※ supabase quote_price 와 같은 식 유지
+  //  ※ 원가 기준 이익률(margin_pct)이 있는 상품(콩알금): 판매가 = 삼성 원가 ÷ (1 − 이익률), 1,000원 올림
+  //     원가 = 삼성 100% 기준가 1g × 순금 함량 × 1.1 + 개당 추가(쓰리나인 1,000 / 포나인 2,000) — 삼성 시세가 없으면 아래 예전 식
   const up1000 = x => Math.ceil(Math.round(x) / 1000) * 1000;
   function productPrice(p, d) {
     const g = key => d.items.find(i => i.key === key);
     const w = Number(p.weight_g), l = Number(p.labor || 0);
+    const m = p.margin_pct === "" || p.margin_pct == null ? null : Number(p.margin_pct);
+    if (m != null && m >= 0 && m < 90 && d.sup) {
+      const kt = String(p.karat).toUpperCase(), silver = p.kind === "silver" || kt === "SV";
+      const pure = silver || ["bar", "zodiac"].includes(p.kind) || kt === "24K" ? 1 : kt === "18K" ? 0.75 : kt === "14K" ? 0.585 : null;
+      const don = d.sup[silver ? "silver" : "gold"];
+      if (pure && don) {
+        const fourNine = ["bar", "zodiac", "silver"].includes(p.kind);
+        const cost = Math.round(don / DON * w * pure * VAT) + (fourNine ? d.costAdd[9999] : d.costAdd[999]);
+        return up1000(cost / (1 - m / 100));
+      }
+    }
     const k = 1 + Number(p.premium_pct || 0) / 100;
     if (p.kind === "silver") return up1000(g("ag").buy / DON * w * k + l);
     if (p.kind === "accessory" || p.kind === "gift") {
