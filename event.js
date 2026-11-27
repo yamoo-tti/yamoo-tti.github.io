@@ -31,7 +31,7 @@
             <li><b>3</b><span>등록 즉시 쿠폰 지급</span></li>
           </ol>
           <ul class="evt__note"><li>홈페이지 주문 전용 · 골드바·실버바 제외</li>${c.coupon_min ? `<li>상품 금액 ${won(c.coupon_min)} 이상 주문에 사용</li>` : ""}<li>받은 날부터 ${c.coupon_months || 3}개월 안에 사용 · 주문 1건당 후기 1개</li></ul>
-          <a class="btn btn--dark evt__go" href="my-orders.html#review">후기 쓰러 가기</a>
+          <a class="btn btn--dark evt__go" href="my-orders#review">후기 쓰러 가기</a>
           <button type="button" class="evt__hide" data-evhide>오늘 하루 보지 않기</button>
         </div>
       </div>`;

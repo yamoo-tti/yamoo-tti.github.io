@@ -42,12 +42,12 @@
 
   function renderNav(profile) {
     if (!profile) {
-      nav.innerHTML = `<button type="button" data-open="login">로그인</button><button type="button" data-open="signup">회원가입</button><a href="my-orders.html">주문내역</a><a href="faq.html">고객센터</a>`;
+      nav.innerHTML = `<button type="button" data-open="login">로그인</button><button type="button" data-open="signup">회원가입</button><a href="my-orders">주문내역</a><a href="faq">고객센터</a>`;
       return;
     }
     const admin = profile.role === "admin" ? `<a href="admin.html" class="util__admin">관리자</a>` : "";
-    const badge = `<a href="my-orders.html#benefits" class="util__grade" title="${GRADE_NAME[profile.grade] || "브론즈"} 등급 · 혜택 보기">${gradeBadge(profile.grade)}</a>`;
-    nav.innerHTML = `${badge}<span class="util__me"><b>${esc(profile.name || profile.email)}</b>님</span>${admin}<button type="button" id="logoutBtn">로그아웃</button><a href="my-orders.html">주문내역</a><a href="faq.html">고객센터</a>`;
+    const badge = `<a href="my-orders#benefits" class="util__grade" title="${GRADE_NAME[profile.grade] || "브론즈"} 등급 · 혜택 보기">${gradeBadge(profile.grade)}</a>`;
+    nav.innerHTML = `${badge}<span class="util__me"><b>${esc(profile.name || profile.email)}</b>님</span>${admin}<button type="button" id="logoutBtn">로그아웃</button><a href="my-orders">주문내역</a><a href="faq">고객센터</a>`;
   }
 
   async function loadProfile(user) {
@@ -80,7 +80,7 @@
     if (ok) {
       sb.from("profiles").update({ last_login_at: new Date().toISOString() }).eq("id", data.user.id).then(() => {});
       close(); f.reset(); toast("로그인되었습니다");
-      if (new URLSearchParams(location.search).get("next") === "my-orders") location.href = "my-orders.html";
+      if (new URLSearchParams(location.search).get("next") === "my-orders") location.href = "my-orders";
     }
   });
 
@@ -125,7 +125,7 @@
     if (!session || !ok) return;
     sb.from("profiles").update({ last_login_at: new Date().toISOString() }).eq("id", session.user.id).then(() => {});
     toast("로그인되었습니다");
-    if (flag === "my-orders") location.href = "my-orders.html";
+    if (flag === "my-orders") location.href = "my-orders";
   }
 
   $("#resetBtn").addEventListener("click", async () => {

@@ -24,7 +24,7 @@
           <span class="mo__code">${esc(r.code)}</span>
           <span class="mo__amt">${r.amount ? won(r.amount) : isO ? "금액 확정 전" : "감정 전"}</span>
         </div>
-        ${waiting ? `<div class="mo__wait"><span><b data-deadline="${esc(r.deadline)}">--:--</b> 안에 입금해 주세요 (${hm(r.deadline)}까지)</span><a class="btn btn--dark" href="order-done.html?code=${encodeURIComponent(r.code)}">입금 정보 보기</a></div>` : ""}
+        ${waiting ? `<div class="mo__wait"><span><b data-deadline="${esc(r.deadline)}">--:--</b> 안에 입금해 주세요 (${hm(r.deadline)}까지)</span><a class="btn btn--dark" href="order-done?code=${encodeURIComponent(r.code)}">입금 정보 보기</a></div>` : ""}
         ${isO && r.tracking_no ? `<div class="mo__ship"><span>${esc(r.courier || "택배")} <b>${esc(r.tracking_no)}</b></span><a class="btn btn--line" href="${esc(trackUrl(r.courier, r.tracking_no))}" target="_blank" rel="noopener">배송 조회</a></div>` : ""}
         ${isO && r.status === "canceled" ? `<p class="mo__note">입금 기한이 지났거나 취소된 주문이에요.</p>` : ""}
         ${reviewBtns(r)}

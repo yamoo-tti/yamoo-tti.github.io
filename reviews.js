@@ -187,7 +187,7 @@
     if (cp) {
       const amt = Number(cp[1]).toLocaleString() + "원";
       window.renderReviews(cur, curOpts, true).then(() => {
-        box.insertAdjacentHTML("afterbegin", `<div class="rv__gift">🎁 후기 감사 쿠폰 <b>${amt}</b>을 드렸어요! <a href="my-orders.html#benefits">내 쿠폰 보기</a> · 다음 홈페이지 주문 때 쓸 수 있어요.</div>`);
+        box.insertAdjacentHTML("afterbegin", `<div class="rv__gift">🎁 후기 감사 쿠폰 <b>${amt}</b>을 드렸어요! <a href="my-orders#benefits">내 쿠폰 보기</a> · 다음 홈페이지 주문 때 쓸 수 있어요.</div>`);
       });
       toast(`후기 등록 완료! ${amt} 쿠폰을 드렸어요`);
       return;

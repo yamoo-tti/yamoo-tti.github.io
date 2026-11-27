@@ -1,8 +1,8 @@
 User-agent: *
 Allow: /
-Disallow: /admin.html
-Disallow: /order-done.html
-Disallow: /my-orders.html
+Disallow: /admin
+Disallow: /order-done
+Disallow: /my-orders
 Disallow: /test/
 
 Sitemap: https://keumbigold.com/sitemap.xml

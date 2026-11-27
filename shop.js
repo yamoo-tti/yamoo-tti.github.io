@@ -355,7 +355,7 @@
       const pname = withPick(current.kind === "zodiac" ? `GBK 카드형 골드바 1g (${current.name})` : current.name, current, pickOf(f));
       try { sessionStorage.setItem("keumbi_order_" + r.code, JSON.stringify({ ...r, product: pname, qty, receive: f.receive.value })); }
       catch { /* 저장이 막힌 브라우저면 완료 페이지에서 연락처로 다시 확인 */ }
-      location.href = "order-done.html?code=" + encodeURIComponent(r.code);
+      location.href = "order-done?code=" + encodeURIComponent(r.code);
       return;
     }
     f.hidden = true;
@@ -571,7 +571,7 @@
       }));
     } catch {}
     cartItems = []; saveCart();
-    location.href = "order-done.html?code=" + encodeURIComponent(r.code);
+    location.href = "order-done?code=" + encodeURIComponent(r.code);
   });
   updateCartBadge();
 
